@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import getpass
 import os
 import shutil
 import socket
@@ -14,6 +15,7 @@ APP_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_APP_DIR", APP_ROOT / "app"))
 SOURCE_ROOT = Path("/root/promocaster-control")
 CONFIG_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_CONFIG_DIR", "/etc/promocaster-control"))
 CONFIG_PATH = Path(os.environ.get("PROMOCASTER_CONTROL_CONFIG_PATH", CONFIG_DIR / "config.env"))
+BASIC_AUTH_CONFIG = Path(os.environ.get("PROMOCASTER_CONTROL_BASIC_AUTH_CONFIG", CONFIG_DIR / "basic-auth.caddy"))
 SOURCE_ROOT_FILE = Path(os.environ.get("PROMOCASTER_CONTROL_SOURCE_ROOT_FILE", CONFIG_DIR / "source-root"))
 DATA_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_DATA_DIR", "/var/lib/promocaster-control"))
 SSH_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_SSH_DIR", DATA_DIR / "ssh"))
@@ -260,6 +262,7 @@ def sync_systemd_and_caddy() -> list[str]:
     caddy_text = caddy_source.read_text(encoding="utf-8")
     caddy_text = caddy_text.replace("__SITE__", site)
     caddy_text = caddy_text.replace("__UPSTREAM__", f"{bind}:{port}")
+    caddy_text = caddy_text.replace("__BASIC_AUTH_CONFIG__", str(BASIC_AUTH_CONFIG))
     CADDY_CONFIG.write_text(caddy_text, encoding="utf-8")
     Path("/etc/caddy/Caddyfile").write_text("{\n    admin localhost:2019\n}\n\nimport /etc/caddy/*.conf\n", encoding="utf-8")
     run(["caddy", "validate", "--config", "/etc/caddy/Caddyfile"])
@@ -340,6 +343,14 @@ def collect_checks() -> list[Check]:
     build_size = directory_size(BUILD_DIR)
     checks.append(Check("Storage", "temp builds", "warn" if build_size > BUILD_WARN_BYTES else "ok", format_bytes(build_size), "validation build output should be cleaned up" if build_size > BUILD_WARN_BYTES else None))
 
+    auth_text = BASIC_AUTH_CONFIG.read_text(encoding="utf-8") if BASIC_AUTH_CONFIG.exists() else ""
+    auth_configured = ("basic_auth" in auth_text or "basicauth" in auth_text) and "respond " not in auth_text
+    checks.append(Check("Auth", "basic auth snippet", "ok" if BASIC_AUTH_CONFIG.exists() else "fail", str(BASIC_AUTH_CONFIG), None if BASIC_AUTH_CONFIG.exists() else "run promocaster-control basic-auth set <user>"))
+    checks.append(Check("Auth", "basic auth configured", "ok" if auth_configured else "fail", "configured" if auth_configured else "placeholder or missing", None if auth_configured else "run promocaster-control basic-auth set <user> before exposing the public site"))
+    if CADDY_CONFIG.exists():
+        caddy_text = CADDY_CONFIG.read_text(encoding="utf-8")
+        checks.append(Check("Auth", "Caddy imports auth", "ok" if str(BASIC_AUTH_CONFIG) in caddy_text else "fail", str(CADDY_CONFIG), None if str(BASIC_AUTH_CONFIG) in caddy_text else "run promocaster-control repair"))
+
     public_ok, public_detail = github_key_public_text()
     auth_status, auth_detail = github_ssh_auth_detail() if GITHUB_KEY.exists() else ("fail", "missing key")
     key_mode = path_mode(GITHUB_KEY)
@@ -394,7 +405,7 @@ def print_checks(checks: list[Check]) -> int:
     print("Doctor Report")
     print("=============")
     print(f"Config: {CONFIG_PATH}")
-    for section in ("Runtime", "Storage", "Services", "TLS", "GitHub Writer", "Update Path"):
+    for section in ("Runtime", "Storage", "Services", "TLS", "Auth", "GitHub Writer", "Update Path"):
         rows = [check for check in checks if check.section == section]
         if not rows:
             continue
@@ -492,6 +503,60 @@ def command_github_key(args: argparse.Namespace) -> int:
     raise CommandError("unknown github-key command")
 
 
+def reload_caddy_if_available() -> None:
+    if command_exists("caddy"):
+        run(["caddy", "validate", "--config", "/etc/caddy/Caddyfile"])
+    if systemctl_state("caddy.service", "is-active"):
+        run(["systemctl", "reload", "caddy.service"])
+
+
+def command_basic_auth(args: argparse.Namespace) -> int:
+    if args.auth_command == "set":
+        if not is_root():
+            raise CommandError("basic-auth set must run as root")
+        if not command_exists("caddy"):
+            raise CommandError("caddy command missing; install Caddy before hashing passwords")
+        password = getpass.getpass(f"Password for {args.username}: ")
+        confirm = getpass.getpass("Confirm password: ")
+        if not password:
+            raise CommandError("password cannot be empty")
+        if password != confirm:
+            raise CommandError("passwords did not match")
+        if any(char.isspace() for char in args.username) or "{" in args.username or "}" in args.username:
+            raise CommandError("username must not contain whitespace or braces")
+        proc = subprocess.run(["caddy", "hash-password", "--plaintext", password], check=False, capture_output=True, text=True)
+        if proc.returncode != 0:
+            raise CommandError((proc.stderr or proc.stdout).strip() or "caddy hash-password failed")
+        hashed = proc.stdout.strip()
+        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        BASIC_AUTH_CONFIG.write_text(f"basic_auth {{\n    {args.username} {hashed}\n}}\n", encoding="utf-8")
+        BASIC_AUTH_CONFIG.chmod(0o640)
+        reload_caddy_if_available()
+        print(f"[OK] Basic auth configured for {args.username} at {BASIC_AUTH_CONFIG}")
+        return 0
+    if args.auth_command == "edit":
+        if not is_root():
+            raise CommandError("basic-auth edit must run as root")
+        if not command_exists("nano"):
+            raise CommandError("nano not found. Install it first: apt-get install nano")
+        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        if not BASIC_AUTH_CONFIG.exists():
+            BASIC_AUTH_CONFIG.write_text('respond "Promocaster Control basic auth is not configured. Run: promocaster-control basic-auth set <user>" 503\n', encoding="utf-8")
+        BASIC_AUTH_CONFIG.chmod(0o640)
+        print(f"Opening {BASIC_AUTH_CONFIG} in nano")
+        run(["nano", str(BASIC_AUTH_CONFIG)])
+        BASIC_AUTH_CONFIG.chmod(0o640)
+        reload_caddy_if_available()
+        return 0
+    if args.auth_command == "test":
+        text = BASIC_AUTH_CONFIG.read_text(encoding="utf-8") if BASIC_AUTH_CONFIG.exists() else ""
+        if ("basic_auth" not in text and "basicauth" not in text) or "respond " in text:
+            raise CommandError(f"basic auth is not configured at {BASIC_AUTH_CONFIG}")
+        print(f"[OK] Basic auth snippet is configured at {BASIC_AUTH_CONFIG}")
+        return 0
+    raise CommandError("unknown basic-auth command")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="promocaster-control")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -508,6 +573,12 @@ def main(argv: list[str] | None = None) -> int:
     github_sub.add_parser("edit", help="Open the GitHub writer private key in nano")
     github_sub.add_parser("show-public", help="Print the public key derived from the private key")
     github_sub.add_parser("test", help="Test SSH authentication to git@github.com")
+    basic_auth = sub.add_parser("basic-auth", help="Manage phase-1 Caddy Basic Auth")
+    auth_sub = basic_auth.add_subparsers(dest="auth_command", required=True)
+    auth_set = auth_sub.add_parser("set", help="Hash and install a Caddy Basic Auth password")
+    auth_set.add_argument("username", help="Basic Auth username")
+    auth_sub.add_parser("edit", help="Open the Caddy Basic Auth snippet in nano")
+    auth_sub.add_parser("test", help="Check whether Basic Auth is configured")
     args = parser.parse_args(argv)
 
     try:
@@ -527,6 +598,8 @@ def main(argv: list[str] | None = None) -> int:
             return command_update(args)
         if args.command == "github-key":
             return command_github_key(args)
+        if args.command == "basic-auth":
+            return command_basic_auth(args)
     except CommandError as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
         return 1

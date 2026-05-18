@@ -12,6 +12,7 @@ APP_ROOT="${PROMOCASTER_CONTROL_APP_ROOT:-/opt/promocaster-control}"
 APP_DIR="$APP_ROOT/app"
 CONFIG_DIR="${PROMOCASTER_CONTROL_CONFIG_DIR:-/etc/promocaster-control}"
 CONFIG_PATH="${PROMOCASTER_CONTROL_CONFIG_PATH:-$CONFIG_DIR/config.env}"
+BASIC_AUTH_CONFIG="${PROMOCASTER_CONTROL_BASIC_AUTH_CONFIG:-$CONFIG_DIR/basic-auth.caddy}"
 SOURCE_ROOT_FILE="${PROMOCASTER_CONTROL_SOURCE_ROOT_FILE:-$CONFIG_DIR/source-root}"
 DATA_DIR="${PROMOCASTER_CONTROL_DATA_DIR:-/var/lib/promocaster-control}"
 SERVICE_USER="${PROMOCASTER_CONTROL_SERVICE_USER:-promocaster-control}"
@@ -140,9 +141,17 @@ PROMOCASTER_CONTROL_WEB_ROOT=$APP_DIR/web
 PROMOCASTER_CONTROL_DATA_DIR=$DATA_DIR
 PROMOCASTER_CONTROL_CLIENTS_FILE=$APP_DIR/clients.yml
 PROMOCASTER_CONTROL_SYNC_DIR=$DATA_DIR/sync
+PROMOCASTER_CONTROL_BASIC_AUTH_CONFIG=$BASIC_AUTH_CONFIG
 EOF
 chmod 0640 "$CONFIG_PATH"
 chmod 0644 "$SOURCE_ROOT_FILE"
+
+if [[ ! -f "$BASIC_AUTH_CONFIG" ]]; then
+  cat > "$BASIC_AUTH_CONFIG" <<'EOF'
+respond "Promocaster Control basic auth is not configured. Run: promocaster-control basic-auth set <user>" 503
+EOF
+  chmod 0640 "$BASIC_AUTH_CONFIG"
+fi
 
 install -m 0644 "$APP_DIR/packaging/$SERVICE_NAME" "/etc/systemd/system/$SERVICE_NAME"
 sed -i \
@@ -155,6 +164,7 @@ install -d -m 0755 /etc/caddy
 sed \
   -e "s#__SITE__#$SITE#g" \
   -e "s#__UPSTREAM__#$BIND:$PORT#g" \
+  -e "s#__BASIC_AUTH_CONFIG__#$BASIC_AUTH_CONFIG#g" \
   "$APP_DIR/packaging/promocaster-control.Caddyfile" > /etc/caddy/promocaster-control.conf
 cat > /etc/caddy/Caddyfile <<'EOF'
 {
@@ -184,6 +194,7 @@ Service:
 Paths:
   App: $APP_DIR
   Config: $CONFIG_PATH
+  Basic auth: $BASIC_AUTH_CONFIG
   Source checkout: $SOURCE_ROOT_FILE
   Data: $DATA_DIR
   Client repo checkouts: $DATA_DIR/repos
@@ -194,6 +205,8 @@ Paths:
 
 Maintenance:
   promocaster-control doctor
+  promocaster-control basic-auth set peter
+  promocaster-control basic-auth test
   promocaster-control github-key edit
   promocaster-control github-key show-public
   promocaster-control github-key test
@@ -206,6 +219,7 @@ Let's Encrypt:
   Check readiness with: promocaster-control tls-check
 
 Next setup:
+  Set phase-1 login with: promocaster-control basic-auth set peter
   Add the GitHub writer key with: promocaster-control github-key edit
   Add its public half to GitHub with: promocaster-control github-key show-public
   Test GitHub auth with: promocaster-control github-key test

@@ -3,5 +3,6 @@ http://__SITE__ {
 }
 
 __SITE__ {
+    import __BASIC_AUTH_CONFIG__
     reverse_proxy __UPSTREAM__
 }

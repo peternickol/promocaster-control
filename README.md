@@ -160,6 +160,7 @@ Default runtime layout:
 /root/promocaster-control         source checkout used by install/update
 /opt/promocaster-control/app       copied application repo
 /etc/promocaster-control/config.env
+/etc/promocaster-control/basic-auth.caddy
 /etc/promocaster-control/source-root
 /var/lib/promocaster-control/repos client repo checkouts
 /var/lib/promocaster-control/uploads upload staging
@@ -187,6 +188,8 @@ the repo checkout is always `/root/promocaster-control`.
 
 ```sh
 promocaster-control doctor
+promocaster-control basic-auth set peter
+promocaster-control basic-auth test
 promocaster-control github-key edit
 promocaster-control github-key show-public
 promocaster-control github-key test
@@ -204,6 +207,39 @@ heads and dirty checkouts, pulls with `--ff-only`, refreshes
 `/opt/promocaster-control/app`, rewrites systemd and Caddy files, reloads
 services, and leaves the global command symlink in sync. `repair` performs that
 refresh path without pulling.
+
+### Phase 1 Authentication
+
+Phase 1 uses Caddy Basic Auth as a public-site guard while the app-level Google
+OAuth/user model is still pending. This is intentionally coarse: anyone with the
+Basic Auth password can reach the control UI, so do not use it as the final
+client authorization model.
+
+Set the initial login on the VPS:
+
+```sh
+promocaster-control basic-auth set peter
+promocaster-control basic-auth test
+promocaster-control doctor
+```
+
+The password is hashed with `caddy hash-password` and written to:
+
+```text
+/etc/promocaster-control/basic-auth.caddy
+```
+
+The Caddy site imports that snippet before proxying to the app. Until credentials
+are configured, the installer writes a placeholder snippet that returns `503`
+instead of exposing the app. `doctor` reports this as a failed `Auth` check.
+
+For manual recovery, the snippet can be edited directly:
+
+```sh
+promocaster-control basic-auth edit
+caddy validate --config /etc/caddy/Caddyfile
+systemctl reload caddy.service
+```
 
 ### Storage Checks
 

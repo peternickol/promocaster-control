@@ -26,7 +26,7 @@ NONINTERACTIVE=0
 
 usage() {
   cat <<EOF
-Usage: sudo bash install-debian.sh [options]
+Usage: bash install-debian.sh [options]
 
 Options:
   --non-interactive           Use defaults and environment variables without prompting

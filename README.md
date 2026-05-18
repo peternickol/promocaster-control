@@ -143,8 +143,11 @@ The pages currently load an empty embedded deck payload until the API is wired.
 This repo owns the operator-facing Debian installer for the control server:
 
 ```sh
-sudo bash install-debian.sh
+bash install-debian.sh
 ```
+
+Run server setup commands from a root shell. These installs assume root-operated
+Debian boxes, like the monitor repos, and do not assume `sudo` is installed.
 
 The installer follows the same product-repo pattern used by the monitor repos:
 install Debian packages, create a service user, copy this repo into
@@ -172,7 +175,7 @@ Default runtime layout:
 Useful install overrides:
 
 ```sh
-sudo PROMOCASTER_CONTROL_PORT=8080 bash install-debian.sh
+PROMOCASTER_CONTROL_PORT=8080 bash install-debian.sh
 ```
 
 The current server is a thin placeholder: it serves `web/`, redirects `/` to the
@@ -198,7 +201,7 @@ Initial install flow:
 cd /root
 git clone git@github.com:peternickol/promocaster-control.git
 cd /root/promocaster-control
-sudo bash install-debian.sh
+bash install-debian.sh
 promocaster-control basic-auth set peter
 promocaster-control github-key edit
 promocaster-control github-key show-public

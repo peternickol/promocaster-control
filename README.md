@@ -89,10 +89,25 @@ Expected future flow:
 2. API scopes the user to an allowed client, such as `phgi`.
 3. UI fetches only that client's deck data.
 4. API clones or updates that client's repo checkout.
-5. API writes `_data/media.yml` and media uploads.
-6. API runs Jekyll validation for affected locations.
-7. API commits and pushes the client repo.
-8. `nix.promocaster` devices pull the client repo and build their configured location.
+5. API writes `_data/media.yml`, media uploads, and media deletions.
+6. API removes no-longer-referenced media files from the repo with `git rm`.
+7. API runs Jekyll validation for affected locations.
+8. API commits and pushes the client repo.
+9. `nix.promocaster` devices pull the client repo and build their configured location.
+
+When a slide is removed in the editor, the backing media file must be deleted
+from the client repo if no remaining slide references it. This is important for
+large media repos: removing a slide from YAML but leaving the file on disk would
+make the repo grow forever.
+
+Deletion safety rules:
+
+- only delete files inside the client repo's `media/` directory
+- normalize to plain media filenames, never trust user-supplied paths
+- do not delete a file if any remaining deck/location still references it
+- do not delete a file that was just uploaded and is still referenced by the new payload
+- use `git rm -- media/<filename>` so the deletion is committed and pushed
+- include deleted files in the API response so the UI can show what changed
 
 ## Local Static Preview
 
@@ -295,7 +310,33 @@ match the current `all-decks.json` shape used by the UI.
 `POST /api/clients/:client/decks`
 
 Accepts structured deck JSON, validates it, writes the client repo's
-`_data/media.yml`, validates the affected location builds, commits, and pushes.
+`_data/media.yml`, deletes removed media files that are no longer referenced,
+validates the affected location builds, commits, and pushes.
+
+The save handler must compare the old repo state to the new payload:
+
+```text
+old_refs = all media files referenced by current _data/media.yml
+new_refs = all media files referenced by submitted deck JSON
+delete_candidates = old_refs - new_refs
+deleted = delete_candidates that are not referenced anywhere else
+```
+
+Each deleted media file should be removed with:
+
+```sh
+git rm -- media/<filename>
+```
+
+The endpoint should return the committed deletion list:
+
+```json
+{
+  "ok": true,
+  "commit": "abc1234",
+  "deleted_media": ["old-special.mp4", "expired-promo.jpg"]
+}
+```
 
 ### Media
 

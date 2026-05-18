@@ -192,6 +192,9 @@ Paths:
 
 Maintenance:
   promocaster-control doctor
+  promocaster-control github-key edit
+  promocaster-control github-key show-public
+  promocaster-control github-key test
   promocaster-control tls-check
   promocaster-control update
 
@@ -201,6 +204,8 @@ Let's Encrypt:
   Check readiness with: promocaster-control tls-check
 
 Next setup:
-  Add the GitHub writer deploy key under $DATA_DIR/ssh.
+  Add the GitHub writer key with: promocaster-control github-key edit
+  Add its public half to GitHub with: promocaster-control github-key show-public
+  Test GitHub auth with: promocaster-control github-key test
   Wire the real auth and git-publish API into server/.
 EOF

@@ -16,7 +16,10 @@ CONFIG_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_CONFIG_DIR", "/etc/promoca
 CONFIG_PATH = Path(os.environ.get("PROMOCASTER_CONTROL_CONFIG_PATH", CONFIG_DIR / "config.env"))
 SOURCE_ROOT_FILE = Path(os.environ.get("PROMOCASTER_CONTROL_SOURCE_ROOT_FILE", CONFIG_DIR / "source-root"))
 DATA_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_DATA_DIR", "/var/lib/promocaster-control"))
+SSH_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_SSH_DIR", DATA_DIR / "ssh"))
+GITHUB_KEY = Path(os.environ.get("PROMOCASTER_CONTROL_GITHUB_KEY", SSH_DIR / "github_writer_key"))
 SERVICE_NAME = os.environ.get("PROMOCASTER_CONTROL_SERVICE_NAME", "promocaster-control.service")
+SERVICE_USER = os.environ.get("PROMOCASTER_CONTROL_SERVICE_USER", "promocaster-control")
 CADDY_CONFIG = Path(os.environ.get("PROMOCASTER_CONTROL_CADDY_CONFIG", "/etc/caddy/promocaster-control.conf"))
 GLOBAL_BIN = Path(os.environ.get("PROMOCASTER_CONTROL_GLOBAL_BIN", "/usr/local/bin/promocaster-control"))
 SITE = os.environ.get("PROMOCASTER_CONTROL_SITE", "control.promocaster.io")
@@ -88,6 +91,56 @@ def command_exists(name: str) -> bool:
     return shutil.which(name) is not None
 
 
+def path_mode(path: Path) -> str:
+    try:
+        return oct(path.stat().st_mode & 0o777)
+    except OSError:
+        return "missing"
+
+
+def github_key_public_text() -> tuple[bool, str]:
+    if not GITHUB_KEY.exists():
+        return False, "missing"
+    if not command_exists("ssh-keygen"):
+        return False, "ssh-keygen missing"
+    proc = subprocess.run(["ssh-keygen", "-y", "-f", str(GITHUB_KEY)], check=False, capture_output=True, text=True)
+    detail = (proc.stderr or proc.stdout).strip()
+    return proc.returncode == 0, detail
+
+
+def github_ssh_auth_detail() -> tuple[str, str]:
+    if not GITHUB_KEY.exists():
+        return "fail", "missing key"
+    if not command_exists("ssh"):
+        return "fail", "ssh command missing"
+    proc = subprocess.run(
+        [
+            "ssh",
+            "-i",
+            str(GITHUB_KEY),
+            "-o",
+            "IdentitiesOnly=yes",
+            "-o",
+            "BatchMode=yes",
+            "-o",
+            "StrictHostKeyChecking=accept-new",
+            "-o",
+            "ConnectTimeout=8",
+            "-T",
+            "git@github.com",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    detail = (proc.stderr or proc.stdout).strip() or f"ssh exited {proc.returncode}"
+    if "successfully authenticated" in detail:
+        return "ok", detail
+    if "Permission denied" in detail:
+        return "fail", detail
+    return "warn", detail
+
+
 def domain_ips(domain: str) -> list[str]:
     try:
         results = socket.getaddrinfo(domain, None)
@@ -155,7 +208,7 @@ def sync_systemd_and_caddy() -> list[str]:
     unit_source = APP_DIR / "packaging/promocaster-control.service"
     caddy_source = APP_DIR / "packaging/promocaster-control.Caddyfile"
     env = load_env(CONFIG_PATH)
-    service_user = os.environ.get("PROMOCASTER_CONTROL_SERVICE_USER", "promocaster-control")
+    service_user = SERVICE_USER
     bind = env.get("PROMOCASTER_CONTROL_BIND", os.environ.get("PROMOCASTER_CONTROL_BIND", "127.0.0.1"))
     port = env.get("PROMOCASTER_CONTROL_PORT", os.environ.get("PROMOCASTER_CONTROL_PORT", "8080"))
     site = SITE
@@ -226,6 +279,16 @@ def collect_checks() -> list[Check]:
         path = DATA_DIR / child
         checks.append(Check("Runtime", f"data/{child}", "ok" if path.exists() else "fail", str(path), None if path.exists() else "run promocaster-control repair"))
 
+    public_ok, public_detail = github_key_public_text()
+    auth_status, auth_detail = github_ssh_auth_detail() if GITHUB_KEY.exists() else ("fail", "missing key")
+    key_mode = path_mode(GITHUB_KEY)
+    key_mode_ok = key_mode == "0o600"
+    checks.append(Check("GitHub Writer", "private key", "ok" if GITHUB_KEY.exists() else "fail", str(GITHUB_KEY), None if GITHUB_KEY.exists() else "run promocaster-control github-key edit"))
+    if GITHUB_KEY.exists():
+        checks.append(Check("GitHub Writer", "private key mode", "ok" if key_mode_ok else "fail", key_mode, None if key_mode_ok else f"run chmod 600 {GITHUB_KEY}"))
+        checks.append(Check("GitHub Writer", "public key derive", "ok" if public_ok else "fail", public_detail.splitlines()[0] if public_detail else "empty", None if public_ok else "paste a valid private SSH key with promocaster-control github-key edit"))
+        checks.append(Check("GitHub Writer", "github auth", auth_status, auth_detail.splitlines()[0] if auth_detail else "empty", None if auth_status == "ok" else "add the public key to GitHub with write access to the client repo"))
+
     checks.append(Check("Services", "web service", "ok" if systemctl_state(SERVICE_NAME, "is-active") else "fail", SERVICE_NAME, f"inspect systemctl status {SERVICE_NAME}"))
     checks.append(Check("Services", "web service enabled", "ok" if systemctl_state(SERVICE_NAME, "is-enabled") else "warn", SERVICE_NAME, f"run systemctl enable --now {SERVICE_NAME}"))
     checks.append(Check("Services", "caddy", "ok" if systemctl_state("caddy.service", "is-active") else "fail", "caddy.service", "inspect systemctl status caddy.service"))
@@ -270,7 +333,7 @@ def print_checks(checks: list[Check]) -> int:
     print("Doctor Report")
     print("=============")
     print(f"Config: {CONFIG_PATH}")
-    for section in ("Runtime", "Services", "TLS", "Update Path"):
+    for section in ("Runtime", "Services", "TLS", "GitHub Writer", "Update Path"):
         rows = [check for check in checks if check.section == section]
         if not rows:
             continue
@@ -332,6 +395,42 @@ def command_update(args: argparse.Namespace) -> int:
     return 0
 
 
+def command_github_key(args: argparse.Namespace) -> int:
+    if args.github_command == "edit":
+        if not is_root():
+            raise CommandError("github-key edit must run as root")
+        if not command_exists("nano"):
+            raise CommandError("nano not found. Install it first: apt-get install nano")
+        SSH_DIR.mkdir(parents=True, exist_ok=True)
+        try:
+            shutil.chown(SSH_DIR, user=SERVICE_USER, group=SERVICE_USER)
+        except LookupError:
+            pass
+        SSH_DIR.chmod(0o700)
+        if not GITHUB_KEY.exists():
+            GITHUB_KEY.touch(mode=0o600)
+        GITHUB_KEY.chmod(0o600)
+        try:
+            shutil.chown(GITHUB_KEY, user=SERVICE_USER, group=SERVICE_USER)
+        except LookupError:
+            pass
+        print(f"Opening {GITHUB_KEY} in nano")
+        run(["nano", str(GITHUB_KEY)])
+        GITHUB_KEY.chmod(0o600)
+        return 0
+    if args.github_command == "show-public":
+        ok, detail = github_key_public_text()
+        if not ok:
+            raise CommandError(detail)
+        print(detail)
+        return 0
+    if args.github_command == "test":
+        status, detail = github_ssh_auth_detail()
+        print(detail)
+        return 0 if status == "ok" else 1
+    raise CommandError("unknown github-key command")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="promocaster-control")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -343,6 +442,11 @@ def main(argv: list[str] | None = None) -> int:
     update_parser.add_argument("--no-pull", action="store_true", help="Skip git pull and just refresh installed wiring")
     update_parser.add_argument("--daemon-reload", action="store_true", help="Reload systemd even when no new code was pulled")
     update_parser.add_argument("--force", action="store_true", help="Run the full refresh path even when no new code was pulled")
+    github_key = sub.add_parser("github-key", help="Manage the GitHub writer SSH key")
+    github_sub = github_key.add_subparsers(dest="github_command", required=True)
+    github_sub.add_parser("edit", help="Open the GitHub writer private key in nano")
+    github_sub.add_parser("show-public", help="Print the public key derived from the private key")
+    github_sub.add_parser("test", help="Test SSH authentication to git@github.com")
     args = parser.parse_args(argv)
 
     try:
@@ -360,6 +464,8 @@ def main(argv: list[str] | None = None) -> int:
             return print_checks(collect_checks())
         if args.command == "update":
             return command_update(args)
+        if args.command == "github-key":
+            return command_github_key(args)
     except CommandError as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
         return 1

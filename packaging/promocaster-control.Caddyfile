@@ -1,3 +1,7 @@
+http://__SITE__ {
+    redir https://__SITE__{uri} permanent
+}
+
 __SITE__ {
     reverse_proxy __UPSTREAM__
 }

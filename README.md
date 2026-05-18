@@ -153,6 +153,9 @@ the repo checkout is always `/root/promocaster-control`.
 
 ```sh
 promocaster-control doctor
+promocaster-control github-key edit
+promocaster-control github-key show-public
+promocaster-control github-key test
 promocaster-control tls-check
 promocaster-control update
 promocaster-control update --no-pull
@@ -167,12 +170,35 @@ pullable. `update` refuses detached heads and dirty checkouts, pulls with
 Caddy files, reloads services, and leaves the global command symlink in sync.
 `repair` performs that refresh path without pulling.
 
+### GitHub Writer Key
+
+The control API needs a GitHub SSH key with write access to each client content
+repo it manages, starting with `promocaster.phgi`. Store that key on the VPS with
+the built-in editor command:
+
+```sh
+promocaster-control github-key edit
+promocaster-control github-key show-public
+promocaster-control github-key test
+promocaster-control doctor
+```
+
+`github-key edit` follows the same operator pattern as `wg-manager edit`: it
+creates the secure directory and key file if needed, locks permissions down, and
+opens the file in `nano` for paste/edit workflows. The private key lives at
+`/var/lib/promocaster-control/ssh/github_writer_key`.
+
+Add the public key printed by `github-key show-public` to GitHub with write
+access. For one repo, a writable deploy key is fine. For many client repos, use a
+dedicated machine user such as `promocaster-bot` and grant that user write access
+to the client repos.
+
 ### Let's Encrypt Bring-Up
 
 For the public control site, point DNS for `control.promocaster.io` at the VPS
 before expecting HTTPS to come up. Public TCP ports `80` and `443` must reach
-Caddy on the box. Caddy uses port `80` for HTTP-01 challenges and redirects, then
-serves the app on `443` after the certificate is issued.
+Caddy on the box. Caddy uses port `80` for HTTP-01 challenges and redirects all
+normal HTTP traffic to HTTPS. The control app is served on `443`.
 
 Useful checks on the server:
 

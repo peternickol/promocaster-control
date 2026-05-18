@@ -28,7 +28,6 @@ through the API.
 
 - `web/` contains the editor and inspector UI copied out of the PHGI content repo.
 - `clients.yml` is the control-side registry of clients, content repos, and editable locations.
-- `docs/api.md` describes the first API contract.
 - `server/` is reserved for the authenticated API and git publisher.
 
 The copied UI currently uses an empty embedded payload so it can load as static
@@ -105,3 +104,55 @@ python3 -m http.server 4173
 ```
 
 The pages currently load an empty embedded deck payload until the API is wired.
+
+## API Contract
+
+Initial API shape for replacing the embedded Jekyll data used by the prototype
+editor and inspector.
+
+### Session
+
+`GET /api/me`
+
+Returns the authenticated user and the clients/locations they can access.
+
+```json
+{
+  "user": {"email": "manager@example.com", "role": "editor"},
+  "clients": [
+    {
+      "id": "phgi",
+      "name": "PHGI",
+      "locations": ["pnwpizza-yacolt"]
+    }
+  ]
+}
+```
+
+### Decks
+
+`GET /api/clients/:client/decks`
+
+Returns the editable deck data for the authorized client. The response should
+match the current `all-decks.json` shape used by the UI.
+
+`POST /api/clients/:client/decks`
+
+Accepts structured deck JSON, validates it, writes the client repo's
+`_data/media.yml`, validates the affected location builds, commits, and pushes.
+
+### Media
+
+`POST /api/clients/:client/media`
+
+Uploads image or MP4 media into the client repo's `media/` directory. The server
+normalizes filenames, rejects invalid types, and returns the final filename.
+
+### Publish
+
+`POST /api/clients/:client/publish`
+
+For the PHGI-style repo model this can be a no-op wrapper around commit/push,
+because `nix.promocaster` already polls and builds by location. It remains useful
+as a future explicit action for validation status, git commit metadata, and
+rollback workflows.

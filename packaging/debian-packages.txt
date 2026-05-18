@@ -4,6 +4,7 @@ ca-certificates
 caddy
 curl
 git
+iproute2
 nano
 openssh-client
 python3

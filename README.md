@@ -117,29 +117,70 @@ The installer follows the same product-repo pattern used by the monitor repos:
 install Debian packages, create a service user, copy this repo into
 `/opt/promocaster-control/app`, create `/var/lib/promocaster-control`, install a
 systemd service, and put Caddy in front of the local app.
+Caddy is configured for `control.promocaster.io` by default.
+Caddy owns Let's Encrypt certificate issuance and renewal. There is no separate
+certbot job.
 
 Default runtime layout:
 
 ```text
+/root/promocaster-control         source checkout used by install/update
 /opt/promocaster-control/app       copied application repo
 /etc/promocaster-control/config.env
+/etc/promocaster-control/source-root
 /var/lib/promocaster-control/repos client repo checkouts
 /var/lib/promocaster-control/uploads upload staging
 /var/lib/promocaster-control/ssh   GitHub writer key material
+/usr/local/bin/promocaster-control operator maintenance command
 ```
 
 Useful install overrides:
 
 ```sh
-sudo PROMOCASTER_CONTROL_SITE=control.example.com \
-  PROMOCASTER_CONTROL_PORT=8080 \
-  bash install-debian.sh
+sudo PROMOCASTER_CONTROL_PORT=8080 bash install-debian.sh
 ```
 
 The current server is a thin placeholder: it serves `web/`, redirects `/` to the
 editor, and exposes `GET /api/health`. The real auth, deck editing API, upload
 handling, and git publisher should be added under `server/` without moving the
 runtime slideshow files back into this repo.
+
+### Maintenance Commands
+
+The installer records the source checkout in
+`/etc/promocaster-control/source-root` and exposes a global command. On the VPS,
+the repo checkout is always `/root/promocaster-control`.
+
+```sh
+promocaster-control doctor
+promocaster-control tls-check
+promocaster-control update
+promocaster-control update --no-pull
+promocaster-control update --force
+promocaster-control repair
+```
+
+This intentionally mirrors the hard-won monitor pattern. `doctor` checks runtime
+paths, service state, Caddy wiring, and whether the source checkout is clean and
+pullable. `update` refuses detached heads and dirty checkouts, pulls with
+`--ff-only`, refreshes `/opt/promocaster-control/app`, rewrites systemd and
+Caddy files, reloads services, and leaves the global command symlink in sync.
+`repair` performs that refresh path without pulling.
+
+### Let's Encrypt Bring-Up
+
+For the public control site, point DNS for `control.promocaster.io` at the VPS
+before expecting HTTPS to come up. Public TCP ports `80` and `443` must reach
+Caddy on the box. Caddy uses port `80` for HTTP-01 challenges and redirects, then
+serves the app on `443` after the certificate is issued.
+
+Useful checks on the server:
+
+```sh
+promocaster-control tls-check
+journalctl -u caddy.service -n 100 --no-pager
+caddy validate --config /etc/caddy/Caddyfile
+```
 
 ## API Contract
 

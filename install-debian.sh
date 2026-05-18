@@ -7,15 +7,18 @@ if [[ "$(id -u)" -ne 0 ]]; then
 fi
 
 CONTROL_REPO="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SOURCE_ROOT="/root/promocaster-control"
 APP_ROOT="${PROMOCASTER_CONTROL_APP_ROOT:-/opt/promocaster-control}"
 APP_DIR="$APP_ROOT/app"
 CONFIG_DIR="${PROMOCASTER_CONTROL_CONFIG_DIR:-/etc/promocaster-control}"
 CONFIG_PATH="${PROMOCASTER_CONTROL_CONFIG_PATH:-$CONFIG_DIR/config.env}"
+SOURCE_ROOT_FILE="${PROMOCASTER_CONTROL_SOURCE_ROOT_FILE:-$CONFIG_DIR/source-root}"
 DATA_DIR="${PROMOCASTER_CONTROL_DATA_DIR:-/var/lib/promocaster-control}"
 SERVICE_USER="${PROMOCASTER_CONTROL_SERVICE_USER:-promocaster-control}"
 SERVICE_NAME="${PROMOCASTER_CONTROL_SERVICE_NAME:-promocaster-control.service}"
 PACKAGES_FILE="${PROMOCASTER_CONTROL_PACKAGES_FILE:-$CONTROL_REPO/packaging/debian-packages.txt}"
-SITE="${PROMOCASTER_CONTROL_SITE:-:80}"
+GLOBAL_BIN="${PROMOCASTER_CONTROL_GLOBAL_BIN:-/usr/local/bin/promocaster-control}"
+SITE="${PROMOCASTER_CONTROL_SITE:-control.promocaster.io}"
 BIND="${PROMOCASTER_CONTROL_BIND:-127.0.0.1}"
 PORT="${PROMOCASTER_CONTROL_PORT:-8080}"
 NONINTERACTIVE=0
@@ -29,11 +32,9 @@ Options:
   --help                      Show this help text
 
 Environment:
-  PROMOCASTER_CONTROL_SITE    Caddy site address, default :80
+  PROMOCASTER_CONTROL_SITE    Caddy site address, default control.promocaster.io
   PROMOCASTER_CONTROL_PORT    Local app port, default 8080
   PROMOCASTER_CONTROL_BIND    Local app bind host, default 127.0.0.1
-  PROMOCASTER_CONTROL_APP_ROOT
-                              Install root, default /opt/promocaster-control
   PROMOCASTER_CONTROL_DATA_DIR
                               Data root, default /var/lib/promocaster-control
 EOF
@@ -59,6 +60,12 @@ done
 
 if ! command -v apt-get >/dev/null 2>&1; then
   echo "This installer currently supports Debian/apt-based systems only" >&2
+  exit 1
+fi
+
+if [[ "$CONTROL_REPO" != "$SOURCE_ROOT" ]]; then
+  echo "Expected this repo checkout at $SOURCE_ROOT; current path is $CONTROL_REPO" >&2
+  echo "Clone or move the repo to $SOURCE_ROOT before running install-debian.sh" >&2
   exit 1
 fi
 
@@ -119,9 +126,12 @@ install -d -m 0755 "$APP_ROOT" "$CONFIG_DIR"
 install -d -o "$SERVICE_USER" -g "$SERVICE_USER" -m 0750 "$DATA_DIR"
 install -d -o "$SERVICE_USER" -g "$SERVICE_USER" -m 0750 "$DATA_DIR/repos" "$DATA_DIR/uploads"
 install -d -o "$SERVICE_USER" -g "$SERVICE_USER" -m 0700 "$DATA_DIR/ssh"
+install -d -m 0755 "$(dirname "$GLOBAL_BIN")"
 
 rm -rf "$APP_DIR"
 cp -a "$CONTROL_REPO" "$APP_DIR"
+printf '%s\n' "$SOURCE_ROOT" > "$SOURCE_ROOT_FILE"
+ln -sfn "$APP_DIR/bin/promocaster-control" "$GLOBAL_BIN"
 
 cat > "$CONFIG_PATH" <<EOF
 PROMOCASTER_CONTROL_BIND=$BIND
@@ -131,6 +141,7 @@ PROMOCASTER_CONTROL_DATA_DIR=$DATA_DIR
 PROMOCASTER_CONTROL_CLIENTS_FILE=$APP_DIR/clients.yml
 EOF
 chmod 0640 "$CONFIG_PATH"
+chmod 0644 "$SOURCE_ROOT_FILE"
 
 install -m 0644 "$APP_DIR/packaging/$SERVICE_NAME" "/etc/systemd/system/$SERVICE_NAME"
 sed -i \
@@ -151,8 +162,10 @@ cat > /etc/caddy/Caddyfile <<'EOF'
 
 import /etc/caddy/*.conf
 EOF
+caddy validate --config /etc/caddy/Caddyfile
 
 chown -R "$SERVICE_USER:$SERVICE_USER" "$APP_ROOT" "$DATA_DIR"
+chmod 0755 "$APP_DIR/bin/promocaster-control"
 
 systemctl daemon-reload
 systemctl enable --now "$SERVICE_NAME"
@@ -170,10 +183,22 @@ Service:
 Paths:
   App: $APP_DIR
   Config: $CONFIG_PATH
+  Source checkout: $SOURCE_ROOT_FILE
   Data: $DATA_DIR
   Client repo checkouts: $DATA_DIR/repos
   Upload staging: $DATA_DIR/uploads
   Git SSH keys: $DATA_DIR/ssh
+  Operator command: $GLOBAL_BIN
+
+Maintenance:
+  promocaster-control doctor
+  promocaster-control tls-check
+  promocaster-control update
+
+Let's Encrypt:
+  Caddy will request and renew certificates for $SITE automatically.
+  Make sure DNS points $SITE at this VPS and public TCP ports 80 and 443 are open.
+  Check readiness with: promocaster-control tls-check
 
 Next setup:
   Add the GitHub writer deploy key under $DATA_DIR/ssh.

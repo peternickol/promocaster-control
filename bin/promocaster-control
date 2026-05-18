@@ -1,0 +1,370 @@
+#!/usr/bin/env python3
+import argparse
+import os
+import shutil
+import socket
+import subprocess
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+
+
+APP_ROOT = Path(os.environ.get("PROMOCASTER_CONTROL_APP_ROOT", "/opt/promocaster-control"))
+APP_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_APP_DIR", APP_ROOT / "app"))
+SOURCE_ROOT = Path("/root/promocaster-control")
+CONFIG_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_CONFIG_DIR", "/etc/promocaster-control"))
+CONFIG_PATH = Path(os.environ.get("PROMOCASTER_CONTROL_CONFIG_PATH", CONFIG_DIR / "config.env"))
+SOURCE_ROOT_FILE = Path(os.environ.get("PROMOCASTER_CONTROL_SOURCE_ROOT_FILE", CONFIG_DIR / "source-root"))
+DATA_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_DATA_DIR", "/var/lib/promocaster-control"))
+SERVICE_NAME = os.environ.get("PROMOCASTER_CONTROL_SERVICE_NAME", "promocaster-control.service")
+CADDY_CONFIG = Path(os.environ.get("PROMOCASTER_CONTROL_CADDY_CONFIG", "/etc/caddy/promocaster-control.conf"))
+GLOBAL_BIN = Path(os.environ.get("PROMOCASTER_CONTROL_GLOBAL_BIN", "/usr/local/bin/promocaster-control"))
+SITE = os.environ.get("PROMOCASTER_CONTROL_SITE", "control.promocaster.io")
+
+
+class CommandError(RuntimeError):
+    pass
+
+
+@dataclass(slots=True)
+class Check:
+    section: str
+    label: str
+    status: str
+    detail: str
+    hint: str | None = None
+
+
+def run(cmd: list[str], *, check: bool = True, capture: bool = False) -> subprocess.CompletedProcess[str]:
+    proc = subprocess.run(cmd, check=False, capture_output=capture, text=True)
+    if check and proc.returncode != 0:
+        detail = (proc.stderr or proc.stdout or "").strip()
+        rendered = " ".join(cmd)
+        raise CommandError(f"{rendered}: {detail or f'exited {proc.returncode}'}")
+    return proc
+
+
+def capture(cmd: list[str]) -> str:
+    return run(cmd, capture=True).stdout.strip()
+
+
+def is_root() -> bool:
+    return os.geteuid() == 0
+
+
+def is_git_checkout(path: Path) -> bool:
+    try:
+        return (path / ".git").exists() and (path / "install-debian.sh").exists()
+    except OSError:
+        return False
+
+
+def resolve_source_root() -> Path | None:
+    candidates = [SOURCE_ROOT]
+    if SOURCE_ROOT_FILE.exists():
+        candidates.append(Path(SOURCE_ROOT_FILE.read_text(encoding="utf-8").strip()))
+    for candidate in candidates:
+        if candidate == SOURCE_ROOT and is_git_checkout(candidate):
+            return candidate.resolve()
+    return None
+
+
+def git_value(root: Path, *args: str) -> str:
+    proc = run(["git", "-C", str(root), *args], check=False, capture=True)
+    return proc.stdout.strip() if proc.returncode == 0 else ""
+
+
+def git_clean(root: Path) -> tuple[bool, str]:
+    detail = git_value(root, "status", "--short")
+    return (detail == "", detail or "clean")
+
+
+def systemctl_state(name: str, verb: str) -> bool:
+    proc = subprocess.run(["systemctl", verb, "--quiet", name], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return proc.returncode == 0
+
+
+def command_exists(name: str) -> bool:
+    return shutil.which(name) is not None
+
+
+def domain_ips(domain: str) -> list[str]:
+    try:
+        results = socket.getaddrinfo(domain, None)
+    except OSError:
+        return []
+    ips = sorted({result[4][0] for result in results})
+    return ips
+
+
+def public_ipv4() -> str:
+    if not command_exists("curl"):
+        return ""
+    proc = subprocess.run(["curl", "-4fsS", "--max-time", "5", "https://api.ipify.org"], check=False, capture_output=True, text=True)
+    return proc.stdout.strip() if proc.returncode == 0 else ""
+
+
+def port_listening(port: int) -> bool:
+    if not command_exists("ss"):
+        return False
+    proc = subprocess.run(["ss", "-ltn"], check=False, capture_output=True, text=True)
+    if proc.returncode != 0:
+        return False
+    suffix = f":{port}"
+    return any(line.split()[3].endswith(suffix) for line in proc.stdout.splitlines() if len(line.split()) >= 4)
+
+
+def caddy_validate_detail() -> tuple[bool, str]:
+    if not command_exists("caddy"):
+        return False, "caddy command missing"
+    proc = subprocess.run(["caddy", "validate", "--config", "/etc/caddy/Caddyfile"], check=False, capture_output=True, text=True)
+    detail = (proc.stderr or proc.stdout).strip()
+    return proc.returncode == 0, detail or "valid"
+
+
+def load_env(path: Path) -> dict[str, str]:
+    values: dict[str, str] = {}
+    if not path.exists():
+        return values
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key] = value
+    return values
+
+
+def copy_app(source_root: Path) -> None:
+    if APP_DIR.exists():
+        shutil.rmtree(APP_DIR)
+    ignore = shutil.ignore_patterns(".git", ".jekyll-cache", "_site", "__pycache__", "*.pyc")
+    shutil.copytree(source_root, APP_DIR, ignore=ignore)
+
+
+def sync_global_command() -> None:
+    target = APP_DIR / "bin/promocaster-control"
+    GLOBAL_BIN.parent.mkdir(parents=True, exist_ok=True)
+    if GLOBAL_BIN.exists() or GLOBAL_BIN.is_symlink():
+        GLOBAL_BIN.unlink()
+    GLOBAL_BIN.symlink_to(target)
+
+
+def sync_systemd_and_caddy() -> list[str]:
+    actions = []
+    unit_source = APP_DIR / "packaging/promocaster-control.service"
+    caddy_source = APP_DIR / "packaging/promocaster-control.Caddyfile"
+    env = load_env(CONFIG_PATH)
+    service_user = os.environ.get("PROMOCASTER_CONTROL_SERVICE_USER", "promocaster-control")
+    bind = env.get("PROMOCASTER_CONTROL_BIND", os.environ.get("PROMOCASTER_CONTROL_BIND", "127.0.0.1"))
+    port = env.get("PROMOCASTER_CONTROL_PORT", os.environ.get("PROMOCASTER_CONTROL_PORT", "8080"))
+    site = SITE
+
+    unit_text = unit_source.read_text(encoding="utf-8")
+    unit_text = unit_text.replace("__APP_DIR__", str(APP_DIR))
+    unit_text = unit_text.replace("__CONFIG_PATH__", str(CONFIG_PATH))
+    unit_text = unit_text.replace("__SERVICE_USER__", service_user)
+    Path("/etc/systemd/system").mkdir(parents=True, exist_ok=True)
+    Path(f"/etc/systemd/system/{SERVICE_NAME}").write_text(unit_text, encoding="utf-8")
+    actions.append(f"refreshed systemd unit {SERVICE_NAME}")
+
+    Path("/etc/caddy").mkdir(parents=True, exist_ok=True)
+    caddy_text = caddy_source.read_text(encoding="utf-8")
+    caddy_text = caddy_text.replace("__SITE__", site)
+    caddy_text = caddy_text.replace("__UPSTREAM__", f"{bind}:{port}")
+    CADDY_CONFIG.write_text(caddy_text, encoding="utf-8")
+    Path("/etc/caddy/Caddyfile").write_text("{\n    admin localhost:2019\n}\n\nimport /etc/caddy/*.conf\n", encoding="utf-8")
+    run(["caddy", "validate", "--config", "/etc/caddy/Caddyfile"])
+    actions.append(f"refreshed Caddy config {CADDY_CONFIG}")
+    return actions
+
+
+def repair(source_root: Path | None = None, *, daemon_reload: bool = True) -> list[str]:
+    if not is_root():
+        raise CommandError("repair must run as root")
+    source_root = source_root or resolve_source_root()
+    if source_root is None:
+        raise CommandError(f"no source checkout found at {SOURCE_ROOT}")
+    if source_root != SOURCE_ROOT:
+        raise CommandError(f"source checkout must be {SOURCE_ROOT}, got {source_root}")
+    if not is_git_checkout(source_root):
+        raise CommandError(f"not a Promocaster Control checkout: {source_root}")
+
+    APP_ROOT.mkdir(parents=True, exist_ok=True)
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    for child in ("repos", "uploads", "ssh"):
+        (DATA_DIR / child).mkdir(parents=True, exist_ok=True)
+
+    copy_app(source_root)
+    SOURCE_ROOT_FILE.write_text(f"{source_root}\n", encoding="utf-8")
+    sync_global_command()
+    actions = [f"copied app from {source_root} to {APP_DIR}", f"refreshed source-root file {SOURCE_ROOT_FILE}", f"refreshed command symlink {GLOBAL_BIN}"]
+    actions.extend(sync_systemd_and_caddy())
+    if daemon_reload:
+        run(["systemctl", "daemon-reload"])
+        actions.append("reloaded systemd manager configuration")
+    run(["systemctl", "enable", "--now", SERVICE_NAME])
+    run(["systemctl", "enable", "--now", "caddy.service"])
+    run(["systemctl", "reload", "caddy.service"])
+    run(["systemctl", "restart", SERVICE_NAME])
+    actions.extend([f"enabled and restarted {SERVICE_NAME}", "enabled and reloaded caddy.service"])
+    return actions
+
+
+def collect_checks() -> list[Check]:
+    checks: list[Check] = []
+    env = load_env(CONFIG_PATH)
+    web_root = Path(env.get("PROMOCASTER_CONTROL_WEB_ROOT", APP_DIR / "web"))
+    clients_file = Path(env.get("PROMOCASTER_CONTROL_CLIENTS_FILE", APP_DIR / "clients.yml"))
+
+    checks.append(Check("Runtime", "config file", "ok" if CONFIG_PATH.exists() else "fail", str(CONFIG_PATH), None if CONFIG_PATH.exists() else "rerun install-debian.sh or promocaster-control repair"))
+    checks.append(Check("Runtime", "app dir", "ok" if APP_DIR.exists() else "fail", str(APP_DIR), None if APP_DIR.exists() else "run promocaster-control repair"))
+    checks.append(Check("Runtime", "web root", "ok" if web_root.exists() else "fail", str(web_root), None if web_root.exists() else "run promocaster-control repair"))
+    checks.append(Check("Runtime", "clients file", "ok" if clients_file.exists() else "fail", str(clients_file), None if clients_file.exists() else "restore clients.yml then repair"))
+    for child in ("repos", "uploads", "ssh"):
+        path = DATA_DIR / child
+        checks.append(Check("Runtime", f"data/{child}", "ok" if path.exists() else "fail", str(path), None if path.exists() else "run promocaster-control repair"))
+
+    checks.append(Check("Services", "web service", "ok" if systemctl_state(SERVICE_NAME, "is-active") else "fail", SERVICE_NAME, f"inspect systemctl status {SERVICE_NAME}"))
+    checks.append(Check("Services", "web service enabled", "ok" if systemctl_state(SERVICE_NAME, "is-enabled") else "warn", SERVICE_NAME, f"run systemctl enable --now {SERVICE_NAME}"))
+    checks.append(Check("Services", "caddy", "ok" if systemctl_state("caddy.service", "is-active") else "fail", "caddy.service", "inspect systemctl status caddy.service"))
+    checks.append(Check("Services", "caddy config", "ok" if CADDY_CONFIG.exists() else "fail", str(CADDY_CONFIG), "run promocaster-control repair"))
+
+    caddy_config_text = CADDY_CONFIG.read_text(encoding="utf-8") if CADDY_CONFIG.exists() else ""
+    caddy_valid, caddy_detail = caddy_validate_detail()
+    resolved_ips = domain_ips(SITE)
+    current_ip = public_ipv4()
+    dns_status = "ok" if resolved_ips else "warn"
+    if current_ip and resolved_ips and current_ip not in resolved_ips:
+        dns_status = "warn"
+    checks.append(Check("TLS", "site fqdn", "ok", SITE))
+    checks.append(Check("TLS", "dns resolves", dns_status, ", ".join(resolved_ips) or "no A/AAAA records found", None if dns_status == "ok" else f"point {SITE} at this VPS before Caddy can issue Let's Encrypt certificates"))
+    if current_ip:
+        checks.append(Check("TLS", "public ipv4", "ok" if not resolved_ips or current_ip in resolved_ips else "warn", current_ip, None if not resolved_ips or current_ip in resolved_ips else f"DNS for {SITE} does not include this public IP"))
+    checks.append(Check("TLS", "Caddy site config", "ok" if SITE in caddy_config_text else "fail", str(CADDY_CONFIG), None if SITE in caddy_config_text else "run promocaster-control repair to rewrite the Caddy vhost"))
+    checks.append(Check("TLS", "Caddy validate", "ok" if caddy_valid else "fail", caddy_detail, None if caddy_valid else "fix Caddyfile before ACME can run"))
+    checks.append(Check("TLS", "port 80 listener", "ok" if port_listening(80) else "warn", "listening" if port_listening(80) else "not listening", "Caddy needs public TCP 80 for HTTP-01 challenges and redirects"))
+    checks.append(Check("TLS", "port 443 listener", "ok" if port_listening(443) else "warn", "listening" if port_listening(443) else "not listening", "Caddy will open TCP 443 after the site is active"))
+
+    source_root = resolve_source_root()
+    checks.append(Check("Update Path", "source checkout", "ok" if source_root else "fail", str(source_root or "missing"), f"clone repo to {SOURCE_ROOT}"))
+    if source_root:
+        checks.append(Check("Update Path", "source-root file", "ok" if SOURCE_ROOT_FILE.exists() and SOURCE_ROOT_FILE.read_text(encoding="utf-8").strip() == str(SOURCE_ROOT) else "warn", str(SOURCE_ROOT_FILE), "run promocaster-control repair"))
+        remote = git_value(source_root, "remote", "get-url", "origin")
+        branch = git_value(source_root, "branch", "--show-current")
+        upstream = git_value(source_root, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
+        clean, clean_detail = git_clean(source_root)
+        checks.append(Check("Update Path", "git remote", "ok" if remote else "fail", remote or "missing", "configure origin before update"))
+        checks.append(Check("Update Path", "git branch", "ok" if branch else "fail", branch or "detached HEAD", "check out a branch before update"))
+        checks.append(Check("Update Path", "git upstream", "ok" if upstream else "warn", upstream or "missing", "set upstream so update can pull cleanly"))
+        checks.append(Check("Update Path", "git checkout", "ok" if clean else "fail", clean_detail, "commit or stash local changes before update"))
+    expected = APP_DIR / "bin/promocaster-control"
+    resolved = GLOBAL_BIN.resolve() if GLOBAL_BIN.exists() or GLOBAL_BIN.is_symlink() else None
+    checks.append(Check("Update Path", "global command", "ok" if resolved == expected else "warn", str(resolved or GLOBAL_BIN), "run promocaster-control repair"))
+    return checks
+
+
+def print_checks(checks: list[Check]) -> int:
+    print()
+    print("Doctor Report")
+    print("=============")
+    print(f"Config: {CONFIG_PATH}")
+    for section in ("Runtime", "Services", "TLS", "Update Path"):
+        rows = [check for check in checks if check.section == section]
+        if not rows:
+            continue
+        print()
+        print(section)
+        print("-" * len(section))
+        for check in rows:
+            marker = {"ok": "OK", "warn": "WARN", "fail": "FAIL"}[check.status]
+            print(f"[{marker}] {check.label}: {check.detail}")
+            if check.hint and check.status != "ok":
+                print(f"       hint: {check.hint}")
+    print()
+    if any(check.status == "fail" for check in checks):
+        print("[FAIL] Doctor result: FAIL")
+        return 1
+    if any(check.status == "warn" for check in checks):
+        print("[WARN] Doctor result: WARN")
+        return 0
+    print("[OK] Doctor result: OK")
+    return 0
+
+
+def command_update(args: argparse.Namespace) -> int:
+    if not is_root():
+        raise CommandError("update must run as root")
+    source_root = resolve_source_root()
+    if source_root is None:
+        raise CommandError(f"no source checkout found; clone to {SOURCE_ROOT}")
+    if not args.no_pull:
+        branch = git_value(source_root, "branch", "--show-current")
+        if not branch:
+            raise CommandError(f"detached HEAD detected in {source_root}; check out a branch before update")
+        clean, detail = git_clean(source_root)
+        if not clean:
+            raise CommandError(f"git checkout is not clean for {source_root}:\n{detail}")
+        before = git_value(source_root, "rev-parse", "HEAD")
+        run(["git", "-C", str(source_root), "pull", "--ff-only", "origin", branch])
+        after = git_value(source_root, "rev-parse", "HEAD")
+        changed = before != after
+    else:
+        changed = args.force
+
+    if changed or args.force or not APP_DIR.exists():
+        actions = repair(source_root, daemon_reload=True)
+        mode = "updated"
+    else:
+        actions = repair(source_root, daemon_reload=args.daemon_reload)
+        mode = "refreshed"
+
+    print()
+    print("Update Result")
+    print("=============")
+    for action in actions:
+        print(f"[OK] {action}")
+    if mode == "updated":
+        print("[OK] Update completed successfully after refreshing the checkout.")
+    else:
+        print("[INFO] No new code was pulled; checkout wiring was refreshed.")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="promocaster-control")
+    sub = parser.add_subparsers(dest="command", required=True)
+    sub.add_parser("doctor", help="Check config, services, and checkout update health")
+    sub.add_parser("tls-check", help="Check Let's Encrypt/Caddy prerequisites for the public FQDN")
+    repair_parser = sub.add_parser("repair", help="Refresh installed app, service, Caddy config, and command wiring")
+    repair_parser.add_argument("--no-daemon-reload", action="store_true", help="Skip systemd daemon-reload")
+    update_parser = sub.add_parser("update", help="Pull and activate a checkout update safely")
+    update_parser.add_argument("--no-pull", action="store_true", help="Skip git pull and just refresh installed wiring")
+    update_parser.add_argument("--daemon-reload", action="store_true", help="Reload systemd even when no new code was pulled")
+    update_parser.add_argument("--force", action="store_true", help="Run the full refresh path even when no new code was pulled")
+    args = parser.parse_args(argv)
+
+    try:
+        if args.command == "doctor":
+            return print_checks(collect_checks())
+        if args.command == "tls-check":
+            return print_checks([check for check in collect_checks() if check.section in {"Services", "TLS"}])
+        if args.command == "repair":
+            actions = repair(daemon_reload=not args.no_daemon_reload)
+            print()
+            print("Repair Actions")
+            print("==============")
+            for action in actions:
+                print(f"[OK] {action}")
+            return print_checks(collect_checks())
+        if args.command == "update":
+            return command_update(args)
+    except CommandError as exc:
+        print(f"[ERROR] {exc}", file=sys.stderr)
+        return 1
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

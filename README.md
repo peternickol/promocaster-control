@@ -180,6 +180,49 @@ editor, and exposes `GET /api/health`. The real auth, deck editing API, upload
 handling, and git publisher should be added under `server/` without moving the
 runtime slideshow files back into this repo.
 
+### Test Box Preflight
+
+Before standing up a Debian test box, confirm:
+
+- `control.promocaster.io` has an `A` record pointing at the VPS.
+- Public TCP ports `80` and `443` reach the VPS.
+- The repo is cloned at the fixed server path: `/root/promocaster-control`.
+- The VPS has enough disk for large client repos. For testing, keep at least
+  `40-60 GB` free under `/var/lib/promocaster-control`.
+- The GitHub writer key you plan to use has write access to
+  `promocaster.phgi`.
+
+Initial install flow:
+
+```sh
+cd /root
+git clone git@github.com:peternickol/promocaster-control.git
+cd /root/promocaster-control
+sudo bash install-debian.sh
+promocaster-control basic-auth set peter
+promocaster-control github-key edit
+promocaster-control github-key show-public
+promocaster-control github-key test
+promocaster-control tls-check
+promocaster-control doctor
+```
+
+The first test deployment should prove:
+
+- Debian package installation
+- systemd service wiring
+- Caddy reverse proxy wiring
+- Let's Encrypt issuance and renewal path
+- HTTP-to-HTTPS redirect
+- Phase 1 Basic Auth guard
+- GitHub SSH authentication
+- `doctor` diagnostics
+
+Current limitation: this server is not yet a functional remote deck editor. It
+does not yet clone/fetch the PHGI repo, parse `_data/media.yml`, save deck
+changes, upload media, delete removed media, validate Jekyll builds, commit, or
+push. Those belong to the next repo/API implementation layer.
+
 ### Maintenance Commands
 
 The installer records the source checkout in

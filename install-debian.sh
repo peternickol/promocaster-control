@@ -124,7 +124,7 @@ fi
 
 install -d -m 0755 "$APP_ROOT" "$CONFIG_DIR"
 install -d -o "$SERVICE_USER" -g "$SERVICE_USER" -m 0750 "$DATA_DIR"
-install -d -o "$SERVICE_USER" -g "$SERVICE_USER" -m 0750 "$DATA_DIR/repos" "$DATA_DIR/uploads"
+install -d -o "$SERVICE_USER" -g "$SERVICE_USER" -m 0750 "$DATA_DIR/repos" "$DATA_DIR/uploads" "$DATA_DIR/sync"
 install -d -o "$SERVICE_USER" -g "$SERVICE_USER" -m 0700 "$DATA_DIR/ssh"
 install -d -m 0755 "$(dirname "$GLOBAL_BIN")"
 
@@ -139,6 +139,7 @@ PROMOCASTER_CONTROL_PORT=$PORT
 PROMOCASTER_CONTROL_WEB_ROOT=$APP_DIR/web
 PROMOCASTER_CONTROL_DATA_DIR=$DATA_DIR
 PROMOCASTER_CONTROL_CLIENTS_FILE=$APP_DIR/clients.yml
+PROMOCASTER_CONTROL_SYNC_DIR=$DATA_DIR/sync
 EOF
 chmod 0640 "$CONFIG_PATH"
 chmod 0644 "$SOURCE_ROOT_FILE"
@@ -187,6 +188,7 @@ Paths:
   Data: $DATA_DIR
   Client repo checkouts: $DATA_DIR/repos
   Upload staging: $DATA_DIR/uploads
+  Sync progress state: $DATA_DIR/sync
   Git SSH keys: $DATA_DIR/ssh
   Operator command: $GLOBAL_BIN
 

@@ -130,6 +130,7 @@ Default runtime layout:
 /etc/promocaster-control/source-root
 /var/lib/promocaster-control/repos client repo checkouts
 /var/lib/promocaster-control/uploads upload staging
+/var/lib/promocaster-control/sync  repo sync progress state
 /var/lib/promocaster-control/ssh   GitHub writer key material
 /usr/local/bin/promocaster-control operator maintenance command
 ```
@@ -164,11 +165,63 @@ promocaster-control repair
 ```
 
 This intentionally mirrors the hard-won monitor pattern. `doctor` checks runtime
-paths, service state, Caddy wiring, and whether the source checkout is clean and
-pullable. `update` refuses detached heads and dirty checkouts, pulls with
-`--ff-only`, refreshes `/opt/promocaster-control/app`, rewrites systemd and
-Caddy files, reloads services, and leaves the global command symlink in sync.
-`repair` performs that refresh path without pulling.
+paths, storage pressure, service state, Caddy wiring, GitHub writer key health,
+and whether the source checkout is clean and pullable. `update` refuses detached
+heads and dirty checkouts, pulls with `--ff-only`, refreshes
+`/opt/promocaster-control/app`, rewrites systemd and Caddy files, reloads
+services, and leaves the global command symlink in sync. `repair` performs that
+refresh path without pulling.
+
+### Storage Checks
+
+Client content repos can be large. PHGI-style repos may already be around 1.5 GB,
+and control may eventually cache many client repos under
+`/var/lib/promocaster-control/repos`. `doctor` reports:
+
+- free space on the data filesystem
+- total repo cache size
+- each cached client repo size
+- upload staging size
+- temporary validation build size under `/tmp/promocaster-control-builds`
+
+Default thresholds are intentionally conservative:
+
+```text
+data free space: warn below 20 GB, fail below 8 GB
+single client repo: warn above 5 GB
+all repos total: warn above 25 GB
+upload staging: warn above 2 GB
+temp builds: warn above 5 GB
+```
+
+These can be adjusted with environment variables such as
+`PROMOCASTER_CONTROL_DATA_FREE_WARN_GB` and
+`PROMOCASTER_CONTROL_REPO_SIZE_WARN_GB` if the VPS is sized differently.
+
+Initial repo sync must never make the UI look frozen. A first clone can take a
+while, so editor/inspector should show a progress state while the server clones
+or fetches the client repo. The intended API shape is:
+
+```http
+GET /api/clients/phgi/sync/status
+```
+
+Example response while a first clone is running:
+
+```json
+{
+  "client": "phgi",
+  "state": "cloning",
+  "percent": 42,
+  "message": "Receiving objects: 42%",
+  "started_at": "2026-05-18T22:10:00Z"
+}
+```
+
+The placeholder server already exposes that status endpoint. The future repo
+sync worker should write status JSON to `/var/lib/promocaster-control/sync` as
+it clones/fetches, and the UI should poll until `state` becomes `ready` before
+loading decks.
 
 ### GitHub Writer Key
 

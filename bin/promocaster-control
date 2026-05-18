@@ -18,11 +18,22 @@ SOURCE_ROOT_FILE = Path(os.environ.get("PROMOCASTER_CONTROL_SOURCE_ROOT_FILE", C
 DATA_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_DATA_DIR", "/var/lib/promocaster-control"))
 SSH_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_SSH_DIR", DATA_DIR / "ssh"))
 GITHUB_KEY = Path(os.environ.get("PROMOCASTER_CONTROL_GITHUB_KEY", SSH_DIR / "github_writer_key"))
+REPOS_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_REPOS_DIR", DATA_DIR / "repos"))
+UPLOADS_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_UPLOADS_DIR", DATA_DIR / "uploads"))
+SYNC_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_SYNC_DIR", DATA_DIR / "sync"))
+BUILD_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_BUILD_DIR", "/tmp/promocaster-control-builds"))
 SERVICE_NAME = os.environ.get("PROMOCASTER_CONTROL_SERVICE_NAME", "promocaster-control.service")
 SERVICE_USER = os.environ.get("PROMOCASTER_CONTROL_SERVICE_USER", "promocaster-control")
 CADDY_CONFIG = Path(os.environ.get("PROMOCASTER_CONTROL_CADDY_CONFIG", "/etc/caddy/promocaster-control.conf"))
 GLOBAL_BIN = Path(os.environ.get("PROMOCASTER_CONTROL_GLOBAL_BIN", "/usr/local/bin/promocaster-control"))
 SITE = os.environ.get("PROMOCASTER_CONTROL_SITE", "control.promocaster.io")
+GIB = 1024**3
+DATA_FREE_WARN_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_DATA_FREE_WARN_GB", "20")) * GIB
+DATA_FREE_FAIL_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_DATA_FREE_FAIL_GB", "8")) * GIB
+REPO_SIZE_WARN_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_REPO_SIZE_WARN_GB", "5")) * GIB
+REPOS_TOTAL_WARN_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_REPOS_TOTAL_WARN_GB", "25")) * GIB
+UPLOADS_WARN_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_UPLOADS_WARN_GB", "2")) * GIB
+BUILD_WARN_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_BUILD_WARN_GB", "5")) * GIB
 
 
 class CommandError(RuntimeError):
@@ -96,6 +107,30 @@ def path_mode(path: Path) -> str:
         return oct(path.stat().st_mode & 0o777)
     except OSError:
         return "missing"
+
+
+def format_bytes(size: int) -> str:
+    units = ("B", "KB", "MB", "GB", "TB")
+    value = float(size)
+    for unit in units:
+        if value < 1024 or unit == units[-1]:
+            return f"{value:.1f} {unit}" if unit != "B" else f"{int(value)} B"
+        value /= 1024
+    return f"{size} B"
+
+
+def directory_size(path: Path) -> int:
+    total = 0
+    if not path.exists():
+        return 0
+    for root, dirs, files in os.walk(path, onerror=lambda _exc: None):
+        root_path = Path(root)
+        for filename in files:
+            try:
+                total += (root_path / filename).lstat().st_size
+            except OSError:
+                continue
+    return total
 
 
 def github_key_public_text() -> tuple[bool, str]:
@@ -248,6 +283,7 @@ def repair(source_root: Path | None = None, *, daemon_reload: bool = True) -> li
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     for child in ("repos", "uploads", "ssh"):
         (DATA_DIR / child).mkdir(parents=True, exist_ok=True)
+    SYNC_DIR.mkdir(parents=True, exist_ok=True)
 
     copy_app(source_root)
     SOURCE_ROOT_FILE.write_text(f"{source_root}\n", encoding="utf-8")
@@ -275,9 +311,34 @@ def collect_checks() -> list[Check]:
     checks.append(Check("Runtime", "app dir", "ok" if APP_DIR.exists() else "fail", str(APP_DIR), None if APP_DIR.exists() else "run promocaster-control repair"))
     checks.append(Check("Runtime", "web root", "ok" if web_root.exists() else "fail", str(web_root), None if web_root.exists() else "run promocaster-control repair"))
     checks.append(Check("Runtime", "clients file", "ok" if clients_file.exists() else "fail", str(clients_file), None if clients_file.exists() else "restore clients.yml then repair"))
-    for child in ("repos", "uploads", "ssh"):
-        path = DATA_DIR / child
+    for child, path in (("repos", REPOS_DIR), ("uploads", UPLOADS_DIR), ("ssh", SSH_DIR), ("sync", SYNC_DIR)):
         checks.append(Check("Runtime", f"data/{child}", "ok" if path.exists() else "fail", str(path), None if path.exists() else "run promocaster-control repair"))
+
+    usage_root = DATA_DIR if DATA_DIR.exists() else DATA_DIR.parent
+    try:
+        disk = shutil.disk_usage(usage_root)
+        free_status = "ok"
+        free_hint = None
+        if disk.free < DATA_FREE_FAIL_BYTES:
+            free_status = "fail"
+            free_hint = "free disk is critically low for large repo clones and uploads"
+        elif disk.free < DATA_FREE_WARN_BYTES:
+            free_status = "warn"
+            free_hint = "large first clones can be 1.5 GB or more; add disk or prune stale data soon"
+        checks.append(Check("Storage", "data free space", free_status, f"{format_bytes(disk.free)} free of {format_bytes(disk.total)} on {usage_root}", free_hint))
+    except OSError as exc:
+        checks.append(Check("Storage", "data free space", "fail", str(exc), "make sure the data filesystem exists"))
+
+    repos_total = directory_size(REPOS_DIR)
+    checks.append(Check("Storage", "repo cache total", "warn" if repos_total > REPOS_TOTAL_WARN_BYTES else "ok", format_bytes(repos_total), "repo cache is growing; review client repo sizes" if repos_total > REPOS_TOTAL_WARN_BYTES else None))
+    if REPOS_DIR.exists():
+        for repo_path in sorted(path for path in REPOS_DIR.iterdir() if path.is_dir()):
+            repo_size = directory_size(repo_path)
+            checks.append(Check("Storage", f"repo {repo_path.name}", "warn" if repo_size > REPO_SIZE_WARN_BYTES else "ok", format_bytes(repo_size), "large media repo; make sure VPS disk sizing accounts for this client" if repo_size > REPO_SIZE_WARN_BYTES else None))
+    uploads_size = directory_size(UPLOADS_DIR)
+    checks.append(Check("Storage", "upload staging", "warn" if uploads_size > UPLOADS_WARN_BYTES else "ok", format_bytes(uploads_size), "stale staged uploads should be cleaned up" if uploads_size > UPLOADS_WARN_BYTES else None))
+    build_size = directory_size(BUILD_DIR)
+    checks.append(Check("Storage", "temp builds", "warn" if build_size > BUILD_WARN_BYTES else "ok", format_bytes(build_size), "validation build output should be cleaned up" if build_size > BUILD_WARN_BYTES else None))
 
     public_ok, public_detail = github_key_public_text()
     auth_status, auth_detail = github_ssh_auth_detail() if GITHUB_KEY.exists() else ("fail", "missing key")
@@ -333,7 +394,7 @@ def print_checks(checks: list[Check]) -> int:
     print("Doctor Report")
     print("=============")
     print(f"Config: {CONFIG_PATH}")
-    for section in ("Runtime", "Services", "TLS", "GitHub Writer", "Update Path"):
+    for section in ("Runtime", "Storage", "Services", "TLS", "GitHub Writer", "Update Path"):
         rows = [check for check in checks if check.section == section]
         if not rows:
             continue

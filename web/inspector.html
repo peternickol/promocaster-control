@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Inspector - Promocaster Control</title>
+  <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/inspector.css">
+  <script src="/assets/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
+  <script src="/assets/js/inspector.js" defer></script>
+</head>
+<body>
+  <div class="inspector-shell">
+    <aside class="location-panel">
+      <header class="panel-header">
+        <div>
+          <p class="app-kicker">Promocaster</p>
+          <h1>Inspector</h1>
+        </div>
+        <div class="header-actions">
+          <nav class="tool-nav" aria-label="Tools">
+            <a class="is-active" href="/inspector.html">Inspect</a>
+            <a href="/editor.html">Edit</a>
+          </nav>
+          <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark mode">
+            <span class="theme-toggle-track" aria-hidden="true">
+              <span class="theme-option">
+                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                  <circle cx="12" cy="12" r="4"></circle>
+                  <path d="M12 2v2"></path>
+                  <path d="M12 20v2"></path>
+                  <path d="m4.93 4.93 1.41 1.41"></path>
+                  <path d="m17.66 17.66 1.41 1.41"></path>
+                  <path d="M2 12h2"></path>
+                  <path d="M20 12h2"></path>
+                  <path d="m6.34 17.66-1.41 1.41"></path>
+                  <path d="m19.07 4.93-1.41 1.41"></path>
+                </svg>
+              </span>
+              <span class="theme-option">
+                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                  <path d="M20.99 12.58A8.5 8.5 0 1 1 11.42 3a6.8 6.8 0 0 0 9.57 9.58Z"></path>
+                </svg>
+              </span>
+              <span class="theme-thumb"></span>
+            </span>
+          </button>
+        </div>
+      </header>
+      <div id="location-list" class="location-list" aria-label="Locations"></div>
+    </aside>
+
+    <main class="audit-panel">
+      <header class="audit-header">
+        <div>
+          <p class="eyebrow">Location</p>
+          <h2 id="location-title">Loading</h2>
+        </div>
+        <dl class="summary" id="summary"></dl>
+      </header>
+
+      <section class="preview-panel" aria-label="Slide preview">
+        <div id="preview" class="preview"></div>
+        <div class="preview-meta">
+          <div>
+            <p class="eyebrow">Selected</p>
+            <h3 id="preview-title">No slide selected</h3>
+          </div>
+          <div class="preview-actions">
+            <button id="prev-slide" class="btn btn-outline-secondary btn-sm" type="button">Previous</button>
+            <button id="next-slide" class="btn btn-primary btn-sm" type="button">Next</button>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="slide-toolbar">
+          <h3>Slides</h3>
+          <span id="audit-status">Waiting for deck data</span>
+        </div>
+        <div id="slide-grid" class="slide-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script id="all-decks" type="application/json">{"activeLocation":"","locations":[]}</script>
+</body>
+</html>

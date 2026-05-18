@@ -21,13 +21,14 @@ Remote repos:
 - PHGI runtime/content repo: `git@github.com:peternickol/promocaster.phgi.git`
 
 This repo is the future global control plane. It may know about many clients,
-but it must only expose the authenticated user's allowed clients and locations
-through the API.
+but it must only expose the authenticated user's allowed clients and allowed
+locations through the API.
 
 ## Current Split
 
 - `web/` contains the editor and inspector UI copied out of the PHGI content repo.
-- `clients.yml` is the control-side registry of clients, content repos, and editable locations.
+- `clients.yml` is the control-side registry of clients and content repos.
+- Locations are derived from the synced client repo's `_data/media.yml`.
 - `server/` is reserved for the authenticated API and git publisher.
 
 The copied UI currently uses an empty embedded payload so it can load as static
@@ -81,19 +82,35 @@ promocaster.location = "pnwpizza-yacolt";
 PHGI has multiple locations in one client repo. That is intentional. The split is
 by client, not by individual screen/location.
 
+## Location Lifecycle
+
+Location lifecycle is an admin operation, not a control UI operation.
+`nix.promocaster` devices are preprogrammed with a location code, so location
+keys must already exist in the client content repo before a device can use them.
+
+For PHGI, adding or removing a location means manually editing the client repo's
+top-level `_data/media.yml` keys and coordinating the matching device-side
+`promocaster.location` value in `nix.promocaster` configuration.
+
+Promocaster Control may derive and display locations, but the editor must not
+create, rename, or delete location keys. It only edits slides inside locations
+that already exist in the synced client repo. The API must reject save payloads
+that add a new location, remove an existing location, or rename a location.
+
 ## Save and Publish Flow
 
 Expected future flow:
 
 1. User authenticates to `promocaster-control`.
 2. API scopes the user to an allowed client, such as `phgi`.
-3. UI fetches only that client's deck data.
-4. API clones or updates that client's repo checkout.
-5. API writes `_data/media.yml`, media uploads, and media deletions.
-6. API removes no-longer-referenced media files from the repo with `git rm`.
-7. API runs Jekyll validation for affected locations.
-8. API commits and pushes the client repo.
-9. `nix.promocaster` devices pull the client repo and build their configured location.
+3. API derives that client's locations from the synced repo's `_data/media.yml`.
+4. UI fetches only that client's authorized deck data.
+5. API clones or updates that client's repo checkout.
+6. API writes `_data/media.yml`, media uploads, and media deletions.
+7. API removes no-longer-referenced media files from the repo with `git rm`.
+8. API runs Jekyll validation for affected locations.
+9. API commits and pushes the client repo.
+10. `nix.promocaster` devices pull the client repo and build their configured location.
 
 When a slide is removed in the editor, the backing media file must be deleted
 from the client repo if no remaining slide references it. This is important for
@@ -106,6 +123,7 @@ Deletion safety rules:
 - normalize to plain media filenames, never trust user-supplied paths
 - do not delete a file if any remaining deck/location still references it
 - do not delete a file that was just uploaded and is still referenced by the new payload
+- do not treat removed locations as a content-editor deletion; location removal is manual/admin-only
 - use `git rm -- media/<filename>` so the deletion is committed and pushed
 - include deleted files in the API response so the UI can show what changed
 
@@ -286,6 +304,8 @@ editor and inspector.
 `GET /api/me`
 
 Returns the authenticated user and the clients/locations they can access.
+Locations are discovered from the client repo after sync, then filtered by auth
+policy. They are not duplicated in `clients.yml`.
 
 ```json
 {
@@ -294,6 +314,7 @@ Returns the authenticated user and the clients/locations they can access.
     {
       "id": "phgi",
       "name": "PHGI",
+      "repo_status": "ready",
       "locations": ["pnwpizza-yacolt"]
     }
   ]
@@ -312,6 +333,11 @@ match the current `all-decks.json` shape used by the UI.
 Accepts structured deck JSON, validates it, writes the client repo's
 `_data/media.yml`, deletes removed media files that are no longer referenced,
 validates the affected location builds, commits, and pushes.
+
+The submitted location set must exactly match the existing location set derived
+from the repo's current `_data/media.yml`. If the payload adds, removes, or
+renames a location, the API must reject the save and tell the operator that
+location lifecycle is an admin operation.
 
 The save handler must compare the old repo state to the new payload:
 

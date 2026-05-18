@@ -3,14 +3,3 @@ clients:
     name: PHGI
     repo: git@github.com:peternickol/promocaster.phgi.git
     branch: master
-    locations:
-      - playmakers-battleground1
-      - playmakers-battleground2
-      - playmakers-ridgefield1
-      - playmakers-ridgefield2
-      - playmakers-hazeldell1
-      - playmakers-hazeldell2
-      - pnwpizza-yacolt
-      - firemountaingrill-toutle
-      - firemountaingrill-amboy
-      - test-1

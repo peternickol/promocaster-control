@@ -1,0 +1,3 @@
+__SITE__ {
+    reverse_proxy __UPSTREAM__
+}

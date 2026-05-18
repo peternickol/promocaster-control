@@ -105,6 +105,42 @@ python3 -m http.server 4173
 
 The pages currently load an empty embedded deck payload until the API is wired.
 
+## Debian VPS Setup
+
+This repo owns the operator-facing Debian installer for the control server:
+
+```sh
+sudo bash install-debian.sh
+```
+
+The installer follows the same product-repo pattern used by the monitor repos:
+install Debian packages, create a service user, copy this repo into
+`/opt/promocaster-control/app`, create `/var/lib/promocaster-control`, install a
+systemd service, and put Caddy in front of the local app.
+
+Default runtime layout:
+
+```text
+/opt/promocaster-control/app       copied application repo
+/etc/promocaster-control/config.env
+/var/lib/promocaster-control/repos client repo checkouts
+/var/lib/promocaster-control/uploads upload staging
+/var/lib/promocaster-control/ssh   GitHub writer key material
+```
+
+Useful install overrides:
+
+```sh
+sudo PROMOCASTER_CONTROL_SITE=control.example.com \
+  PROMOCASTER_CONTROL_PORT=8080 \
+  bash install-debian.sh
+```
+
+The current server is a thin placeholder: it serves `web/`, redirects `/` to the
+editor, and exposes `GET /api/health`. The real auth, deck editing API, upload
+handling, and git publisher should be added under `server/` without moving the
+runtime slideshow files back into this repo.
+
 ## API Contract
 
 Initial API shape for replacing the embedded Jekyll data used by the prototype

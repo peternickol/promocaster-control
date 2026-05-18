@@ -1,0 +1,17 @@
+[Unit]
+Description=Promocaster Control web service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__SERVICE_USER__
+Group=__SERVICE_USER__
+WorkingDirectory=__APP_DIR__
+EnvironmentFile=__CONFIG_PATH__
+ExecStart=/usr/bin/python3 __APP_DIR__/server/promocaster_control.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

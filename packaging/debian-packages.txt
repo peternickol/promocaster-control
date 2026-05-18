@@ -1,0 +1,13 @@
+build-essential
+bundler
+ca-certificates
+caddy
+curl
+git
+nano
+openssh-client
+python3
+ruby-full
+sqlite3
+unattended-upgrades
+zlib1g-dev

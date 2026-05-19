@@ -61,6 +61,15 @@ done
 
 fix_loopback_hosts_entry() {
   local tmp_hosts
+  if [[ -d /etc/cloud/cloud.cfg.d ]]; then
+    cat > /etc/cloud/cloud.cfg.d/99-promocaster-control-hosts.cfg <<'EOF'
+# Promocaster Control needs the public FQDN to resolve through DNS for Caddy/ACME.
+# Do not let cloud-init put control.promocaster.io back on 127.0.1.1.
+manage_etc_hosts: false
+EOF
+    echo "Disabled cloud-init manage_etc_hosts for durable FQDN DNS resolution"
+  fi
+
   tmp_hosts="$(mktemp)"
   awk -v site="$SITE" '
     /^[[:space:]]*#/ { print; next }

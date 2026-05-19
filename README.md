@@ -221,10 +221,11 @@ The first test deployment should prove:
 - GitHub SSH authentication
 - `doctor` diagnostics
 
-The installer also removes `control.promocaster.io` from loopback entries in
-`/etc/hosts` if Debian put the FQDN on `127.0.1.1`. The short hostname can stay
-there, but the public FQDN must resolve through DNS so Caddy and Let's Encrypt
-see the real VPS address.
+The installer also disables cloud-init `manage_etc_hosts` with
+`/etc/cloud/cloud.cfg.d/99-promocaster-control-hosts.cfg`, then removes
+`control.promocaster.io` from loopback entries in `/etc/hosts` if Debian put the
+FQDN on `127.0.1.1`. The short hostname can stay there, but the public FQDN must
+resolve through DNS so Caddy and Let's Encrypt see the real VPS address.
 
 Current limitation: this server is not yet a functional remote deck editor. It
 does not yet clone/fetch the PHGI repo, parse `_data/media.yml`, save deck

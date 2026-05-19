@@ -10,9 +10,6 @@
   const pendingCount = document.getElementById("pending-count");
   const saveStatus = document.getElementById("save-status");
   const mediaUpload = document.getElementById("media-upload");
-  const existingMediaForm = document.getElementById("existing-media-form");
-  const existingMediaName = document.getElementById("existing-media-name");
-  const existingMediaDuration = document.getElementById("existing-media-duration");
   const saveDecks = document.getElementById("save-decks");
   const themeToggle = document.getElementById("theme-toggle");
   const themeStorageKey = "promocaster-admin-theme";
@@ -81,10 +78,6 @@
   function markChanged() {
     saveStatus.textContent = "Unsaved changes";
     renderAll();
-  }
-
-  function mediaTypeForName(name) {
-    return name.toLowerCase().endsWith(".mp4") ? "video" : "image";
   }
 
   function sanitizeFileName(name) {
@@ -456,27 +449,6 @@
     markChanged();
   }
 
-  function addExisting(name, durationSeconds) {
-    const location = getLocation();
-    if (!location) return;
-    const cleanName = sanitizeFileName(name);
-    if (!cleanName) return;
-    const type = mediaTypeForName(cleanName);
-    location.slides.push({
-      name: cleanName,
-      src: srcForName(cleanName),
-      type,
-      durationMs: type === "video" ? null : secondsToMs(durationSeconds, 10),
-      maxDurationMs: type === "video" && durationSeconds !== "" ? secondsToMs(durationSeconds, 10) : null,
-      startsOn: "",
-      expiresOn: "",
-      pendingFile: null,
-      objectUrl: "",
-    });
-    existingMediaName.value = "";
-    markChanged();
-  }
-
   function savePayload() {
     return {
       activeLocation: selectedLocation,
@@ -556,10 +528,6 @@
   }
 
   mediaUpload.addEventListener("change", () => addFiles(mediaUpload.files));
-  existingMediaForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    addExisting(existingMediaName.value, existingMediaDuration.value);
-  });
   saveDecks.addEventListener("click", () => saveToRepo());
   themeToggle.addEventListener("click", () => {
     const currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";

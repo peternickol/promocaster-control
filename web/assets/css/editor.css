@@ -290,8 +290,7 @@ button:not(.btn):hover {
   gap: 8px;
 }
 
-.deck-actions button,
-.existing-media-form button {
+.deck-actions button {
   white-space: nowrap;
 }
 
@@ -314,9 +313,6 @@ button:not(.btn):hover {
 }
 
 .add-panel {
-  display: grid;
-  grid-template-columns: minmax(320px, 1fr) minmax(420px, 1fr);
-  gap: 12px;
   padding: 16px;
 }
 
@@ -345,14 +341,6 @@ button:not(.btn):hover {
   opacity: 0;
 }
 
-.existing-media-form {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 120px auto;
-  gap: 8px;
-  align-content: center;
-}
-
-.existing-media-form input,
 .slide-duration,
 .slide-date {
   border: 1px solid var(--border);
@@ -361,7 +349,6 @@ button:not(.btn):hover {
   color: var(--text);
 }
 
-.existing-media-form input,
 .slide-duration,
 .slide-date {
   padding: 9px 10px;

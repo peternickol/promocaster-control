@@ -3,6 +3,7 @@ bundler
 ca-certificates
 caddy
 curl
+dnsutils
 git
 iproute2
 nano

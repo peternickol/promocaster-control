@@ -187,13 +187,28 @@ def github_ssh_auth_detail() -> tuple[str, str]:
     return "warn", detail
 
 
-def domain_ips(domain: str) -> list[str]:
+def local_domain_ips(domain: str) -> list[str]:
     try:
         results = socket.getaddrinfo(domain, None)
     except OSError:
         return []
     ips = sorted({result[4][0] for result in results})
     return ips
+
+
+def public_domain_ips(domain: str) -> list[str]:
+    if command_exists("dig"):
+        ips: set[str] = set()
+        for record_type in ("A", "AAAA"):
+            proc = subprocess.run(["dig", "+short", record_type, domain, "@1.1.1.1"], check=False, capture_output=True, text=True)
+            if proc.returncode == 0:
+                for line in proc.stdout.splitlines():
+                    value = line.strip()
+                    if value and not value.endswith("."):
+                        ips.add(value)
+        if ips:
+            return sorted(ips)
+    return local_domain_ips(domain)
 
 
 def public_ipv4() -> str:
@@ -382,15 +397,18 @@ def collect_checks() -> list[Check]:
 
     caddy_config_text = CADDY_CONFIG.read_text(encoding="utf-8") if CADDY_CONFIG.exists() else ""
     caddy_valid, caddy_detail = caddy_validate_detail()
-    resolved_ips = domain_ips(SITE)
+    public_dns_ips = public_domain_ips(SITE)
+    local_dns_ips = local_domain_ips(SITE)
     current_ip = public_ipv4()
-    dns_status = "ok" if resolved_ips else "warn"
-    if current_ip and resolved_ips and current_ip not in resolved_ips:
+    dns_status = "ok" if public_dns_ips else "warn"
+    if current_ip and public_dns_ips and current_ip not in public_dns_ips:
         dns_status = "warn"
     checks.append(Check("TLS", "site fqdn", "ok", SITE))
-    checks.append(Check("TLS", "dns resolves", dns_status, ", ".join(resolved_ips) or "no A/AAAA records found", None if dns_status == "ok" else f"point {SITE} at this VPS before Caddy can issue Let's Encrypt certificates"))
+    checks.append(Check("TLS", "public DNS resolves", dns_status, ", ".join(public_dns_ips) or "no A/AAAA records found", None if dns_status == "ok" else f"point {SITE} at this VPS before Caddy can issue Let's Encrypt certificates"))
     if current_ip:
-        checks.append(Check("TLS", "public ipv4", "ok" if not resolved_ips or current_ip in resolved_ips else "warn", current_ip, None if not resolved_ips or current_ip in resolved_ips else f"DNS for {SITE} does not include this public IP"))
+        checks.append(Check("TLS", "public ipv4", "ok" if not public_dns_ips or current_ip in public_dns_ips else "warn", current_ip, None if not public_dns_ips or current_ip in public_dns_ips else f"public DNS for {SITE} does not include this public IP"))
+    if local_dns_ips and public_dns_ips and local_dns_ips != public_dns_ips:
+        checks.append(Check("TLS", "local resolver", "warn", ", ".join(local_dns_ips), "local /etc/hosts or resolver differs from public DNS; this is usually harmless for ACME if public DNS is correct"))
     checks.append(Check("TLS", "Caddy site config", "ok" if SITE in caddy_config_text else "fail", str(CADDY_CONFIG), None if SITE in caddy_config_text else "run promocaster-control repair to rewrite the Caddy vhost"))
     checks.append(Check("TLS", "Caddy validate", "ok" if caddy_valid else "fail", caddy_detail, None if caddy_valid else "fix Caddyfile before ACME can run"))
     checks.append(Check("TLS", "port 80 listener", "ok" if port_listening(80) else "warn", "listening" if port_listening(80) else "not listening", "Caddy needs public TCP 80 for HTTP-01 challenges and redirects"))

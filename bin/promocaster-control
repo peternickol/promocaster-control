@@ -341,10 +341,6 @@ def load_clients() -> dict[str, dict[str, str]]:
         if current_id and raw_line.startswith("    ") and ":" in raw_line:
             key, value = raw_line.strip().split(":", 1)
             clients[current_id][key] = value.strip().strip('"').strip("'")
-    for client_id, config in clients.items():
-        config.setdefault("id", client_id)
-        if config["id"] != client_id:
-            raise CommandError(f"client key {client_id} has mismatched id {config['id']} in clients.yml")
     return clients
 
 

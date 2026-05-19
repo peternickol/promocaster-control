@@ -29,7 +29,7 @@ locations through the API.
 - `web/` contains the editor and inspector UI copied out of the PHGI content repo.
 - `clients.yml` is the control-side registry of clients and content repos.
 - Locations are derived from the synced client repo's `_data/media.yml`.
-- Each client record has an explicit `id`; it must match the `clients.yml` key.
+- The `clients.yml` key is the client id.
 - `server/` is reserved for the authenticated API and git publisher.
 
 The copied UI currently uses an empty embedded payload so it can load as static

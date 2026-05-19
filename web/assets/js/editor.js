@@ -554,21 +554,41 @@
     };
   }
 
+  function pendingUploadSlides() {
+    return data.locations.flatMap((location) => location.slides.filter((slide) => slide.pendingFile));
+  }
+
+  function clearPendingUploads() {
+    pendingUploadSlides().forEach((slide) => {
+      if (slide.objectUrl) URL.revokeObjectURL(slide.objectUrl);
+      slide.pendingFile = null;
+      slide.objectUrl = "";
+      slide.src = srcForName(slide.name);
+    });
+  }
+
   async function saveToRepo() {
     saveDecks.disabled = true;
-    saveStatus.textContent = "Saving";
+    const uploads = pendingUploadSlides();
+    saveStatus.textContent = uploads.length > 0 ? `Saving ${uploads.length} files` : "Saving";
     try {
+      const formData = new FormData();
+      formData.append("deck", JSON.stringify(savePayload()));
+      uploads.forEach((slide) => {
+        formData.append("media", slide.pendingFile, slide.name);
+      });
       const response = await fetch(`/api/clients/${encodeURIComponent(controlClient)}/decks`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(savePayload()),
+        body: formData,
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || !payload.ok) {
         saveStatus.textContent = payload.message || `Save failed (${response.status})`;
         return;
       }
+      clearPendingUploads();
       saveStatus.textContent = payload.state === "no_changes" ? "No changes" : `Pushed ${payload.commit}`;
+      renderAll();
     } catch {
       saveStatus.textContent = "Save failed";
     } finally {

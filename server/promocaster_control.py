@@ -21,6 +21,8 @@ CONTROL_GIT_CONFIG = Path(os.environ.get("PROMOCASTER_CONTROL_GIT_CONFIG", DATA_
 BIND = os.environ.get("PROMOCASTER_CONTROL_BIND", "127.0.0.1")
 PORT = int(os.environ.get("PROMOCASTER_CONTROL_PORT", "8080"))
 MAX_JSON_BODY_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_MAX_JSON_BODY_BYTES", str(2 * 1024 * 1024)))
+MAX_MULTIPART_BODY_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_MAX_MULTIPART_BODY_BYTES", str(512 * 1024 * 1024)))
+ALLOWED_MEDIA_EXTENSIONS = {".jpg", ".jpeg", ".png", ".mp4"}
 
 
 def load_clients():
@@ -67,6 +69,14 @@ def clean_yaml_scalar(value):
 
 def media_type_for_name(name):
     return "video" if name.lower().endswith(".mp4") else "image"
+
+
+def is_safe_media_name(name):
+    if not name or "/" in name or "\\" in name or name in {".", ".."}:
+        return False
+    if Path(name).name != name:
+        return False
+    return Path(name).suffix.lower() in ALLOWED_MEDIA_EXTENSIONS
 
 
 def slide_from_entry(client, entry):
@@ -120,7 +130,7 @@ def deck_to_media_yml(deck_data):
         lines.append("")
         for slide in location.get("slides", []):
             slide_name = slide.get("name", "")
-            if not slide_name or "/" in slide_name or "\\" in slide_name:
+            if not is_safe_media_name(slide_name):
                 raise ValueError(f"invalid slide filename: {slide_name}")
             slide_type = slide.get("type") or media_type_for_name(slide_name)
             if slide_type == "video":
@@ -139,6 +149,55 @@ def deck_to_media_yml(deck_data):
             lines.append("")
 
     return "\n".join(lines).rstrip() + "\n"
+
+
+def parse_content_disposition(value):
+    parts = [part.strip() for part in value.split(";")]
+    parsed = {}
+    for part in parts[1:]:
+        if "=" not in part:
+            continue
+        key, raw_value = part.split("=", 1)
+        raw_value = raw_value.strip()
+        if raw_value.startswith('"') and raw_value.endswith('"'):
+            raw_value = raw_value[1:-1].replace('\\"', '"')
+        parsed[key.strip().lower()] = raw_value
+    return parsed
+
+
+def parse_multipart_form(content_type, body):
+    match = re.search(r'boundary=(?:"([^"]+)"|([^;]+))', content_type)
+    if not match:
+        raise ValueError("missing multipart boundary")
+    boundary = (match.group(1) or match.group(2)).encode("utf-8")
+    marker = b"--" + boundary
+    fields = {}
+    files = []
+
+    for raw_part in body.split(marker):
+        part = raw_part.strip(b"\r\n")
+        if not part or part == b"--":
+            continue
+        if part.endswith(b"--"):
+            part = part[:-2].rstrip(b"\r\n")
+        if b"\r\n\r\n" not in part:
+            continue
+        header_blob, content = part.split(b"\r\n\r\n", 1)
+        headers = {}
+        for raw_header in header_blob.decode("utf-8", errors="replace").split("\r\n"):
+            if ":" not in raw_header:
+                continue
+            key, value = raw_header.split(":", 1)
+            headers[key.strip().lower()] = value.strip()
+        disposition = parse_content_disposition(headers.get("content-disposition", ""))
+        name = disposition.get("name", "")
+        filename = disposition.get("filename")
+        if filename is not None:
+            files.append({"field": name, "filename": Path(filename).name, "content": content})
+        elif name:
+            fields[name] = content.decode("utf-8")
+
+    return fields, files
 
 
 def parse_media_yml(client, media_yml):
@@ -466,9 +525,28 @@ class ControlHandler(SimpleHTTPRequestHandler):
             raise ValueError("request body is too large")
         return json.loads(self.rfile.read(length).decode("utf-8"))
 
+    def read_save_request(self):
+        content_type = self.headers.get("Content-Type", "")
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+        except ValueError:
+            raise ValueError("invalid content length")
+        if length <= 0:
+            raise ValueError("empty request body")
+
+        if content_type.startswith("multipart/form-data"):
+            if length > MAX_MULTIPART_BODY_BYTES:
+                raise ValueError("upload is too large")
+            fields, files = parse_multipart_form(content_type, self.rfile.read(length))
+            if "deck" not in fields:
+                raise ValueError("multipart save is missing deck data")
+            return json.loads(fields["deck"]), files
+
+        return self.read_json_body(), []
+
     def save_decks(self, client):
         try:
-            payload = self.read_json_body()
+            payload, uploads = self.read_save_request()
             repo_path = self.repo_path(client)
             branch = client_branch(client)
             media_yml = repo_path / "_data" / "media.yml"
@@ -491,12 +569,33 @@ class ControlHandler(SimpleHTTPRequestHandler):
             before_names = referenced_media_names(before)
             after_names = referenced_media_names(payload)
             removed_names = sorted(before_names - after_names)
+            upload_names = [upload["filename"] for upload in uploads]
+            upload_name_set = set(upload_names)
+            if len(upload_names) != len(upload_name_set):
+                raise ValueError("upload filenames must be unique")
+            unknown_uploads = sorted(upload_name_set - after_names)
+            if unknown_uploads:
+                raise ValueError(f"uploaded files are not referenced by the deck: {', '.join(unknown_uploads)}")
+            for upload_name in upload_names:
+                if not is_safe_media_name(upload_name):
+                    raise ValueError(f"invalid upload filename: {upload_name}")
 
             media_yml.write_text(deck_to_media_yml(payload), encoding="utf-8")
             run_git(repo_path, ["add", "_data/media.yml"])
 
+            uploaded_files = []
+            media_root = repo_path / "media"
+            media_root.mkdir(parents=True, exist_ok=True)
+            for upload in uploads:
+                media_path = media_root / upload["filename"]
+                media_path.write_bytes(upload["content"])
+                run_git(repo_path, ["add", "--", f"media/{upload['filename']}"])
+                uploaded_files.append(upload["filename"])
+
             deleted_files = []
             for name in removed_names:
+                if name in upload_name_set:
+                    continue
                 media_path = repo_path / "media" / name
                 if media_path.is_file():
                     run_git(repo_path, ["rm", "-f", "--", f"media/{name}"])
@@ -539,6 +638,7 @@ class ControlHandler(SimpleHTTPRequestHandler):
                     "branch": branch,
                     "commit": commit,
                     "editedBy": user,
+                    "uploadedMedia": uploaded_files,
                     "deletedMedia": deleted_files,
                 }
             )

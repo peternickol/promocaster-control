@@ -113,8 +113,8 @@ Current save flow:
 8. API commits and pushes the client repo.
 9. `nix.promocaster` devices pull the client repo and build their configured location.
 
-The first save implementation edits existing deck data only. Upload handling and
-Jekyll validation are still planned follow-up work.
+The save implementation edits deck data and uploads new media files in the same
+commit. Jekyll validation is still planned follow-up work.
 Generated YAML quotes slide filenames and schedule values, even when the current
 value is simple. That keeps long filenames, punctuation, and empty dates safe.
 
@@ -234,9 +234,10 @@ The installer also disables cloud-init `manage_etc_hosts` with
 FQDN on `127.0.1.1`. The short hostname can stay there, but the public FQDN must
 resolve through DNS so Caddy and Let's Encrypt see the real VPS address.
 
-Current limitation: uploads and Jekyll validation are not yet implemented. The
-existing save path covers order, duration, start date, expiration date, removal
-from `_data/media.yml`, deletion of unreferenced media files, commit, and push.
+Current limitation: Jekyll validation is not yet implemented. The existing save
+path covers order, duration, start date, expiration date, new media upload,
+removal from `_data/media.yml`, deletion of unreferenced media files, commit,
+and push.
 
 ### Maintenance Commands
 
@@ -485,7 +486,8 @@ match the current `all-decks.json` shape used by the UI.
 
 Accepts structured deck JSON, validates it, writes the client repo's
 `_data/media.yml`, deletes removed media files that are no longer referenced,
-commits, and pushes. Jekyll validation is planned but not implemented yet.
+uploads new media files, commits, and pushes. Jekyll validation is planned but
+not implemented yet.
 
 The submitted location set must exactly match the existing location set derived
 from the repo's current `_data/media.yml`. If the payload adds, removes, or
@@ -515,9 +517,14 @@ The endpoint should return the committed deletion list:
   "state": "pushed",
   "commit": "abc1234",
   "editedBy": "peter",
+  "uploadedMedia": ["new-special.jpg"],
   "deletedMedia": ["old-special.mp4", "expired-promo.jpg"]
 }
 ```
+
+The browser sends saves as `multipart/form-data` with one `deck` JSON part and
+one `media` file part for each pending upload. Uploaded filenames must already
+be referenced by the submitted deck JSON.
 
 Commits created by Control include the authenticated user:
 
@@ -531,10 +538,9 @@ Source: Promocaster Control
 
 ### Media
 
-`POST /api/clients/:client/media`
-
-Uploads image or MP4 media into the client repo's `media/` directory. The server
-normalizes filenames, rejects invalid types, and returns the final filename.
+Standalone media uploads are not the current path. Media files are uploaded as
+part of `POST /api/clients/:client/decks` so YAML and files land in one commit.
+The server rejects invalid media filenames and unsupported extensions.
 
 ### Publish
 

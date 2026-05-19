@@ -19,6 +19,7 @@
   const themeToggle = document.getElementById("theme-toggle");
   const themeStorageKey = "promocaster-admin-theme";
   const legacyThemeStorageKeys = ["promocaster-editor-theme", "promocaster-inspector-theme"];
+  const controlClient = document.body.dataset.client || "phgi";
 
   let data = { locations: [] };
   let selectedLocation = "";
@@ -93,7 +94,7 @@
   }
 
   function srcForName(name) {
-    return `/media/${name}`;
+    return `/api/clients/${encodeURIComponent(controlClient)}/media/${encodeURIComponent(name)}`;
   }
 
   function msToSeconds(ms) {
@@ -535,6 +536,25 @@
     saveStatus.textContent = "YAML downloaded";
   }
 
+  async function loadRemoteDecks() {
+    saveStatus.textContent = "Loading repo data";
+    try {
+      const response = await fetch(`/api/clients/${encodeURIComponent(controlClient)}/decks`, { cache: "no-store" });
+      if (!response.ok) {
+        const message = response.status === 409 ? "Repo not synced" : `Load failed (${response.status})`;
+        saveStatus.textContent = message;
+        return;
+      }
+      data = normalizeInitialData(await response.json());
+      selectedLocation = decodeURIComponent(window.location.hash.replace(/^#/, "")) || data.activeLocation || data.locations[0]?.name || "";
+      if (!getLocation(selectedLocation)) selectedLocation = data.locations[0]?.name || "";
+      saveStatus.textContent = "Loaded from repo";
+      renderAll();
+    } catch {
+      saveStatus.textContent = "Load failed";
+    }
+  }
+
   mediaUpload.addEventListener("change", () => addFiles(mediaUpload.files));
   existingMediaForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -561,4 +581,5 @@
   selectedLocation = decodeURIComponent(window.location.hash.replace(/^#/, "")) || data.activeLocation || data.locations[0]?.name || "";
   if (!getLocation(selectedLocation)) selectedLocation = data.locations[0]?.name || "";
   renderAll();
+  loadRemoteDecks();
 })();

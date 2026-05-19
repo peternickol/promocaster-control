@@ -14,6 +14,7 @@
   const themeToggle = document.getElementById("theme-toggle");
   const themeStorageKey = "promocaster-admin-theme";
   const legacyThemeStorageKeys = ["promocaster-inspector-theme", "promocaster-editor-theme"];
+  const controlClient = document.body.dataset.client || "phgi";
 
   let data = { locations: [] };
   let selectedLocation = "";
@@ -349,6 +350,20 @@
     if (payload) loadData(payload);
   });
 
+  async function loadRemoteDecks() {
+    setAuditStatus("Loading repo data");
+    try {
+      const response = await fetch(`/api/clients/${encodeURIComponent(controlClient)}/decks`, { cache: "no-store" });
+      if (!response.ok) {
+        setAuditStatus(response.status === 409 ? "Repo not synced" : `Load failed (${response.status})`);
+        return;
+      }
+      loadData(await response.json());
+    } catch {
+      setAuditStatus("Load failed");
+    }
+  }
+
   themeToggle.addEventListener("click", () => {
     const currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
     setTheme(currentTheme === "dark" ? "light" : "dark");
@@ -363,4 +378,5 @@
 
   setTheme(preferredTheme(), false);
   loadData(parseJson(initialData?.textContent || "{}") || {});
+  loadRemoteDecks();
 })();

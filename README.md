@@ -192,8 +192,8 @@ Before standing up a Debian test box, confirm:
 - The repo is cloned at the fixed server path: `/root/promocaster-control`.
 - The VPS has enough disk for large client repos. For testing, keep at least
   `40-60 GB` free under `/var/lib/promocaster-control`.
-- The GitHub writer key you plan to use has write access to
-  `promocaster.phgi`.
+- After install, the generated GitHub writer public key must be added to
+  `promocaster.phgi` with write access.
 
 Initial install flow:
 
@@ -203,7 +203,6 @@ git clone git@github.com:peternickol/promocaster-control.git
 cd /root/promocaster-control
 bash install-debian.sh
 promocaster-control basic-auth set peter
-promocaster-control github-key edit
 promocaster-control github-key show-public
 promocaster-control github-key test
 promocaster-control tls-check
@@ -242,6 +241,7 @@ the repo checkout is always `/root/promocaster-control`.
 promocaster-control doctor
 promocaster-control basic-auth set peter
 promocaster-control basic-auth test
+promocaster-control github-key generate
 promocaster-control github-key edit
 promocaster-control github-key show-public
 promocaster-control github-key test
@@ -347,25 +347,40 @@ loading decks.
 ### GitHub Writer Key
 
 The control API needs a GitHub SSH key with write access to each client content
-repo it manages, starting with `promocaster.phgi`. Store that key on the VPS with
-the built-in editor command:
+repo it manages, starting with `promocaster.phgi`. The installer generates a
+dedicated ed25519 writer key on first install:
+
+```text
+/var/lib/promocaster-control/ssh/github_writer_key
+/var/lib/promocaster-control/ssh/github_writer_key.pub
+```
+
+Show the public key and test GitHub auth:
 
 ```sh
-promocaster-control github-key edit
 promocaster-control github-key show-public
 promocaster-control github-key test
 promocaster-control doctor
 ```
 
-`github-key edit` follows the same operator pattern as `wg-manager edit`: it
-creates the secure directory and key file if needed, locks permissions down, and
-opens the file in `nano` for paste/edit workflows. The private key lives at
-`/var/lib/promocaster-control/ssh/github_writer_key`.
-
 Add the public key printed by `github-key show-public` to GitHub with write
 access. For one repo, a writable deploy key is fine. For many client repos, use a
 dedicated machine user such as `promocaster-bot` and grant that user write access
 to the client repos.
+
+Manual key commands:
+
+```sh
+promocaster-control github-key generate
+promocaster-control github-key generate --force
+promocaster-control github-key edit
+```
+
+`github-key generate` creates a key if one does not already exist. Use
+`generate --force` only when intentionally rotating the GitHub writer key.
+`github-key edit` follows the same operator pattern as `wg-manager edit`: it
+creates the secure directory/file if needed, locks permissions down, and opens
+the private key in `nano` for paste/edit workflows.
 
 ### Let's Encrypt Bring-Up
 

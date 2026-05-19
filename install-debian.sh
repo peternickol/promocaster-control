@@ -175,6 +175,15 @@ install -d -o "$SERVICE_USER" -g "$SERVICE_USER" -m 0750 "$DATA_DIR/repos" "$DAT
 install -d -o "$SERVICE_USER" -g "$SERVICE_USER" -m 0700 "$DATA_DIR/ssh"
 install -d -m 0755 "$(dirname "$GLOBAL_BIN")"
 
+GITHUB_KEY_PATH="$DATA_DIR/ssh/github_writer_key"
+if [[ ! -f "$GITHUB_KEY_PATH" ]]; then
+  ssh-keygen -q -t ed25519 -N '' -C "promocaster-control@$SITE" -f "$GITHUB_KEY_PATH"
+  echo "Generated GitHub writer key at $GITHUB_KEY_PATH"
+fi
+chown "$SERVICE_USER:$SERVICE_USER" "$GITHUB_KEY_PATH" "$GITHUB_KEY_PATH.pub" 2>/dev/null || true
+chmod 0600 "$GITHUB_KEY_PATH"
+chmod 0644 "$GITHUB_KEY_PATH.pub" 2>/dev/null || true
+
 rm -rf "$APP_DIR"
 cp -a "$CONTROL_REPO" "$APP_DIR"
 printf '%s\n' "$SOURCE_ROOT" > "$SOURCE_ROOT_FILE"
@@ -254,6 +263,7 @@ Maintenance:
   promocaster-control doctor
   promocaster-control basic-auth set peter
   promocaster-control basic-auth test
+  promocaster-control github-key generate
   promocaster-control github-key edit
   promocaster-control github-key show-public
   promocaster-control github-key test
@@ -267,8 +277,7 @@ Let's Encrypt:
 
 Next setup:
   Set phase-1 login with: promocaster-control basic-auth set peter
-  Add the GitHub writer key with: promocaster-control github-key edit
-  Add its public half to GitHub with: promocaster-control github-key show-public
+  Add the generated GitHub writer public key to GitHub with: promocaster-control github-key show-public
   Test GitHub auth with: promocaster-control github-key test
   Wire the real auth and git-publish API into server/.
 EOF

@@ -154,6 +154,47 @@ def github_key_public_text() -> tuple[bool, str]:
     return proc.returncode == 0, detail
 
 
+def secure_github_key_files() -> None:
+    SSH_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        shutil.chown(SSH_DIR, user=SERVICE_USER, group=SERVICE_USER)
+    except LookupError:
+        pass
+    SSH_DIR.chmod(0o700)
+    if GITHUB_KEY.exists():
+        try:
+            shutil.chown(GITHUB_KEY, user=SERVICE_USER, group=SERVICE_USER)
+        except LookupError:
+            pass
+        GITHUB_KEY.chmod(0o600)
+    public_key = GITHUB_KEY.with_suffix(GITHUB_KEY.suffix + ".pub")
+    if public_key.exists():
+        try:
+            shutil.chown(public_key, user=SERVICE_USER, group=SERVICE_USER)
+        except LookupError:
+            pass
+        public_key.chmod(0o644)
+
+
+def generate_github_key(*, force: bool = False) -> None:
+    if not is_root():
+        raise CommandError("github-key generate must run as root")
+    if not command_exists("ssh-keygen"):
+        raise CommandError("ssh-keygen command missing; install openssh-client")
+    if GITHUB_KEY.exists() and not force:
+        raise CommandError(f"{GITHUB_KEY} already exists; use github-key generate --force to replace it")
+    SSH_DIR.mkdir(parents=True, exist_ok=True)
+    if force:
+        for path in (GITHUB_KEY, GITHUB_KEY.with_suffix(GITHUB_KEY.suffix + ".pub")):
+            try:
+                path.unlink()
+            except FileNotFoundError:
+                pass
+    comment = f"promocaster-control@{SITE}"
+    run(["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-C", comment, "-f", str(GITHUB_KEY)])
+    secure_github_key_files()
+
+
 def github_ssh_auth_detail() -> tuple[str, str]:
     if not GITHUB_KEY.exists():
         return "fail", "missing key"
@@ -500,27 +541,28 @@ def command_update(args: argparse.Namespace) -> int:
 
 
 def command_github_key(args: argparse.Namespace) -> int:
+    if args.github_command == "generate":
+        generate_github_key(force=args.force)
+        ok, public_key = github_key_public_text()
+        if not ok:
+            raise CommandError(public_key)
+        print(f"[OK] Generated GitHub writer key at {GITHUB_KEY}")
+        print()
+        print("Add this public key to GitHub with write access:")
+        print(public_key)
+        return 0
     if args.github_command == "edit":
         if not is_root():
             raise CommandError("github-key edit must run as root")
         if not command_exists("nano"):
             raise CommandError("nano not found. Install it first: apt-get install nano")
-        SSH_DIR.mkdir(parents=True, exist_ok=True)
-        try:
-            shutil.chown(SSH_DIR, user=SERVICE_USER, group=SERVICE_USER)
-        except LookupError:
-            pass
-        SSH_DIR.chmod(0o700)
+        secure_github_key_files()
         if not GITHUB_KEY.exists():
             GITHUB_KEY.touch(mode=0o600)
-        GITHUB_KEY.chmod(0o600)
-        try:
-            shutil.chown(GITHUB_KEY, user=SERVICE_USER, group=SERVICE_USER)
-        except LookupError:
-            pass
+        secure_github_key_files()
         print(f"Opening {GITHUB_KEY} in nano")
         run(["nano", str(GITHUB_KEY)])
-        GITHUB_KEY.chmod(0o600)
+        secure_github_key_files()
         return 0
     if args.github_command == "show-public":
         ok, detail = github_key_public_text()
@@ -612,6 +654,8 @@ def main(argv: list[str] | None = None) -> int:
     update_parser.add_argument("--force", action="store_true", help="Run the full refresh path even when no new code was pulled")
     github_key = sub.add_parser("github-key", help="Manage the GitHub writer SSH key")
     github_sub = github_key.add_subparsers(dest="github_command", required=True)
+    github_generate = github_sub.add_parser("generate", help="Generate a new GitHub writer SSH key")
+    github_generate.add_argument("--force", action="store_true", help="Replace the existing writer key")
     github_sub.add_parser("edit", help="Open the GitHub writer private key in nano")
     github_sub.add_parser("show-public", help="Print the public key derived from the private key")
     github_sub.add_parser("test", help="Test SSH authentication to git@github.com")

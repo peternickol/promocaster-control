@@ -405,7 +405,7 @@ button:not(.btn):hover {
 
 .editor-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 420px;
+  grid-template-columns: minmax(0, 1fr) 360px;
   gap: 20px;
   align-items: start;
 }
@@ -443,7 +443,7 @@ button:not(.btn):hover {
 
 .slide-row {
   display: grid;
-  grid-template-columns: 184px minmax(0, 1fr) 220px auto;
+  grid-template-columns: 248px minmax(0, 1fr) 220px auto;
   gap: 16px;
   align-items: center;
   padding: 12px;
@@ -617,7 +617,7 @@ button:not(.btn):hover {
   }
 
   .slide-row {
-    grid-template-columns: 168px minmax(0, 1fr) 210px auto;
+    grid-template-columns: 220px minmax(0, 1fr) 210px auto;
   }
 }
 

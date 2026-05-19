@@ -553,7 +553,7 @@ def command_basic_auth(args: argparse.Namespace) -> int:
             raise CommandError((proc.stderr or proc.stdout).strip() or "caddy hash-password failed")
         hashed = proc.stdout.strip()
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        BASIC_AUTH_CONFIG.write_text(f"basic_auth {{\n    {args.username} {hashed}\n}}\n", encoding="utf-8")
+        BASIC_AUTH_CONFIG.write_text(f"basicauth {{\n    {args.username} {hashed}\n}}\n", encoding="utf-8")
         secure_basic_auth_config()
         reload_caddy_if_available()
         print(f"[OK] Basic auth configured for {args.username} at {BASIC_AUTH_CONFIG}")

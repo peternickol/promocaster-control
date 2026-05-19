@@ -205,6 +205,7 @@ bash install-debian.sh
 promocaster-control basic-auth set peter
 promocaster-control github-key show-public
 promocaster-control github-key test
+promocaster-control client-repo sync phgi
 promocaster-control tls-check
 promocaster-control doctor
 ```
@@ -245,6 +246,9 @@ promocaster-control github-key generate
 promocaster-control github-key edit
 promocaster-control github-key show-public
 promocaster-control github-key test
+promocaster-control client-repo list
+promocaster-control client-repo sync phgi
+promocaster-control client-repo status phgi
 promocaster-control tls-check
 promocaster-control update
 promocaster-control update --no-pull
@@ -343,6 +347,20 @@ The placeholder server already exposes that status endpoint. The future repo
 sync worker should write status JSON to `/var/lib/promocaster-control/sync` as
 it clones/fetches, and the UI should poll until `state` becomes `ready` before
 loading decks.
+
+Operators can sync configured client repos from the command line:
+
+```sh
+promocaster-control client-repo list
+promocaster-control client-repo sync phgi
+promocaster-control client-repo status phgi
+```
+
+`client-repo sync <client>` reads `clients.yml`, uses the GitHub writer key,
+clones or fetches into `/var/lib/promocaster-control/repos/<client>`, writes
+progress state to `/var/lib/promocaster-control/sync/<client>.json`, and leaves
+the checkout at the configured branch. First sync can take a while for large
+media repos.
 
 ### GitHub Writer Key
 

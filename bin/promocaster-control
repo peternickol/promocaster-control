@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import getpass
+import json
 import os
 import shutil
 import socket
@@ -93,6 +94,21 @@ def git_value(root: Path, *args: str) -> str:
 def git_clean(root: Path) -> tuple[bool, str]:
     detail = git_value(root, "status", "--short")
     return (detail == "", detail or "clean")
+
+
+def git_env() -> dict[str, str]:
+    return {
+        **os.environ,
+        "GIT_SSH_COMMAND": f"ssh -i {GITHUB_KEY} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new",
+    }
+
+
+def run_git(cmd: list[str], *, check: bool = True, capture: bool = False) -> subprocess.CompletedProcess[str]:
+    proc = subprocess.run(cmd, check=False, capture_output=capture, text=True, env=git_env())
+    if check and proc.returncode != 0:
+        detail = (proc.stderr or proc.stdout or "").strip()
+        raise CommandError(f"{' '.join(cmd)}: {detail or f'exited {proc.returncode}'}")
+    return proc
 
 
 def systemctl_state(name: str, verb: str) -> bool:
@@ -288,6 +304,73 @@ def load_env(path: Path) -> dict[str, str]:
         key, value = line.split("=", 1)
         values[key] = value
     return values
+
+
+def load_clients() -> dict[str, dict[str, str]]:
+    candidates = []
+    env = load_env(CONFIG_PATH)
+    if "PROMOCASTER_CONTROL_CLIENTS_FILE" in env:
+        candidates.append(Path(env["PROMOCASTER_CONTROL_CLIENTS_FILE"]))
+    candidates.extend([APP_DIR / "clients.yml", SOURCE_ROOT / "clients.yml", Path.cwd() / "clients.yml"])
+    clients_file = None
+    for candidate in candidates:
+        try:
+            if candidate.exists():
+                clients_file = candidate
+                break
+        except OSError:
+            continue
+    if clients_file is None:
+        raise CommandError("could not find clients.yml")
+
+    clients: dict[str, dict[str, str]] = {}
+    current_id = ""
+    in_clients = False
+    for raw_line in clients_file.read_text(encoding="utf-8").splitlines():
+        if not raw_line.strip() or raw_line.lstrip().startswith("#"):
+            continue
+        if raw_line.strip() == "clients:":
+            in_clients = True
+            continue
+        if not in_clients:
+            continue
+        if raw_line.startswith("  ") and not raw_line.startswith("    ") and raw_line.strip().endswith(":"):
+            current_id = raw_line.strip()[:-1]
+            clients[current_id] = {}
+            continue
+        if current_id and raw_line.startswith("    ") and ":" in raw_line:
+            key, value = raw_line.strip().split(":", 1)
+            clients[current_id][key] = value.strip().strip('"').strip("'")
+    return clients
+
+
+def client_config(client_id: str) -> dict[str, str]:
+    clients = load_clients()
+    if client_id not in clients:
+        raise CommandError(f"unknown client: {client_id}")
+    config = clients[client_id]
+    if not config.get("repo"):
+        raise CommandError(f"client {client_id} is missing repo in clients.yml")
+    config.setdefault("branch", "master")
+    return config
+
+
+def sync_status_path(client_id: str) -> Path:
+    return SYNC_DIR / f"{client_id}.json"
+
+
+def write_sync_status(client_id: str, state: str, message: str, **extra) -> None:
+    from datetime import datetime, timezone
+
+    SYNC_DIR.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "client": client_id,
+        "state": state,
+        "message": message,
+        "updated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        **extra,
+    }
+    sync_status_path(client_id).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
 def copy_app(source_root: Path) -> None:
@@ -577,6 +660,67 @@ def command_github_key(args: argparse.Namespace) -> int:
     raise CommandError("unknown github-key command")
 
 
+def command_client_repo(args: argparse.Namespace) -> int:
+    if args.client_command == "list":
+        for client_id, config in load_clients().items():
+            repo_path = REPOS_DIR / client_id
+            marker = "present" if repo_path.exists() else "missing"
+            print(f"{client_id}\t{marker}\t{config.get('repo', '')}")
+        return 0
+
+    config = client_config(args.client)
+    repo_path = REPOS_DIR / args.client
+    branch = config.get("branch", "master")
+
+    if args.client_command == "status":
+        status_path = sync_status_path(args.client)
+        if status_path.exists():
+            print(status_path.read_text(encoding="utf-8").strip())
+        elif repo_path.exists():
+            print(json.dumps({"client": args.client, "state": "ready", "repo_path": str(repo_path)}, indent=2))
+        else:
+            print(json.dumps({"client": args.client, "state": "not_started", "repo_path": str(repo_path)}, indent=2))
+        return 0
+
+    if args.client_command == "sync":
+        if not is_root():
+            raise CommandError("client-repo sync must run as root")
+        if not GITHUB_KEY.exists():
+            raise CommandError(f"missing GitHub writer key: {GITHUB_KEY}")
+        REPOS_DIR.mkdir(parents=True, exist_ok=True)
+        write_sync_status(args.client, "syncing", "starting repo sync", repo_path=str(repo_path), branch=branch)
+        try:
+            if repo_path.exists():
+                write_sync_status(args.client, "fetching", "fetching latest changes", repo_path=str(repo_path), branch=branch)
+                run_git(["git", "-C", str(repo_path), "fetch", "origin", branch])
+                clean, detail = git_clean(repo_path)
+                if not clean:
+                    raise CommandError(f"client repo checkout is not clean:\n{detail}")
+                write_sync_status(args.client, "resetting", "resetting checkout to origin", repo_path=str(repo_path), branch=branch)
+                run_git(["git", "-C", str(repo_path), "checkout", branch])
+                run_git(["git", "-C", str(repo_path), "reset", "--hard", f"origin/{branch}"])
+            else:
+                write_sync_status(args.client, "cloning", "cloning repo; first sync may take a while", repo_path=str(repo_path), branch=branch)
+                run_git(["git", "clone", "--branch", branch, "--single-branch", config["repo"], str(repo_path)])
+            try:
+                shutil.chown(repo_path, user=SERVICE_USER, group=SERVICE_USER)
+            except LookupError:
+                pass
+            head = git_value(repo_path, "rev-parse", "--short", "HEAD")
+            size = format_bytes(directory_size(repo_path))
+            write_sync_status(args.client, "ready", "repo sync complete", repo_path=str(repo_path), branch=branch, head=head, size=size)
+        except Exception as exc:
+            write_sync_status(args.client, "error", str(exc), repo_path=str(repo_path), branch=branch)
+            raise
+        print(f"[OK] Synced {args.client} to {repo_path}")
+        print(f"     branch: {branch}")
+        print(f"     head: {git_value(repo_path, 'rev-parse', '--short', 'HEAD')}")
+        print(f"     size: {format_bytes(directory_size(repo_path))}")
+        return 0
+
+    raise CommandError("unknown client-repo command")
+
+
 def reload_caddy_if_available() -> None:
     if command_exists("caddy"):
         run(["caddy", "validate", "--config", "/etc/caddy/Caddyfile"])
@@ -659,6 +803,13 @@ def main(argv: list[str] | None = None) -> int:
     github_sub.add_parser("edit", help="Open the GitHub writer private key in nano")
     github_sub.add_parser("show-public", help="Print the public key derived from the private key")
     github_sub.add_parser("test", help="Test SSH authentication to git@github.com")
+    client_repo = sub.add_parser("client-repo", help="Sync and inspect configured client repos")
+    client_sub = client_repo.add_subparsers(dest="client_command", required=True)
+    client_sub.add_parser("list", help="List clients from clients.yml")
+    client_sync = client_sub.add_parser("sync", help="Clone or fetch a configured client repo")
+    client_sync.add_argument("client", help="Client id from clients.yml")
+    client_status = client_sub.add_parser("status", help="Show client repo sync status")
+    client_status.add_argument("client", help="Client id from clients.yml")
     basic_auth = sub.add_parser("basic-auth", help="Manage phase-1 Caddy Basic Auth")
     auth_sub = basic_auth.add_subparsers(dest="auth_command", required=True)
     auth_set = auth_sub.add_parser("set", help="Hash and install a Caddy Basic Auth password")
@@ -684,6 +835,8 @@ def main(argv: list[str] | None = None) -> int:
             return command_update(args)
         if args.command == "github-key":
             return command_github_key(args)
+        if args.command == "client-repo":
+            return command_client_repo(args)
         if args.command == "basic-auth":
             return command_basic_auth(args)
     except CommandError as exc:

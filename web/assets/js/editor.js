@@ -14,6 +14,7 @@
   const existingMediaForm = document.getElementById("existing-media-form");
   const existingMediaName = document.getElementById("existing-media-name");
   const existingMediaDuration = document.getElementById("existing-media-duration");
+  const saveDecks = document.getElementById("save-decks");
   const copyYaml = document.getElementById("copy-yaml");
   const downloadYaml = document.getElementById("download-yaml");
   const themeToggle = document.getElementById("theme-toggle");
@@ -536,6 +537,45 @@
     saveStatus.textContent = "YAML downloaded";
   }
 
+  function savePayload() {
+    return {
+      activeLocation: selectedLocation,
+      locations: data.locations.map((location) => ({
+        name: location.name,
+        slides: location.slides.map((slide) => ({
+          name: slide.name,
+          type: slide.type,
+          durationMs: slide.type === "video" ? null : slide.durationMs,
+          maxDurationMs: slide.type === "video" ? slide.maxDurationMs : null,
+          startsOn: slide.startsOn || "",
+          expiresOn: slide.expiresOn || "",
+        })),
+      })),
+    };
+  }
+
+  async function saveToRepo() {
+    saveDecks.disabled = true;
+    saveStatus.textContent = "Saving";
+    try {
+      const response = await fetch(`/api/clients/${encodeURIComponent(controlClient)}/decks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(savePayload()),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.ok) {
+        saveStatus.textContent = payload.message || `Save failed (${response.status})`;
+        return;
+      }
+      saveStatus.textContent = payload.state === "no_changes" ? "No changes" : `Pushed ${payload.commit}`;
+    } catch {
+      saveStatus.textContent = "Save failed";
+    } finally {
+      saveDecks.disabled = false;
+    }
+  }
+
   async function loadRemoteDecks() {
     saveStatus.textContent = "Loading repo data";
     try {
@@ -560,6 +600,7 @@
     event.preventDefault();
     addExisting(existingMediaName.value, existingMediaDuration.value);
   });
+  saveDecks.addEventListener("click", () => saveToRepo());
   copyYaml.addEventListener("click", () => copyOutput().catch(() => {
     saveStatus.textContent = "Copy failed";
   }));

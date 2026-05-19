@@ -4,5 +4,7 @@ http://__SITE__ {
 
 __SITE__ {
     import __BASIC_AUTH_CONFIG__
-    reverse_proxy __UPSTREAM__
+    reverse_proxy __UPSTREAM__ {
+        header_up X-Promocaster-User {http.auth.user.id}
+    }
 }

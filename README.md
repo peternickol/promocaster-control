@@ -30,11 +30,12 @@ locations through the API.
 - `clients.yml` is the control-side registry of clients and content repos.
 - Locations are derived from the synced client repo's `_data/media.yml`.
 - The `clients.yml` key is the client id.
-- `server/` is reserved for the authenticated API and git publisher.
+- `server/` contains the authenticated API and git publisher.
 
-The copied UI currently uses an empty embedded payload so it can load as static
-HTML. The next implementation step is to replace that bootstrap payload with API
-calls such as `GET /api/me` and `GET /api/clients/:client/decks`.
+The editor and inspector now load deck data from the synced client repo through
+`GET /api/clients/:client/decks`. The first save path is also wired:
+`POST /api/clients/:client/decks` rewrites `_data/media.yml`, deletes media that
+is no longer referenced anywhere, commits, and pushes the client repo.
 
 ## Ownership Boundary
 
@@ -100,7 +101,7 @@ that add a new location, remove an existing location, or rename a location.
 
 ## Save and Publish Flow
 
-Expected future flow:
+Current save flow:
 
 1. User authenticates to `promocaster-control`.
 2. API scopes the user to an allowed client, such as `phgi`.
@@ -109,9 +110,11 @@ Expected future flow:
 5. API clones or updates that client's repo checkout.
 6. API writes `_data/media.yml`, media uploads, and media deletions.
 7. API removes no-longer-referenced media files from the repo with `git rm`.
-8. API runs Jekyll validation for affected locations.
-9. API commits and pushes the client repo.
-10. `nix.promocaster` devices pull the client repo and build their configured location.
+8. API commits and pushes the client repo.
+9. `nix.promocaster` devices pull the client repo and build their configured location.
+
+The first save implementation edits existing deck data only. Upload handling and
+Jekyll validation are still planned follow-up work.
 
 When a slide is removed in the editor, the backing media file must be deleted
 from the client repo if no remaining slide references it. This is important for
@@ -137,7 +140,8 @@ cd web
 python3 -m http.server 4173
 ```
 
-The pages currently load an empty embedded deck payload until the API is wired.
+The pages call the local API, so use the installed app or run
+`server/promocaster_control.py` with a synced repo path when testing real data.
 
 ## Debian VPS Setup
 
@@ -179,10 +183,10 @@ Useful install overrides:
 PROMOCASTER_CONTROL_PORT=8080 bash install-debian.sh
 ```
 
-The current server is a thin placeholder: it serves `web/`, redirects `/` to the
-editor, and exposes `GET /api/health`. The real auth, deck editing API, upload
-handling, and git publisher should be added under `server/` without moving the
-runtime slideshow files back into this repo.
+The current server serves `web/`, redirects `/` to the editor, exposes
+`GET /api/health`, reads synced client deck data, serves synced media previews,
+and can save deck edits back to the client repo. Upload handling and full Jekyll
+validation are still pending.
 
 ### Test Box Preflight
 
@@ -228,10 +232,9 @@ The installer also disables cloud-init `manage_etc_hosts` with
 FQDN on `127.0.1.1`. The short hostname can stay there, but the public FQDN must
 resolve through DNS so Caddy and Let's Encrypt see the real VPS address.
 
-Current limitation: this server is not yet a functional remote deck editor. It
-does not yet clone/fetch the PHGI repo, parse `_data/media.yml`, save deck
-changes, upload media, delete removed media, validate Jekyll builds, commit, or
-push. Those belong to the next repo/API implementation layer.
+Current limitation: uploads and Jekyll validation are not yet implemented. The
+existing save path covers order, duration, start date, expiration date, removal
+from `_data/media.yml`, deletion of unreferenced media files, commit, and push.
 
 ### Maintenance Commands
 
@@ -289,6 +292,9 @@ The password is hashed with `caddy hash-password` and written to:
 The Caddy site imports that snippet before proxying to the app. Until credentials
 are configured, the installer writes a placeholder snippet that returns `503`
 instead of exposing the app. `doctor` reports this as a failed `Auth` check.
+Caddy also passes the authenticated Basic Auth username to the app as
+`X-Promocaster-User`, and the save endpoint records that value in the git commit
+message.
 
 For manual recovery, the snippet can be edited directly:
 
@@ -462,7 +468,7 @@ match the current `all-decks.json` shape used by the UI.
 
 Accepts structured deck JSON, validates it, writes the client repo's
 `_data/media.yml`, deletes removed media files that are no longer referenced,
-validates the affected location builds, commits, and pushes.
+commits, and pushes. Jekyll validation is planned but not implemented yet.
 
 The submitted location set must exactly match the existing location set derived
 from the repo's current `_data/media.yml`. If the payload adds, removes, or
@@ -489,9 +495,21 @@ The endpoint should return the committed deletion list:
 ```json
 {
   "ok": true,
+  "state": "pushed",
   "commit": "abc1234",
-  "deleted_media": ["old-special.mp4", "expired-promo.jpg"]
+  "editedBy": "peter",
+  "deletedMedia": ["old-special.mp4", "expired-promo.jpg"]
 }
+```
+
+Commits created by Control include the authenticated user:
+
+```text
+Update slide decks
+
+Edited by: peter
+Client: phgi
+Source: Promocaster Control
 ```
 
 ### Media

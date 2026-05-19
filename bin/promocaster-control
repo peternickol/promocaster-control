@@ -678,10 +678,17 @@ def command_github_key(args: argparse.Namespace) -> int:
 
 def command_client_repo(args: argparse.Namespace) -> int:
     if args.client_command == "list":
+        print()
+        print("Configured Clients")
+        print("==================")
         for client_id, config in load_clients().items():
             repo_path = client_repo_path(client_id, config)
             marker = "present" if repo_path.exists() else "missing"
-            print(f"{client_id}\t{marker}\t{config.get('repo', '')}")
+            print(f"{client_id} ({config.get('name', client_id)})")
+            print(f"  repo: {config.get('repo', '')}")
+            print(f"  branch: {config.get('branch', 'master')}")
+            print(f"  checkout: {repo_path}")
+            print(f"  status: {marker}")
         return 0
 
     config = client_config(args.client)

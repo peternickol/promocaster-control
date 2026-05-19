@@ -24,6 +24,7 @@ GITHUB_KEY = Path(os.environ.get("PROMOCASTER_CONTROL_GITHUB_KEY", SSH_DIR / "gi
 REPOS_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_REPOS_DIR", DATA_DIR / "repos"))
 UPLOADS_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_UPLOADS_DIR", DATA_DIR / "uploads"))
 SYNC_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_SYNC_DIR", DATA_DIR / "sync"))
+CONTROL_GIT_CONFIG = Path(os.environ.get("PROMOCASTER_CONTROL_GIT_CONFIG", DATA_DIR / "gitconfig"))
 BUILD_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_BUILD_DIR", "/tmp/promocaster-control-builds"))
 SERVICE_NAME = os.environ.get("PROMOCASTER_CONTROL_SERVICE_NAME", "promocaster-control.service")
 SERVICE_USER = os.environ.get("PROMOCASTER_CONTROL_SERVICE_USER", "promocaster-control")
@@ -99,6 +100,7 @@ def git_clean(root: Path) -> tuple[bool, str]:
 def git_env() -> dict[str, str]:
     return {
         **os.environ,
+        "GIT_CONFIG_GLOBAL": str(CONTROL_GIT_CONFIG),
         "GIT_SSH_COMMAND": f"ssh -i {GITHUB_KEY} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new",
     }
 
@@ -109,6 +111,63 @@ def run_git(cmd: list[str], *, check: bool = True, capture: bool = False) -> sub
         detail = (proc.stderr or proc.stdout or "").strip()
         raise CommandError(f"{' '.join(cmd)}: {detail or f'exited {proc.returncode}'}")
     return proc
+
+
+def secure_data_paths() -> None:
+    for path, mode in ((DATA_DIR, 0o750), (REPOS_DIR, 0o750), (UPLOADS_DIR, 0o750), (SYNC_DIR, 0o750)):
+        path.mkdir(parents=True, exist_ok=True)
+        try:
+            shutil.chown(path, user=SERVICE_USER, group=SERVICE_USER)
+        except LookupError:
+            pass
+        path.chmod(mode)
+    secure_github_key_files()
+    CONTROL_GIT_CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    CONTROL_GIT_CONFIG.touch(mode=0o640, exist_ok=True)
+    try:
+        shutil.chown(CONTROL_GIT_CONFIG, user=SERVICE_USER, group=SERVICE_USER)
+    except LookupError:
+        pass
+    CONTROL_GIT_CONFIG.chmod(0o640)
+
+
+def chown_tree(path: Path, user: str = SERVICE_USER, group: str = SERVICE_USER) -> None:
+    try:
+        shutil.chown(path, user=user, group=group)
+    except LookupError:
+        return
+    for root, dirs, files in os.walk(path, onerror=lambda _exc: None):
+        for name in dirs:
+            try:
+                shutil.chown(Path(root) / name, user=user, group=group)
+            except OSError:
+                continue
+        for name in files:
+            try:
+                shutil.chown(Path(root) / name, user=user, group=group)
+            except OSError:
+                continue
+
+
+def git_safe_directories() -> set[str]:
+    proc = run_git(["git", "config", "--global", "--get-all", "safe.directory"], check=False, capture=True)
+    if proc.returncode != 0:
+        return set()
+    return {line.strip() for line in proc.stdout.splitlines() if line.strip()}
+
+
+def ensure_git_safe_directory(repo_path: Path) -> bool:
+    secure_data_paths()
+    safe_path = str(repo_path.resolve())
+    if safe_path in git_safe_directories():
+        return False
+    run_git(["git", "config", "--global", "--add", "safe.directory", safe_path])
+    try:
+        shutil.chown(CONTROL_GIT_CONFIG, user=SERVICE_USER, group=SERVICE_USER)
+    except LookupError:
+        pass
+    CONTROL_GIT_CONFIG.chmod(0o640)
+    return True
 
 
 def systemctl_state(name: str, verb: str) -> bool:
@@ -443,15 +502,18 @@ def repair(source_root: Path | None = None, *, daemon_reload: bool = True) -> li
 
     APP_ROOT.mkdir(parents=True, exist_ok=True)
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    for child in ("repos", "uploads", "ssh"):
-        (DATA_DIR / child).mkdir(parents=True, exist_ok=True)
-    SYNC_DIR.mkdir(parents=True, exist_ok=True)
+    secure_data_paths()
+    safe_actions = []
+    for repo_path in sorted(path for path in REPOS_DIR.iterdir() if path.is_dir() and (path / ".git").exists()):
+        chown_tree(repo_path)
+        if ensure_git_safe_directory(repo_path):
+            safe_actions.append(f"marked git safe.directory {repo_path}")
 
     copy_app(source_root)
     SOURCE_ROOT_FILE.write_text(f"{source_root}\n", encoding="utf-8")
     sync_global_command()
     actions = [f"copied app from {source_root} to {APP_DIR}", f"refreshed source-root file {SOURCE_ROOT_FILE}", f"refreshed command symlink {GLOBAL_BIN}"]
+    actions.extend(safe_actions)
     actions.extend(sync_systemd_and_caddy())
     if daemon_reload:
         run(["systemctl", "daemon-reload"])
@@ -498,6 +560,9 @@ def collect_checks() -> list[Check]:
         for repo_path in sorted(path for path in REPOS_DIR.iterdir() if path.is_dir()):
             repo_size = directory_size(repo_path)
             checks.append(Check("Storage", f"repo {repo_path.name}", "warn" if repo_size > REPO_SIZE_WARN_BYTES else "ok", format_bytes(repo_size), "large media repo; make sure VPS disk sizing accounts for this client" if repo_size > REPO_SIZE_WARN_BYTES else None))
+            if (repo_path / ".git").exists():
+                safe = str(repo_path.resolve()) in git_safe_directories()
+                checks.append(Check("Storage", f"repo {repo_path.name} git safe", "ok" if safe else "fail", str(repo_path), None if safe else f"run promocaster-control client-repo sync {repo_path.name} or promocaster-control repair"))
     uploads_size = directory_size(UPLOADS_DIR)
     checks.append(Check("Storage", "upload staging", "warn" if uploads_size > UPLOADS_WARN_BYTES else "ok", format_bytes(uploads_size), "stale staged uploads should be cleaned up" if uploads_size > UPLOADS_WARN_BYTES else None))
     build_size = directory_size(BUILD_DIR)
@@ -705,6 +770,9 @@ def command_client_repo(args: argparse.Namespace) -> int:
             return 1
         if not (repo_path / ".git").exists():
             raise CommandError(f"checkout path exists but is not a git repo: {repo_path}")
+        if is_root():
+            chown_tree(repo_path)
+            ensure_git_safe_directory(repo_path)
         if not args.no_fetch:
             run_git(["git", "-C", str(repo_path), "fetch", "origin", branch])
         local_head = git_value(repo_path, "rev-parse", "--short", "HEAD")
@@ -758,10 +826,8 @@ def command_client_repo(args: argparse.Namespace) -> int:
             else:
                 write_sync_status(args.client, "cloning", "cloning repo; first sync may take a while", repo_path=str(repo_path), branch=branch)
                 run_git(["git", "clone", "--branch", branch, "--single-branch", config["repo"], str(repo_path)])
-            try:
-                shutil.chown(repo_path, user=SERVICE_USER, group=SERVICE_USER)
-            except LookupError:
-                pass
+            chown_tree(repo_path)
+            ensure_git_safe_directory(repo_path)
             head = git_value(repo_path, "rev-parse", "--short", "HEAD")
             size = format_bytes(directory_size(repo_path))
             write_sync_status(args.client, "ready", "repo sync complete", repo_path=str(repo_path), branch=branch, head=head, size=size)

@@ -17,6 +17,7 @@ REPOS_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_REPOS_DIR", DATA_DIR / "rep
 SYNC_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_SYNC_DIR", DATA_DIR / "sync")).resolve()
 SSH_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_SSH_DIR", DATA_DIR / "ssh")).resolve()
 GITHUB_KEY = Path(os.environ.get("PROMOCASTER_CONTROL_GITHUB_KEY", SSH_DIR / "github_writer_key")).resolve()
+CONTROL_GIT_CONFIG = Path(os.environ.get("PROMOCASTER_CONTROL_GIT_CONFIG", DATA_DIR / "gitconfig")).resolve()
 BIND = os.environ.get("PROMOCASTER_CONTROL_BIND", "127.0.0.1")
 PORT = int(os.environ.get("PROMOCASTER_CONTROL_PORT", "8080"))
 MAX_JSON_BODY_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_MAX_JSON_BODY_BYTES", str(2 * 1024 * 1024)))
@@ -197,6 +198,7 @@ def parse_media_yml(client, media_yml):
 def git_env():
     return {
         **os.environ,
+        "GIT_CONFIG_GLOBAL": str(CONTROL_GIT_CONFIG),
         "GIT_SSH_COMMAND": f"ssh -i {GITHUB_KEY} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new",
     }
 
@@ -223,7 +225,33 @@ def git_status_short(repo_path):
     return git_output(repo_path, "status", "--short")
 
 
+def ensure_git_safe_directory(repo_path):
+    CONTROL_GIT_CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    CONTROL_GIT_CONFIG.touch(mode=0o640, exist_ok=True)
+    safe_path = str(repo_path.resolve())
+    proc = subprocess.run(
+        ["git", "config", "--global", "--get-all", "safe.directory"],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=git_env(),
+    )
+    safe_paths = {line.strip() for line in proc.stdout.splitlines() if line.strip()}
+    if safe_path not in safe_paths:
+        proc = subprocess.run(
+            ["git", "config", "--global", "--add", "safe.directory", safe_path],
+            check=False,
+            capture_output=True,
+            text=True,
+            env=git_env(),
+        )
+        if proc.returncode != 0:
+            detail = (proc.stderr or proc.stdout or "").strip()
+            raise RuntimeError(detail or "could not configure git safe.directory")
+
+
 def ensure_save_preconditions(repo_path, branch):
+    ensure_git_safe_directory(repo_path)
     if git_status_short(repo_path):
         raise RuntimeError("repo checkout has local changes; run client-repo status before saving")
     run_git(repo_path, ["fetch", "origin", branch])

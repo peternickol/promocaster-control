@@ -313,6 +313,7 @@ and control may eventually cache many client repos under
 - free space on the data filesystem
 - total repo cache size
 - each cached client repo size
+- whether each cached git repo is trusted in Control's Git config
 - upload staging size
 - temporary validation build size under `/tmp/promocaster-control-builds`
 
@@ -366,16 +367,30 @@ promocaster-control client-repo status phgi
 `client-repo sync <client>` reads `clients.yml`, uses the GitHub writer key,
 clones or fetches into a directory named after the Git repo, writes progress
 state to `/var/lib/promocaster-control/sync/<client>.json`, and leaves the
-checkout at the configured branch. `client-repo status <client>` fetches origin
-and reports whether the local checkout is clean and matches the remote branch.
+checkout at the configured branch. It also repairs ownership of the checkout for
+the `promocaster-control` service user and adds the checkout to Control's Git
+`safe.directory` list in `/var/lib/promocaster-control/gitconfig`.
+`client-repo status <client>` fetches origin and reports whether the local
+checkout is clean and matches the remote branch.
 For PHGI, that means:
 
 ```text
 /var/lib/promocaster-control/repos/promocaster.phgi
 /var/lib/promocaster-control/sync/phgi.json
+/var/lib/promocaster-control/gitconfig
 ```
 
 First sync can take a while for large media repos.
+
+If Git reports `detected dubious ownership` for a cached client repo, run:
+
+```sh
+promocaster-control client-repo sync phgi
+systemctl restart promocaster-control.service
+```
+
+`promocaster-control repair` also walks cached repos, repairs ownership, and
+marks them safe.
 
 ### GitHub Writer Key
 

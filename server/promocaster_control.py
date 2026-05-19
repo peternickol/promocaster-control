@@ -16,6 +16,25 @@ BIND = os.environ.get("PROMOCASTER_CONTROL_BIND", "127.0.0.1")
 PORT = int(os.environ.get("PROMOCASTER_CONTROL_PORT", "8080"))
 
 
+def repo_checkout_name(repo_url):
+    name = repo_url.rstrip("/").rsplit("/", 1)[-1]
+    if name.endswith(".git"):
+        name = name[:-4]
+    return name or "repo"
+
+
+def client_repo_name(client):
+    if CLIENTS_FILE.exists():
+        current = ""
+        for raw_line in CLIENTS_FILE.read_text(encoding="utf-8").splitlines():
+            if raw_line.startswith("  ") and not raw_line.startswith("    ") and raw_line.strip().endswith(":"):
+                current = raw_line.strip()[:-1]
+                continue
+            if current == client and raw_line.startswith("    ") and raw_line.strip().startswith("repo:"):
+                return repo_checkout_name(raw_line.split(":", 1)[1].strip().strip('"').strip("'"))
+    return client
+
+
 class ControlHandler(SimpleHTTPRequestHandler):
     server_version = "PromocasterControl/0.1"
 
@@ -76,7 +95,7 @@ class ControlHandler(SimpleHTTPRequestHandler):
 
     def read_sync_status(self, client):
         status_path = SYNC_DIR / f"{client}.json"
-        repo_path = REPOS_DIR / client
+        repo_path = REPOS_DIR / client_repo_name(client)
         if status_path.exists():
             try:
                 return json.loads(status_path.read_text(encoding="utf-8"))

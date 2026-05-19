@@ -341,6 +341,10 @@ def load_clients() -> dict[str, dict[str, str]]:
         if current_id and raw_line.startswith("    ") and ":" in raw_line:
             key, value = raw_line.strip().split(":", 1)
             clients[current_id][key] = value.strip().strip('"').strip("'")
+    for client_id, config in clients.items():
+        config.setdefault("id", client_id)
+        if config["id"] != client_id:
+            raise CommandError(f"client key {client_id} has mismatched id {config['id']} in clients.yml")
     return clients
 
 
@@ -353,6 +357,18 @@ def client_config(client_id: str) -> dict[str, str]:
         raise CommandError(f"client {client_id} is missing repo in clients.yml")
     config.setdefault("branch", "master")
     return config
+
+
+def repo_checkout_name(repo_url: str) -> str:
+    name = repo_url.rstrip("/").rsplit("/", 1)[-1]
+    if name.endswith(".git"):
+        name = name[:-4]
+    return name or "repo"
+
+
+def client_repo_path(client_id: str, config: dict[str, str] | None = None) -> Path:
+    config = config or client_config(client_id)
+    return REPOS_DIR / repo_checkout_name(config["repo"])
 
 
 def sync_status_path(client_id: str) -> Path:
@@ -663,13 +679,13 @@ def command_github_key(args: argparse.Namespace) -> int:
 def command_client_repo(args: argparse.Namespace) -> int:
     if args.client_command == "list":
         for client_id, config in load_clients().items():
-            repo_path = REPOS_DIR / client_id
+            repo_path = client_repo_path(client_id, config)
             marker = "present" if repo_path.exists() else "missing"
             print(f"{client_id}\t{marker}\t{config.get('repo', '')}")
         return 0
 
     config = client_config(args.client)
-    repo_path = REPOS_DIR / args.client
+    repo_path = client_repo_path(args.client, config)
     branch = config.get("branch", "master")
 
     if args.client_command == "status":

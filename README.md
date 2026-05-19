@@ -29,6 +29,7 @@ locations through the API.
 - `web/` contains the editor and inspector UI copied out of the PHGI content repo.
 - `clients.yml` is the control-side registry of clients and content repos.
 - Locations are derived from the synced client repo's `_data/media.yml`.
+- Each client record has an explicit `id`; it must match the `clients.yml` key.
 - `server/` is reserved for the authenticated API and git publisher.
 
 The copied UI currently uses an empty embedded payload so it can load as static
@@ -357,10 +358,16 @@ promocaster-control client-repo status phgi
 ```
 
 `client-repo sync <client>` reads `clients.yml`, uses the GitHub writer key,
-clones or fetches into `/var/lib/promocaster-control/repos/<client>`, writes
-progress state to `/var/lib/promocaster-control/sync/<client>.json`, and leaves
-the checkout at the configured branch. First sync can take a while for large
-media repos.
+clones or fetches into a directory named after the Git repo, writes progress
+state to `/var/lib/promocaster-control/sync/<client>.json`, and leaves the
+checkout at the configured branch. For PHGI, that means:
+
+```text
+/var/lib/promocaster-control/repos/promocaster.phgi
+/var/lib/promocaster-control/sync/phgi.json
+```
+
+First sync can take a while for large media repos.
 
 ### GitHub Writer Key
 

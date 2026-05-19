@@ -53,6 +53,42 @@ class Check:
     hint: str | None = None
 
 
+def color_enabled(stream) -> bool:
+    return bool(getattr(stream, "isatty", lambda: False)()) and os.environ.get("NO_COLOR", "0") != "1"
+
+
+def tag(label: str, color: str, *, stream=sys.stdout) -> str:
+    if color_enabled(stream):
+        return f"\033[{color}m[{label}]\033[0m"
+    return f"[{label}]"
+
+
+def print_info(message: str) -> None:
+    print(f"{tag('INFO', '36')} {message}")
+
+
+def print_ok(message: str) -> None:
+    print(f"{tag('OK', '32')} {message}")
+
+
+def print_warn(message: str) -> None:
+    print(f"{tag('WARN', '33')} {message}")
+
+
+def print_error(message: str) -> None:
+    print(f"{tag('ERROR', '31', stream=sys.stderr)} {message}", file=sys.stderr)
+
+
+def print_check(status: str, label: str, detail: str) -> None:
+    if status == "ok":
+        prefix = tag("OK", "32")
+    elif status == "warn":
+        prefix = tag("WARN", "33")
+    else:
+        prefix = tag("ERROR", "31")
+    print(f"{prefix} {label}: {detail}")
+
+
 def run(cmd: list[str], *, check: bool = True, capture: bool = False) -> subprocess.CompletedProcess[str]:
     proc = subprocess.run(cmd, check=False, capture_output=capture, text=True)
     if check and proc.returncode != 0:
@@ -635,7 +671,7 @@ def collect_checks() -> list[Check]:
 
 def print_checks(checks: list[Check]) -> int:
     print()
-    print("Doctor Report")
+    print_info("Doctor Report")
     print("=============")
     print(f"Config: {CONFIG_PATH}")
     for section in ("Runtime", "Storage", "Services", "TLS", "Auth", "GitHub Writer", "Update Path"):
@@ -646,18 +682,17 @@ def print_checks(checks: list[Check]) -> int:
         print(section)
         print("-" * len(section))
         for check in rows:
-            marker = {"ok": "OK", "warn": "WARN", "fail": "FAIL"}[check.status]
-            print(f"[{marker}] {check.label}: {check.detail}")
+            print_check(check.status, check.label, check.detail)
             if check.hint and check.status != "ok":
                 print(f"       hint: {check.hint}")
     print()
     if any(check.status == "fail" for check in checks):
-        print("[FAIL] Doctor result: FAIL")
+        print_error("Doctor result: FAIL")
         return 1
     if any(check.status == "warn" for check in checks):
-        print("[WARN] Doctor result: WARN")
+        print_warn("Doctor result: WARN")
         return 0
-    print("[OK] Doctor result: OK")
+    print_ok("Doctor result: OK")
     return 0
 
 
@@ -689,14 +724,14 @@ def command_update(args: argparse.Namespace) -> int:
         mode = "refreshed"
 
     print()
-    print("Update Result")
+    print_info("Update Result")
     print("=============")
     for action in actions:
-        print(f"[OK] {action}")
+        print_ok(action)
     if mode == "updated":
-        print("[OK] Update completed successfully after refreshing the checkout.")
+        print_ok("Update completed successfully after refreshing the checkout.")
     else:
-        print("[INFO] No new code was pulled; checkout wiring was refreshed.")
+        print_info("No new code was pulled; checkout wiring was refreshed.")
     return 0
 
 
@@ -706,7 +741,7 @@ def command_github_key(args: argparse.Namespace) -> int:
         ok, public_key = github_key_public_text()
         if not ok:
             raise CommandError(public_key)
-        print(f"[OK] Generated GitHub writer key at {GITHUB_KEY}")
+        print_ok(f"Generated GitHub writer key at {GITHUB_KEY}")
         print()
         print("Add this public key to GitHub with write access:")
         print(public_key)
@@ -836,7 +871,7 @@ def command_client_repo(args: argparse.Namespace) -> int:
         except Exception as exc:
             write_sync_status(args.client, "error", str(exc), repo_path=str(repo_path), branch=branch)
             raise
-        print(f"[OK] Synced {args.client} to {repo_path}")
+        print_ok(f"Synced {args.client} to {repo_path}")
         print(f"     branch: {branch}")
         print(f"     head: {git_value(repo_path, 'rev-parse', '--short', 'HEAD')}")
         print(f"     size: {format_bytes(directory_size(repo_path))}")
@@ -884,7 +919,7 @@ def command_basic_auth(args: argparse.Namespace) -> int:
         BASIC_AUTH_CONFIG.write_text(f"basicauth {{\n    {args.username} {hashed}\n}}\n", encoding="utf-8")
         secure_basic_auth_config()
         reload_caddy_if_available()
-        print(f"[OK] Basic auth configured for {args.username} at {BASIC_AUTH_CONFIG}")
+        print_ok(f"Basic auth configured for {args.username} at {BASIC_AUTH_CONFIG}")
         return 0
     if args.auth_command == "edit":
         if not is_root():
@@ -904,7 +939,7 @@ def command_basic_auth(args: argparse.Namespace) -> int:
         text = BASIC_AUTH_CONFIG.read_text(encoding="utf-8") if BASIC_AUTH_CONFIG.exists() else ""
         if ("basic_auth" not in text and "basicauth" not in text) or "respond " in text:
             raise CommandError(f"basic auth is not configured at {BASIC_AUTH_CONFIG}")
-        print(f"[OK] Basic auth snippet is configured at {BASIC_AUTH_CONFIG}")
+        print_ok(f"Basic auth snippet is configured at {BASIC_AUTH_CONFIG}")
         return 0
     raise CommandError("unknown basic-auth command")
 
@@ -951,10 +986,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "repair":
             actions = repair(daemon_reload=not args.no_daemon_reload)
             print()
-            print("Repair Actions")
+            print_info("Repair Actions")
             print("==============")
             for action in actions:
-                print(f"[OK] {action}")
+                print_ok(action)
             return print_checks(collect_checks())
         if args.command == "update":
             return command_update(args)
@@ -965,7 +1000,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "basic-auth":
             return command_basic_auth(args)
     except CommandError as exc:
-        print(f"[ERROR] {exc}", file=sys.stderr)
+        print_error(str(exc))
         return 1
     return 1
 

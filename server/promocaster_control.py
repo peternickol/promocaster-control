@@ -60,6 +60,11 @@ def client_branch(client):
     return load_clients().get(client, {}).get("branch", "master") or "master"
 
 
+def client_info(client):
+    config = load_clients().get(client, {})
+    return {"id": client, "name": config.get("name") or client}
+
+
 def clean_yaml_scalar(value):
     value = value.split(" #", 1)[0].strip()
     if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
@@ -247,7 +252,11 @@ def parse_media_yml(client, media_yml):
             }
         )
 
-    return {"activeLocation": normalized_locations[0]["name"] if normalized_locations else "", "locations": normalized_locations}
+    return {
+        "client": client_info(client),
+        "activeLocation": normalized_locations[0]["name"] if normalized_locations else "",
+        "locations": normalized_locations,
+    }
 
 
 def git_env():

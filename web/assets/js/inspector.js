@@ -2,6 +2,7 @@
   "use strict";
 
   const initialData = document.getElementById("all-decks");
+  const clientName = document.getElementById("client-name");
   const locationList = document.getElementById("location-list");
   const locationTitle = document.getElementById("location-title");
   const summary = document.getElementById("summary");
@@ -48,6 +49,11 @@
     } catch {
       return null;
     }
+  }
+
+  function setClientName(payload) {
+    const name = payload?.client?.name || controlClient;
+    clientName.textContent = name;
   }
 
   function formatDuration(ms) {
@@ -323,6 +329,7 @@
 
   function loadData(nextData) {
     if (!Array.isArray(nextData?.locations)) return;
+    setClientName(nextData);
     data = nextData;
     const hashLocation = decodeURIComponent(window.location.hash.replace(/^#/, ""));
     selectedLocation = hashLocation || selectedLocation || data.activeLocation || data.locations[0]?.name || "";
@@ -377,6 +384,8 @@
   });
 
   setTheme(preferredTheme(), false);
-  loadData(parseJson(initialData?.textContent || "{}") || {});
+  const embeddedData = parseJson(initialData?.textContent || "{}") || {};
+  setClientName(embeddedData);
+  loadData(embeddedData);
   loadRemoteDecks();
 })();

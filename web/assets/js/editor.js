@@ -2,6 +2,7 @@
   "use strict";
 
   const initialData = document.getElementById("all-decks");
+  const clientName = document.getElementById("client-name");
   const locationList = document.getElementById("location-list");
   const locationTitle = document.getElementById("location-title");
   const deckSummary = document.getElementById("deck-summary");
@@ -69,6 +70,11 @@
         })),
       })),
     };
+  }
+
+  function setClientName(payload) {
+    const name = payload?.client?.name || controlClient;
+    clientName.textContent = name;
   }
 
   function getLocation(name = selectedLocation) {
@@ -517,7 +523,9 @@
         saveStatus.textContent = message;
         return;
       }
-      data = normalizeInitialData(await response.json());
+      const payload = await response.json();
+      setClientName(payload);
+      data = normalizeInitialData(payload);
       selectedLocation = decodeURIComponent(window.location.hash.replace(/^#/, "")) || data.activeLocation || data.locations[0]?.name || "";
       if (!getLocation(selectedLocation)) selectedLocation = data.locations[0]?.name || "";
       saveStatus.textContent = "Loaded from repo";
@@ -542,7 +550,9 @@
   });
 
   setTheme(preferredTheme(), false);
-  data = normalizeInitialData(parseJson(initialData?.textContent || "{}") || {});
+  const embeddedData = parseJson(initialData?.textContent || "{}") || {};
+  setClientName(embeddedData);
+  data = normalizeInitialData(embeddedData);
   selectedLocation = decodeURIComponent(window.location.hash.replace(/^#/, "")) || data.activeLocation || data.locations[0]?.name || "";
   if (!getLocation(selectedLocation)) selectedLocation = data.locations[0]?.name || "";
   renderAll();

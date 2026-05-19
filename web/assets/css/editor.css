@@ -59,7 +59,7 @@ body {
 
 button,
 input,
-textarea {
+select {
   font: inherit;
 }
 
@@ -306,7 +306,7 @@ button:not(.btn):hover {
 
 .add-panel,
 .slides-panel,
-.output-panel {
+.publish-panel {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--panel);
@@ -354,8 +354,7 @@ button:not(.btn):hover {
 
 .existing-media-form input,
 .slide-duration,
-.slide-date,
-#yaml-output {
+.slide-date {
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--panel);
@@ -545,7 +544,7 @@ button:not(.btn):hover {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .output-panel {
+  .publish-panel {
     order: 2;
   }
 }
@@ -612,20 +611,4 @@ button:not(.btn):hover {
 .pending-file span {
   color: var(--muted);
   font-size: 12px;
-}
-
-.output-heading {
-  border-top: 1px solid var(--border-soft);
-}
-
-#yaml-output {
-  display: block;
-  width: calc(100% - 32px);
-  min-height: 480px;
-  margin: 16px;
-  padding: 12px;
-  resize: vertical;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 12px;
-  line-height: 1.45;
 }

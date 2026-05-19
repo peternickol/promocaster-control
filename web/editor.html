@@ -59,8 +59,6 @@
         </div>
         <div class="deck-actions">
           <button id="save-decks" class="btn btn-success btn-sm" type="button">Save & Push</button>
-          <button id="copy-yaml" class="btn btn-primary btn-sm" type="button">Copy YAML</button>
-          <button id="download-yaml" class="btn btn-outline-primary btn-sm" type="button">Download media.yml</button>
         </div>
       </header>
 
@@ -85,18 +83,17 @@
           <div id="slide-list" class="slide-list"></div>
         </div>
 
-        <aside class="output-panel">
+        <aside class="publish-panel">
+          <div class="section-header">
+            <h3>Publish</h3>
+            <span id="save-status">Not saved</span>
+          </div>
+
           <div class="section-header">
             <h3>Pending Files</h3>
             <span id="pending-count">0 files</span>
           </div>
           <div id="pending-files" class="pending-files"></div>
-
-          <div class="section-header output-heading">
-            <h3>media.yml</h3>
-            <span id="save-status">Not saved</span>
-          </div>
-          <textarea id="yaml-output" class="form-control" spellcheck="false"></textarea>
         </aside>
       </section>
     </main>

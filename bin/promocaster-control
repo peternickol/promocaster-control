@@ -692,14 +692,51 @@ def command_client_repo(args: argparse.Namespace) -> int:
     branch = config.get("branch", "master")
 
     if args.client_command == "status":
+        print()
+        print(f"Client Repo Status: {args.client}")
+        print("=" * (20 + len(args.client)))
+        print(f"name: {config.get('name', args.client)}")
+        print(f"repo: {config['repo']}")
+        print(f"branch: {branch}")
+        print(f"checkout: {repo_path}")
+        if not repo_path.exists():
+            print("state: missing")
+            print(f"hint: run promocaster-control client-repo sync {args.client}")
+            return 1
+        if not (repo_path / ".git").exists():
+            raise CommandError(f"checkout path exists but is not a git repo: {repo_path}")
+        if not args.no_fetch:
+            run_git(["git", "-C", str(repo_path), "fetch", "origin", branch])
+        local_head = git_value(repo_path, "rev-parse", "--short", "HEAD")
+        remote_head = git_value(repo_path, "rev-parse", "--short", f"origin/{branch}")
+        current_branch = git_value(repo_path, "branch", "--show-current") or "detached"
+        remote_url = git_value(repo_path, "remote", "get-url", "origin")
+        clean, clean_detail = git_clean(repo_path)
+        ahead_behind = git_value(repo_path, "rev-list", "--left-right", "--count", f"HEAD...origin/{branch}")
+        ahead = behind = "?"
+        if ahead_behind:
+            parts = ahead_behind.split()
+            if len(parts) == 2:
+                ahead, behind = parts
+        in_sync = local_head == remote_head and clean and current_branch == branch
+        print(f"state: {'in sync' if in_sync else 'needs attention'}")
+        print(f"current branch: {current_branch}")
+        print(f"origin: {remote_url}")
+        print(f"local HEAD: {local_head}")
+        print(f"remote HEAD: {remote_head}")
+        print(f"ahead/behind: {ahead} ahead, {behind} behind")
+        print(f"working tree: {'clean' if clean else 'dirty'}")
+        if not clean:
+            print("changes:")
+            for line in clean_detail.splitlines():
+                print(f"  {line}")
         status_path = sync_status_path(args.client)
         if status_path.exists():
-            print(status_path.read_text(encoding="utf-8").strip())
-        elif repo_path.exists():
-            print(json.dumps({"client": args.client, "state": "ready", "repo_path": str(repo_path)}, indent=2))
-        else:
-            print(json.dumps({"client": args.client, "state": "not_started", "repo_path": str(repo_path)}, indent=2))
-        return 0
+            print(f"sync status: {status_path}")
+        if in_sync:
+            return 0
+        print(f"hint: run promocaster-control client-repo sync {args.client} after resolving any local changes")
+        return 1
 
     if args.client_command == "sync":
         if not is_root():
@@ -827,8 +864,9 @@ def main(argv: list[str] | None = None) -> int:
     client_sub.add_parser("list", help="List clients from clients.yml")
     client_sync = client_sub.add_parser("sync", help="Clone or fetch a configured client repo")
     client_sync.add_argument("client", help="Client id from clients.yml")
-    client_status = client_sub.add_parser("status", help="Show client repo sync status")
+    client_status = client_sub.add_parser("status", help="Show local vs remote sync status for a client repo")
     client_status.add_argument("client", help="Client id from clients.yml")
+    client_status.add_argument("--no-fetch", action="store_true", help="Do not fetch origin before comparing local and remote")
     basic_auth = sub.add_parser("basic-auth", help="Manage phase-1 Caddy Basic Auth")
     auth_sub = basic_auth.add_subparsers(dest="auth_command", required=True)
     auth_set = auth_sub.add_parser("set", help="Hash and install a Caddy Basic Auth password")

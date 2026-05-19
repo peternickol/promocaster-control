@@ -360,7 +360,9 @@ promocaster-control client-repo status phgi
 `client-repo sync <client>` reads `clients.yml`, uses the GitHub writer key,
 clones or fetches into a directory named after the Git repo, writes progress
 state to `/var/lib/promocaster-control/sync/<client>.json`, and leaves the
-checkout at the configured branch. For PHGI, that means:
+checkout at the configured branch. `client-repo status <client>` fetches origin
+and reports whether the local checkout is clean and matches the remote branch.
+For PHGI, that means:
 
 ```text
 /var/lib/promocaster-control/repos/promocaster.phgi

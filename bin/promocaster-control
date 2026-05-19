@@ -815,6 +815,8 @@ def command_client_repo(args: argparse.Namespace) -> int:
         write_sync_status(args.client, "syncing", "starting repo sync", repo_path=str(repo_path), branch=branch)
         try:
             if repo_path.exists():
+                chown_tree(repo_path)
+                ensure_git_safe_directory(repo_path)
                 write_sync_status(args.client, "fetching", "fetching latest changes", repo_path=str(repo_path), branch=branch)
                 run_git(["git", "-C", str(repo_path), "fetch", "origin", branch])
                 clean, detail = git_clean(repo_path)

@@ -150,8 +150,9 @@ if [[ ! -f "$BASIC_AUTH_CONFIG" ]]; then
   cat > "$BASIC_AUTH_CONFIG" <<'EOF'
 respond "Promocaster Control basic auth is not configured. Run: promocaster-control basic-auth set <user>" 503
 EOF
-  chmod 0640 "$BASIC_AUTH_CONFIG"
 fi
+chown root:caddy "$BASIC_AUTH_CONFIG" 2>/dev/null || true
+chmod 0640 "$BASIC_AUTH_CONFIG"
 
 install -m 0644 "$APP_DIR/packaging/$SERVICE_NAME" "/etc/systemd/system/$SERVICE_NAME"
 sed -i \

@@ -111,6 +111,15 @@ def path_mode(path: Path) -> str:
         return "missing"
 
 
+def path_group(path: Path) -> str:
+    try:
+        import grp
+
+        return grp.getgrgid(path.stat().st_gid).gr_name
+    except (OSError, KeyError):
+        return "missing"
+
+
 def format_bytes(size: int) -> str:
     units = ("B", "KB", "MB", "GB", "TB")
     value = float(size)
@@ -346,6 +355,11 @@ def collect_checks() -> list[Check]:
     auth_text = BASIC_AUTH_CONFIG.read_text(encoding="utf-8") if BASIC_AUTH_CONFIG.exists() else ""
     auth_configured = ("basic_auth" in auth_text or "basicauth" in auth_text) and "respond " not in auth_text
     checks.append(Check("Auth", "basic auth snippet", "ok" if BASIC_AUTH_CONFIG.exists() else "fail", str(BASIC_AUTH_CONFIG), None if BASIC_AUTH_CONFIG.exists() else "run promocaster-control basic-auth set <user>"))
+    if BASIC_AUTH_CONFIG.exists():
+        auth_group = path_group(BASIC_AUTH_CONFIG)
+        auth_mode = path_mode(BASIC_AUTH_CONFIG)
+        readable_by_caddy = auth_mode in {"0o640", "0o644"} and auth_group in {"caddy", "root"}
+        checks.append(Check("Auth", "basic auth readable by Caddy", "ok" if readable_by_caddy else "fail", f"{auth_mode} {auth_group}", None if readable_by_caddy else "run chown root:caddy /etc/promocaster-control/basic-auth.caddy && chmod 640 /etc/promocaster-control/basic-auth.caddy"))
     checks.append(Check("Auth", "basic auth configured", "ok" if auth_configured else "fail", "configured" if auth_configured else "placeholder or missing", None if auth_configured else "run promocaster-control basic-auth set <user> before exposing the public site"))
     if CADDY_CONFIG.exists():
         caddy_text = CADDY_CONFIG.read_text(encoding="utf-8")
@@ -510,6 +524,16 @@ def reload_caddy_if_available() -> None:
         run(["systemctl", "reload", "caddy.service"])
 
 
+def secure_basic_auth_config() -> None:
+    try:
+        shutil.chown(BASIC_AUTH_CONFIG, user="root", group="caddy")
+    except LookupError:
+        pass
+    except PermissionError as exc:
+        raise CommandError(f"could not set {BASIC_AUTH_CONFIG} owner/group: {exc}") from exc
+    BASIC_AUTH_CONFIG.chmod(0o640)
+
+
 def command_basic_auth(args: argparse.Namespace) -> int:
     if args.auth_command == "set":
         if not is_root():
@@ -530,7 +554,7 @@ def command_basic_auth(args: argparse.Namespace) -> int:
         hashed = proc.stdout.strip()
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
         BASIC_AUTH_CONFIG.write_text(f"basic_auth {{\n    {args.username} {hashed}\n}}\n", encoding="utf-8")
-        BASIC_AUTH_CONFIG.chmod(0o640)
+        secure_basic_auth_config()
         reload_caddy_if_available()
         print(f"[OK] Basic auth configured for {args.username} at {BASIC_AUTH_CONFIG}")
         return 0
@@ -542,10 +566,10 @@ def command_basic_auth(args: argparse.Namespace) -> int:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
         if not BASIC_AUTH_CONFIG.exists():
             BASIC_AUTH_CONFIG.write_text('respond "Promocaster Control basic auth is not configured. Run: promocaster-control basic-auth set <user>" 503\n', encoding="utf-8")
-        BASIC_AUTH_CONFIG.chmod(0o640)
+        secure_basic_auth_config()
         print(f"Opening {BASIC_AUTH_CONFIG} in nano")
         run(["nano", str(BASIC_AUTH_CONFIG)])
-        BASIC_AUTH_CONFIG.chmod(0o640)
+        secure_basic_auth_config()
         reload_caddy_if_available()
         return 0
     if args.auth_command == "test":

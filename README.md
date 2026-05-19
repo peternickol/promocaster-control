@@ -221,6 +221,11 @@ The first test deployment should prove:
 - GitHub SSH authentication
 - `doctor` diagnostics
 
+The installer also removes `control.promocaster.io` from loopback entries in
+`/etc/hosts` if Debian put the FQDN on `127.0.1.1`. The short hostname can stay
+there, but the public FQDN must resolve through DNS so Caddy and Let's Encrypt
+see the real VPS address.
+
 Current limitation: this server is not yet a functional remote deck editor. It
 does not yet clone/fetch the PHGI repo, parse `_data/media.yml`, save deck
 changes, upload media, delete removed media, validate Jekyll builds, commit, or

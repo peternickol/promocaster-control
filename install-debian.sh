@@ -59,6 +59,41 @@ while (($# > 0)); do
   shift
 done
 
+fix_loopback_hosts_entry() {
+  local tmp_hosts
+  tmp_hosts="$(mktemp)"
+  awk -v site="$SITE" '
+    /^[[:space:]]*#/ { print; next }
+    NF == 0 { print; next }
+    {
+      ip = $1
+      if (ip ~ /^127\./) {
+        line = ip
+        removed = 0
+        for (i = 2; i <= NF; i++) {
+          if ($i == site) {
+            removed = 1
+            next
+          }
+          line = line " " $i
+        }
+        if (removed && line == ip) {
+          next
+        }
+        print line
+        next
+      }
+      print
+    }
+  ' /etc/hosts > "$tmp_hosts"
+
+  if ! cmp -s "$tmp_hosts" /etc/hosts; then
+    cp "$tmp_hosts" /etc/hosts
+    echo "Removed $SITE from loopback entries in /etc/hosts"
+  fi
+  rm -f "$tmp_hosts"
+}
+
 if ! command -v apt-get >/dev/null 2>&1; then
   echo "This installer currently supports Debian/apt-based systems only" >&2
   exit 1
@@ -118,6 +153,8 @@ if [[ "$NONINTERACTIVE" -eq 0 && -t 0 ]]; then
   echo "Installing Promocaster Control."
   echo "The app binds to $BIND:$PORT; Caddy owns $SITE and reverse proxies to it."
 fi
+
+fix_loopback_hosts_entry
 
 if ! id "$SERVICE_USER" >/dev/null 2>&1; then
   useradd --system --user-group --home "$APP_ROOT" --shell /usr/sbin/nologin "$SERVICE_USER"

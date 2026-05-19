@@ -382,8 +382,8 @@ button:not(.btn):hover {
 
 .slide-row {
   display: grid;
-  grid-template-columns: 132px minmax(0, 1fr) 210px auto;
-  gap: 14px;
+  grid-template-columns: 184px minmax(0, 1fr) 220px auto;
+  gap: 16px;
   align-items: center;
   padding: 12px;
   border: 1px solid var(--border);
@@ -533,6 +533,10 @@ button:not(.btn):hover {
 
   .publish-panel {
     order: 2;
+  }
+
+  .slide-row {
+    grid-template-columns: 168px minmax(0, 1fr) 210px auto;
   }
 }
 

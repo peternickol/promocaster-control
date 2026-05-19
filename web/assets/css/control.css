@@ -82,7 +82,6 @@ a {
 }
 
 button:not(.btn) {
-  border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--panel);
   color: var(--text);

@@ -22,6 +22,21 @@
   let dragIndex = -1;
   let dateFocus = null;
 
+  function refreshIcons() {
+    window.lucide?.createIcons({
+      attrs: {
+        "stroke-width": 2,
+      },
+    });
+  }
+
+  function icon(name) {
+    const element = document.createElement("i");
+    element.setAttribute("data-lucide", name);
+    element.setAttribute("aria-hidden", "true");
+    return element;
+  }
+
   function parseJson(text) {
     try {
       return JSON.parse(text);
@@ -218,9 +233,9 @@
       const actions = document.createElement("div");
       actions.className = "row-actions";
       actions.append(
-        rowButton("↑", "Move up", () => moveSlide(index, index - 1)),
-        rowButton("↓", "Move down", () => moveSlide(index, index + 1)),
-        rowButton("×", "Remove", () => removeSlide(index)),
+        rowButton("arrow-up", "Move up", () => moveSlide(index, index - 1)),
+        rowButton("arrow-down", "Move down", () => moveSlide(index, index + 1)),
+        rowButton("trash-2", "Remove", () => removeSlide(index)),
       );
 
       row.append(thumb, details, controls, actions);
@@ -243,7 +258,7 @@
       const enable = document.createElement("button");
       enable.type = "button";
       enable.className = "timeout-enable btn btn-outline-secondary btn-sm";
-      enable.textContent = "Enable timeout";
+      enable.append(icon("timer"), document.createTextNode("Timeout"));
       enable.addEventListener("click", () => {
         slide.maxDurationMs = 5 * 60 * 1000;
         markChanged();
@@ -279,7 +294,7 @@
       const clear = document.createElement("button");
       clear.type = "button";
       clear.className = "timeout-clear btn btn-outline-secondary btn-sm";
-      clear.textContent = "Auto";
+      clear.append(icon("rotate-ccw"), document.createTextNode("Auto"));
       clear.addEventListener("click", () => {
         slide.maxDurationMs = null;
         markChanged();
@@ -315,7 +330,7 @@
       const enable = document.createElement("button");
       enable.type = "button";
       enable.className = "date-enable btn btn-outline-secondary btn-sm";
-      enable.textContent = enableLabel;
+      enable.append(icon(field === "startsOn" ? "calendar-plus" : "calendar-x"), document.createTextNode(enableLabel.replace("Enable ", "")));
       enable.addEventListener("click", () => {
         slide[field] = todayYmd();
         dateFocus = { location: selectedLocation, index, field };
@@ -341,7 +356,7 @@
     const clear = document.createElement("button");
     clear.type = "button";
     clear.className = "date-clear btn btn-outline-secondary btn-sm";
-    clear.textContent = "Clear";
+    clear.append(icon("x"), document.createTextNode("Clear"));
     clear.addEventListener("click", () => {
       slide[field] = "";
       markChanged();
@@ -371,11 +386,11 @@
     return media;
   }
 
-  function rowButton(label, title, onClick) {
+  function rowButton(iconName, title, onClick) {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "btn btn-outline-secondary btn-sm";
-    button.textContent = label;
+    button.className = "btn btn-outline-secondary btn-sm icon-only";
+    button.append(icon(iconName));
     button.title = title;
     button.setAttribute("aria-label", title);
     button.addEventListener("click", onClick);
@@ -428,6 +443,7 @@
     renderLocations();
     renderSlides();
     renderPendingFiles();
+    refreshIcons();
   }
 
   function addFiles(files) {
@@ -557,4 +573,5 @@
   if (!getLocation(selectedLocation)) selectedLocation = data.locations[0]?.name || "";
   renderAll();
   loadRemoteDecks();
+  refreshIcons();
 })();

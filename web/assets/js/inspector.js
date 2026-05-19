@@ -22,6 +22,14 @@
   let selectedSlideIndex = 0;
   const videoBlobUrls = new Map();
 
+  function refreshIcons() {
+    window.lucide?.createIcons({
+      attrs: {
+        "stroke-width": 2,
+      },
+    });
+  }
+
   function preferredTheme() {
     const stored = window.localStorage.getItem(themeStorageKey);
     if (stored === "light" || stored === "dark") return stored;
@@ -306,6 +314,7 @@
     renderSummary(location);
     renderPreview(location);
     renderSlides(location);
+    refreshIcons();
   }
 
   function selectLocation(name) {
@@ -388,4 +397,5 @@
   setClientName(embeddedData);
   loadData(embeddedData);
   loadRemoteDecks();
+  refreshIcons();
 })();

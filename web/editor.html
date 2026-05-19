@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="/assets/css/editor.css">
   <script src="/assets/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
+  <script src="/assets/vendor/lucide/lucide.min.js" defer></script>
   <script src="/assets/js/editor.js" defer></script>
 </head>
 <body data-client="phgi">
@@ -20,28 +21,16 @@
         </div>
         <div class="header-actions">
           <nav class="tool-nav" aria-label="Tools">
-            <a href="/inspector.html">Inspect</a>
-            <a class="is-active" href="/editor.html">Edit</a>
+            <a href="/inspector.html"><i data-lucide="scan-search" aria-hidden="true"></i><span>Inspect</span></a>
+            <a class="is-active" href="/editor.html"><i data-lucide="square-pen" aria-hidden="true"></i><span>Edit</span></a>
           </nav>
           <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch theme">
             <span class="theme-toggle-track" aria-hidden="true">
               <span class="theme-option">
-                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                  <circle cx="12" cy="12" r="4"></circle>
-                  <path d="M12 2v2"></path>
-                  <path d="M12 20v2"></path>
-                  <path d="m4.93 4.93 1.41 1.41"></path>
-                  <path d="m17.66 17.66 1.41 1.41"></path>
-                  <path d="M2 12h2"></path>
-                  <path d="M20 12h2"></path>
-                  <path d="m6.34 17.66-1.41 1.41"></path>
-                  <path d="m19.07 4.93-1.41 1.41"></path>
-                </svg>
+                <i data-lucide="sun" aria-hidden="true"></i>
               </span>
               <span class="theme-option">
-                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                  <path d="M20.99 12.58A8.5 8.5 0 1 1 11.42 3a6.8 6.8 0 0 0 9.57 9.58Z"></path>
-                </svg>
+                <i data-lucide="moon" aria-hidden="true"></i>
               </span>
               <span class="theme-thumb"></span>
             </span>
@@ -58,13 +47,17 @@
           <h2 id="location-title">Loading</h2>
         </div>
         <div class="deck-actions">
-          <button id="save-decks" class="btn btn-success btn-sm" type="button">Save & Push</button>
+          <button id="save-decks" class="btn btn-success btn-sm icon-button" type="button">
+            <i data-lucide="cloud-upload" aria-hidden="true"></i>
+            <span>Save & Push</span>
+          </button>
         </div>
       </header>
 
       <section class="add-panel">
         <label class="upload-drop">
           <input id="media-upload" type="file" accept="image/*,video/mp4" multiple>
+          <i data-lucide="image-plus" aria-hidden="true"></i>
           <span>Add image or MP4 files</span>
         </label>
       </section>
@@ -72,7 +65,7 @@
       <section class="editor-grid">
         <div class="slides-panel">
           <div class="section-header">
-            <h3>Slides</h3>
+            <h3><i data-lucide="gallery-horizontal-end" aria-hidden="true"></i>Slides</h3>
             <span id="deck-summary">0 slides</span>
           </div>
           <div id="slide-list" class="slide-list"></div>
@@ -80,12 +73,12 @@
 
         <aside class="publish-panel">
           <div class="section-header">
-            <h3>Publish</h3>
+            <h3><i data-lucide="send" aria-hidden="true"></i>Publish</h3>
             <span id="save-status">Not saved</span>
           </div>
 
           <div class="section-header">
-            <h3>Pending Files</h3>
+            <h3><i data-lucide="paperclip" aria-hidden="true"></i>Pending Files</h3>
             <span id="pending-count">0 files</span>
           </div>
           <div id="pending-files" class="pending-files"></div>

@@ -100,10 +100,6 @@ def location_names(deck_data):
 
 def yaml_quote(value):
     value = str(value)
-    if not value:
-        return '""'
-    if re.fullmatch(r"[A-Za-z0-9._/-]+", value):
-        return value
     return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 

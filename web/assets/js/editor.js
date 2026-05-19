@@ -512,8 +512,8 @@
         } else {
           lines.push(`  time: ${Math.max(Number(slide.durationMs) || 10000, 1000)}`);
         }
-        lines.push(`  starts: ${slide.startsOn || "\"\""}`);
-        lines.push(`  expires: ${slide.expiresOn || "\"\""}`);
+        lines.push(`  starts: ${yamlQuote(slide.startsOn || "")}`);
+        lines.push(`  expires: ${yamlQuote(slide.expiresOn || "")}`);
         lines.push("");
       });
     });

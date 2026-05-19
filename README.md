@@ -115,6 +115,8 @@ Current save flow:
 
 The first save implementation edits existing deck data only. Upload handling and
 Jekyll validation are still planned follow-up work.
+Generated YAML quotes slide filenames and schedule values, even when the current
+value is simple. That keeps long filenames, punctuation, and empty dates safe.
 
 When a slide is removed in the editor, the backing media file must be deleted
 from the client repo if no remaining slide references it. This is important for

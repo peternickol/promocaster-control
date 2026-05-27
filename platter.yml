@@ -4,7 +4,9 @@ host:
   shortname: control
 requires:
   packages:
+    - imagemagick
   commands:
+    - magick
 components:
   service_user: platter-project
   service:

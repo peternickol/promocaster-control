@@ -4,7 +4,9 @@ import mimetypes
 import os
 import posixpath
 import re
+import shutil
 import subprocess
+import tempfile
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import quote, unquote, urlparse
@@ -23,6 +25,9 @@ PORT = int(os.environ.get("PROMOCASTER_CONTROL_PORT", "8080"))
 MAX_JSON_BODY_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_MAX_JSON_BODY_BYTES", str(2 * 1024 * 1024)))
 MAX_MULTIPART_BODY_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_MAX_MULTIPART_BODY_BYTES", str(512 * 1024 * 1024)))
 ALLOWED_MEDIA_EXTENSIONS = {".jpg", ".jpeg", ".png", ".mp4"}
+IMAGE_MEDIA_EXTENSIONS = {".jpg", ".jpeg", ".png"}
+IMAGE_MAX_GEOMETRY = os.environ.get("PROMOCASTER_CONTROL_IMAGE_MAX_GEOMETRY", "1920x1080")
+IMAGE_QUALITY = os.environ.get("PROMOCASTER_CONTROL_IMAGE_QUALITY", "85")
 
 
 def load_clients():
@@ -82,6 +87,61 @@ def is_safe_media_name(name):
     if Path(name).name != name:
         return False
     return Path(name).suffix.lower() in ALLOWED_MEDIA_EXTENSIONS
+
+
+def imagemagick_command():
+    command = shutil.which("magick") or shutil.which("convert")
+    if not command:
+        raise RuntimeError("ImageMagick is required to process image uploads")
+    return command
+
+
+def write_upload_media(upload, media_path):
+    extension = Path(upload["filename"]).suffix.lower()
+    if extension not in IMAGE_MEDIA_EXTENSIONS:
+        media_path.write_bytes(upload["content"])
+        return
+
+    command = imagemagick_command()
+    media_path.parent.mkdir(parents=True, exist_ok=True)
+    input_path = None
+    output_path = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=media_path.parent, suffix=extension, delete=False) as input_file:
+            input_file.write(upload["content"])
+            input_path = Path(input_file.name)
+        with tempfile.NamedTemporaryFile(dir=media_path.parent, suffix=extension, delete=False) as output_file:
+            output_path = Path(output_file.name)
+        output_path.unlink(missing_ok=True)
+
+        subprocess.run(
+            [
+                command,
+                str(input_path),
+                "-auto-orient",
+                "-resize",
+                f"{IMAGE_MAX_GEOMETRY}>",
+                "-strip",
+                "-quality",
+                IMAGE_QUALITY,
+                str(output_path),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        output_path.replace(media_path)
+        output_path = None
+    except subprocess.CalledProcessError as exc:
+        detail = (exc.stderr or exc.stdout or "").strip()
+        raise RuntimeError(f"ImageMagick could not process {upload['filename']}: {detail or exc.returncode}")
+    finally:
+        for path in (input_path, output_path):
+            if path:
+                try:
+                    path.unlink(missing_ok=True)
+                except OSError:
+                    pass
 
 
 def slide_from_entry(client, entry):
@@ -597,7 +657,7 @@ class ControlHandler(SimpleHTTPRequestHandler):
             media_root.mkdir(parents=True, exist_ok=True)
             for upload in uploads:
                 media_path = media_root / upload["filename"]
-                media_path.write_bytes(upload["content"])
+                write_upload_media(upload, media_path)
                 run_git(repo_path, ["add", "--", f"media/{upload['filename']}"])
                 uploaded_files.append(upload["filename"])
 

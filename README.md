@@ -251,8 +251,8 @@ The first test deployment should prove:
 
 Current limitation: Jekyll validation is not yet implemented. The existing save
 path covers order, duration, start date, expiration date, new media upload,
-removal from `_data/media.yml`, deletion of unreferenced media files, commit,
-and push.
+image normalization to 1080p, removal from `_data/media.yml`, deletion of
+unreferenced media files, commit, and push.
 
 ### Maintenance Commands
 
@@ -518,8 +518,8 @@ match the current `all-decks.json` shape used by the UI.
 
 Accepts structured deck JSON, validates it, writes the client repo's
 `_data/media.yml`, deletes removed media files that are no longer referenced,
-uploads new media files, commits, and pushes. Jekyll validation is planned but
-not implemented yet.
+uploads new media files, normalizes image uploads to fit within 1920x1080,
+commits, and pushes. Jekyll validation is planned but not implemented yet.
 
 The submitted location set must exactly match the existing location set derived
 from the repo's current `_data/media.yml`. If the payload adds, removes, or
@@ -557,6 +557,10 @@ The endpoint should return the committed deletion list:
 The browser sends saves as `multipart/form-data` with one `deck` JSON part and
 one `media` file part for each pending upload. Uploaded filenames must already
 be referenced by the submitted deck JSON.
+
+Image uploads (`.jpg`, `.jpeg`, `.png`) are processed with ImageMagick before
+commit: auto-orient, resize to fit inside 1920x1080 without upscaling, strip
+metadata, and write with quality 85. Videos are not transformed.
 
 Commits created by Control include the authenticated user:
 

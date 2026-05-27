@@ -541,6 +541,8 @@ def collect_checks() -> list[Check]:
     checks.append(Check("Runtime", "client file", "ok" if clients_file.exists() else "fail", str(clients_file), None if clients_file.exists() else "restore client.yml and run platter build promocaster-control"))
     image_command = shutil.which("magick") or shutil.which("convert")
     checks.append(Check("Runtime", "image processing", "ok" if image_command else "fail", image_command or "missing ImageMagick", None if image_command else "install ImageMagick or run platter build promocaster-control"))
+    video_command = shutil.which("ffprobe")
+    checks.append(Check("Runtime", "video inspection", "ok" if video_command else "fail", video_command or "missing ffprobe", None if video_command else "install ffmpeg or run platter build promocaster-control"))
     for child, path in (("repos", REPOS_DIR), ("uploads", UPLOADS_DIR), ("ssh", SSH_DIR), ("sync", SYNC_DIR)):
         checks.append(Check("Runtime", f"data/{child}", "ok" if path.exists() else "fail", str(path), None if path.exists() else "run platter build promocaster-control"))
 

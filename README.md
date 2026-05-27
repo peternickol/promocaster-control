@@ -564,6 +564,11 @@ metadata, and write with quality 85. Videos are not transformed. If an uploaded
 image is smaller than 1920x1080, the save response includes a warning so the
 operator knows the source is below the 1080p target.
 
+Video uploads (`.mp4`) are inspected with `ffprobe` before commit. The server
+rejects files that are not valid videos and warns when a video is below or above
+the 1920x1080 target, uses a non-H.264 codec, runs longer than 120 seconds, or
+is larger than 250 MB.
+
 Commits created by Control include the authenticated user:
 
 ```text

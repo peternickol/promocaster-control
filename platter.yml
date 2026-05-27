@@ -4,8 +4,10 @@ host:
   shortname: control
 requires:
   packages:
+    - ffmpeg
     - imagemagick
   commands:
+    - ffprobe
     - magick
 components:
   service_user: platter-project

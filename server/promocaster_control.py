@@ -30,6 +30,12 @@ IMAGE_MAX_GEOMETRY = os.environ.get("PROMOCASTER_CONTROL_IMAGE_MAX_GEOMETRY", "1
 IMAGE_QUALITY = os.environ.get("PROMOCASTER_CONTROL_IMAGE_QUALITY", "85")
 IMAGE_WARN_MIN_WIDTH = int(os.environ.get("PROMOCASTER_CONTROL_IMAGE_WARN_MIN_WIDTH", "1920"))
 IMAGE_WARN_MIN_HEIGHT = int(os.environ.get("PROMOCASTER_CONTROL_IMAGE_WARN_MIN_HEIGHT", "1080"))
+VIDEO_MEDIA_EXTENSIONS = {".mp4"}
+VIDEO_WARN_WIDTH = int(os.environ.get("PROMOCASTER_CONTROL_VIDEO_WARN_WIDTH", "1920"))
+VIDEO_WARN_HEIGHT = int(os.environ.get("PROMOCASTER_CONTROL_VIDEO_WARN_HEIGHT", "1080"))
+VIDEO_WARN_DURATION_SECONDS = float(os.environ.get("PROMOCASTER_CONTROL_VIDEO_WARN_DURATION_SECONDS", "120"))
+VIDEO_WARN_SIZE_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_VIDEO_WARN_SIZE_MB", "250")) * 1024 * 1024
+VIDEO_PREFERRED_CODEC = os.environ.get("PROMOCASTER_CONTROL_VIDEO_PREFERRED_CODEC", "h264")
 
 
 def load_clients():
@@ -118,8 +124,116 @@ def image_size(command, image_path):
     return int(width), int(height)
 
 
+def ffprobe_command():
+    command = shutil.which("ffprobe")
+    if not command:
+        raise RuntimeError("ffprobe is required to inspect video uploads")
+    return command
+
+
+def video_metadata(video_path):
+    proc = subprocess.run(
+        [
+            ffprobe_command(),
+            "-v",
+            "error",
+            "-select_streams",
+            "v:0",
+            "-show_entries",
+            "stream=codec_name,width,height,duration",
+            "-show_entries",
+            "format=duration,size",
+            "-of",
+            "json",
+            str(video_path),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    data = json.loads(proc.stdout)
+    streams = data.get("streams") or []
+    if not streams:
+        raise RuntimeError("MP4 upload does not contain a video stream")
+    stream = streams[0]
+    format_data = data.get("format") or {}
+    duration = float(stream.get("duration") or format_data.get("duration") or 0)
+    size = int(format_data.get("size") or video_path.stat().st_size)
+    return {
+        "codec": stream.get("codec_name") or "",
+        "width": int(stream.get("width") or 0),
+        "height": int(stream.get("height") or 0),
+        "duration": duration,
+        "size": size,
+    }
+
+
+def video_warnings(filename, metadata):
+    warnings = []
+    width = metadata["width"]
+    height = metadata["height"]
+    if width < VIDEO_WARN_WIDTH or height < VIDEO_WARN_HEIGHT:
+        warnings.append(
+            {
+                "filename": filename,
+                "message": f"{filename} is {width}x{height}, below 1080p target {VIDEO_WARN_WIDTH}x{VIDEO_WARN_HEIGHT}",
+                "width": width,
+                "height": height,
+                "targetWidth": VIDEO_WARN_WIDTH,
+                "targetHeight": VIDEO_WARN_HEIGHT,
+            }
+        )
+    if width > VIDEO_WARN_WIDTH or height > VIDEO_WARN_HEIGHT:
+        warnings.append(
+            {
+                "filename": filename,
+                "message": f"{filename} is {width}x{height}, above 1080p target {VIDEO_WARN_WIDTH}x{VIDEO_WARN_HEIGHT}; consider exporting 1080p for smoother playback",
+                "width": width,
+                "height": height,
+                "targetWidth": VIDEO_WARN_WIDTH,
+                "targetHeight": VIDEO_WARN_HEIGHT,
+            }
+        )
+    if metadata["codec"] and metadata["codec"] != VIDEO_PREFERRED_CODEC:
+        warnings.append(
+            {
+                "filename": filename,
+                "message": f"{filename} uses {metadata['codec']} video; {VIDEO_PREFERRED_CODEC} MP4 is the preferred device profile",
+                "codec": metadata["codec"],
+                "targetCodec": VIDEO_PREFERRED_CODEC,
+            }
+        )
+    if metadata["duration"] > VIDEO_WARN_DURATION_SECONDS:
+        warnings.append(
+            {
+                "filename": filename,
+                "message": f"{filename} is {metadata['duration']:.0f}s long; shorter loops are easier on devices",
+                "durationSeconds": metadata["duration"],
+                "targetDurationSeconds": VIDEO_WARN_DURATION_SECONDS,
+            }
+        )
+    if metadata["size"] > VIDEO_WARN_SIZE_BYTES:
+        warnings.append(
+            {
+                "filename": filename,
+                "message": f"{filename} is {metadata['size'] // (1024 * 1024)} MB; large videos can slow sync and playback",
+                "sizeBytes": metadata["size"],
+                "targetSizeBytes": VIDEO_WARN_SIZE_BYTES,
+            }
+        )
+    return warnings
+
+
 def write_upload_media(upload, media_path):
     extension = Path(upload["filename"]).suffix.lower()
+    if extension in VIDEO_MEDIA_EXTENSIONS:
+        media_path.write_bytes(upload["content"])
+        try:
+            return video_warnings(upload["filename"], video_metadata(media_path))
+        except (subprocess.CalledProcessError, json.JSONDecodeError, RuntimeError, OSError) as exc:
+            media_path.unlink(missing_ok=True)
+            raise RuntimeError(f"ffprobe could not inspect {upload['filename']}: {exc}")
+
     if extension not in IMAGE_MEDIA_EXTENSIONS:
         media_path.write_bytes(upload["content"])
         return []

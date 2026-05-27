@@ -521,7 +521,11 @@
         return;
       }
       clearPendingUploads();
-      saveStatus.textContent = payload.state === "no_changes" ? "No changes" : `Pushed ${payload.commit}`;
+      const warnings = Array.isArray(payload.warnings) ? payload.warnings : [];
+      const warningText = warnings.length > 0
+        ? ` Warning: ${warnings[0].message}${warnings.length > 1 ? ` (+${warnings.length - 1} more)` : ""}`
+        : "";
+      saveStatus.textContent = `${payload.state === "no_changes" ? "No changes" : `Pushed ${payload.commit}`}${warningText}`;
       renderAll();
     } catch {
       saveStatus.textContent = "Save failed";

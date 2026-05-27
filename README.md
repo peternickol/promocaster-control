@@ -560,7 +560,9 @@ be referenced by the submitted deck JSON.
 
 Image uploads (`.jpg`, `.jpeg`, `.png`) are processed with ImageMagick before
 commit: auto-orient, resize to fit inside 1920x1080 without upscaling, strip
-metadata, and write with quality 85. Videos are not transformed.
+metadata, and write with quality 85. Videos are not transformed. If an uploaded
+image is smaller than 1920x1080, the save response includes a warning so the
+operator knows the source is below the 1080p target.
 
 Commits created by Control include the authenticated user:
 

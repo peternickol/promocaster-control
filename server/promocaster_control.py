@@ -28,6 +28,8 @@ ALLOWED_MEDIA_EXTENSIONS = {".jpg", ".jpeg", ".png", ".mp4"}
 IMAGE_MEDIA_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 IMAGE_MAX_GEOMETRY = os.environ.get("PROMOCASTER_CONTROL_IMAGE_MAX_GEOMETRY", "1920x1080")
 IMAGE_QUALITY = os.environ.get("PROMOCASTER_CONTROL_IMAGE_QUALITY", "85")
+IMAGE_WARN_MIN_WIDTH = int(os.environ.get("PROMOCASTER_CONTROL_IMAGE_WARN_MIN_WIDTH", "1920"))
+IMAGE_WARN_MIN_HEIGHT = int(os.environ.get("PROMOCASTER_CONTROL_IMAGE_WARN_MIN_HEIGHT", "1080"))
 
 
 def load_clients():
@@ -96,16 +98,37 @@ def imagemagick_command():
     return command
 
 
+def image_identify_command(command):
+    if Path(command).name == "magick":
+        return [command, "identify"]
+    identify = shutil.which("identify")
+    if identify:
+        return [identify]
+    raise RuntimeError("ImageMagick identify is required to inspect image uploads")
+
+
+def image_size(command, image_path):
+    proc = subprocess.run(
+        [*image_identify_command(command), "-format", "%w %h", str(image_path)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    width, height = proc.stdout.strip().split()
+    return int(width), int(height)
+
+
 def write_upload_media(upload, media_path):
     extension = Path(upload["filename"]).suffix.lower()
     if extension not in IMAGE_MEDIA_EXTENSIONS:
         media_path.write_bytes(upload["content"])
-        return
+        return []
 
     command = imagemagick_command()
     media_path.parent.mkdir(parents=True, exist_ok=True)
     input_path = None
     output_path = None
+    warnings = []
     try:
         with tempfile.NamedTemporaryFile(dir=media_path.parent, suffix=extension, delete=False) as input_file:
             input_file.write(upload["content"])
@@ -113,6 +136,19 @@ def write_upload_media(upload, media_path):
         with tempfile.NamedTemporaryFile(dir=media_path.parent, suffix=extension, delete=False) as output_file:
             output_path = Path(output_file.name)
         output_path.unlink(missing_ok=True)
+
+        width, height = image_size(command, input_path)
+        if width < IMAGE_WARN_MIN_WIDTH or height < IMAGE_WARN_MIN_HEIGHT:
+            warnings.append(
+                {
+                    "filename": upload["filename"],
+                    "message": f"{upload['filename']} is {width}x{height}, below 1080p target {IMAGE_WARN_MIN_WIDTH}x{IMAGE_WARN_MIN_HEIGHT}",
+                    "width": width,
+                    "height": height,
+                    "targetWidth": IMAGE_WARN_MIN_WIDTH,
+                    "targetHeight": IMAGE_WARN_MIN_HEIGHT,
+                }
+            )
 
         subprocess.run(
             [
@@ -132,6 +168,7 @@ def write_upload_media(upload, media_path):
         )
         output_path.replace(media_path)
         output_path = None
+        return warnings
     except subprocess.CalledProcessError as exc:
         detail = (exc.stderr or exc.stdout or "").strip()
         raise RuntimeError(f"ImageMagick could not process {upload['filename']}: {detail or exc.returncode}")
@@ -653,11 +690,12 @@ class ControlHandler(SimpleHTTPRequestHandler):
             run_git(repo_path, ["add", "_data/media.yml"])
 
             uploaded_files = []
+            warnings = []
             media_root = repo_path / "media"
             media_root.mkdir(parents=True, exist_ok=True)
             for upload in uploads:
                 media_path = media_root / upload["filename"]
-                write_upload_media(upload, media_path)
+                warnings.extend(write_upload_media(upload, media_path))
                 run_git(repo_path, ["add", "--", f"media/{upload['filename']}"])
                 uploaded_files.append(upload["filename"])
 
@@ -672,7 +710,7 @@ class ControlHandler(SimpleHTTPRequestHandler):
 
             status = git_status_short(repo_path)
             if not status:
-                self.write_json({"ok": True, "state": "no_changes", "message": "No changes to save"})
+                self.write_json({"ok": True, "state": "no_changes", "message": "No changes to save", "warnings": warnings})
                 return
 
             user = self.authenticated_user()
@@ -709,6 +747,7 @@ class ControlHandler(SimpleHTTPRequestHandler):
                     "editedBy": user,
                     "uploadedMedia": uploaded_files,
                     "deletedMedia": deleted_files,
+                    "warnings": warnings,
                 }
             )
         except json.JSONDecodeError:

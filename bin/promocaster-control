@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -53,6 +54,14 @@ REPO_SIZE_WARN_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_REPO_SIZE_WARN_GB
 REPOS_TOTAL_WARN_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_REPOS_TOTAL_WARN_GB", "25")) * GIB
 UPLOADS_WARN_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_UPLOADS_WARN_GB", "2")) * GIB
 BUILD_WARN_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_BUILD_WARN_GB", "5")) * GIB
+
+ROOT_EXAMPLES = """examples:
+  promocaster-control doctor
+  promocaster-control client-repo list
+  promocaster-control client add acme git@github.com:example/acme.promocaster.git --name "ACME"
+  promocaster-control client-repo sync phgi
+  promocaster-control client-github-key show-public
+"""
 
 
 class CommandError(RuntimeError):
@@ -396,23 +405,32 @@ def load_env(path: Path) -> dict[str, str]:
     return values
 
 
-def load_clients() -> dict[str, dict[str, str]]:
+def client_file_candidates() -> list[Path]:
     candidates = []
+    if "PROMOCASTER_CONTROL_CLIENTS_FILE" in os.environ:
+        candidates.append(Path(os.environ["PROMOCASTER_CONTROL_CLIENTS_FILE"]))
     env = load_env(CONFIG_PATH)
     if "PROMOCASTER_CONTROL_CLIENTS_FILE" in env:
         candidates.append(Path(env["PROMOCASTER_CONTROL_CLIENTS_FILE"]))
     candidates.extend([APP_DIR / "client.yml", SOURCE_ROOT / "client.yml", Path.cwd() / "client.yml"])
-    clients_file = None
+    return candidates
+
+
+def clients_file_path(*, create: bool = False) -> Path:
+    candidates = client_file_candidates()
     for candidate in candidates:
         try:
             if candidate.exists():
-                clients_file = candidate
-                break
+                return candidate
         except OSError:
             continue
-    if clients_file is None:
-        raise CommandError("could not find client.yml")
+    if create:
+        return candidates[0] if candidates else Path.cwd() / "client.yml"
+    raise CommandError("could not find client.yml")
 
+
+def load_clients() -> dict[str, dict[str, str]]:
+    clients_file = clients_file_path()
     clients: dict[str, dict[str, str]] = {}
     current_id = ""
     in_clients = False
@@ -432,6 +450,42 @@ def load_clients() -> dict[str, dict[str, str]]:
             key, value = raw_line.strip().split(":", 1)
             clients[current_id][key] = value.strip().strip('"').strip("'")
     return clients
+
+
+def yaml_scalar(value: str) -> str:
+    return json.dumps(value)
+
+
+def append_client_config(client_id: str, name: str, repo: str, branch: str) -> Path:
+    if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", client_id):
+        raise CommandError("client id must start with a lowercase letter or number and contain only lowercase letters, numbers, hyphens, or underscores")
+    if not repo.strip():
+        raise CommandError("repo is required")
+    if not branch.strip():
+        raise CommandError("branch is required")
+
+    clients_file = clients_file_path(create=True)
+    if clients_file.exists() and client_id in load_clients():
+        raise CommandError(f"client already exists in {clients_file}: {client_id}")
+
+    clients_file.parent.mkdir(parents=True, exist_ok=True)
+    text = clients_file.read_text(encoding="utf-8") if clients_file.exists() else ""
+    if text.strip():
+        if not text.endswith("\n"):
+            text += "\n"
+        if not any(line.strip() == "clients:" for line in text.splitlines()):
+            raise CommandError(f"{clients_file} does not contain a clients: section")
+    else:
+        text = "clients:\n"
+
+    text += (
+        f"  {client_id}:\n"
+        f"    name: {yaml_scalar(name)}\n"
+        f"    repo: {yaml_scalar(repo)}\n"
+        f"    branch: {yaml_scalar(branch)}\n"
+    )
+    clients_file.write_text(text, encoding="utf-8")
+    return clients_file
 
 
 def client_config(client_id: str) -> dict[str, str]:
@@ -558,6 +612,9 @@ def print_checks(checks: list[Check]) -> int:
 
 
 def command_client_repo(args: argparse.Namespace) -> int:
+    if args.client_command == "add":
+        return command_client(args)
+
     if args.client_command == "list":
         print()
         print("Configured Clients")
@@ -663,30 +720,151 @@ def command_client_repo(args: argparse.Namespace) -> int:
     raise CommandError("unknown client-repo command")
 
 
+def command_client(args: argparse.Namespace) -> int:
+    if args.client_command == "add":
+        name = args.name or args.client
+        clients_file = append_client_config(args.client, name, args.repo, args.branch)
+        print_ok(f"Added client {args.client} to {clients_file}")
+        print(f"     name: {name}")
+        print(f"     repo: {args.repo}")
+        print(f"     branch: {args.branch}")
+        print(f"hint: run promocaster-control client-repo sync {args.client}")
+        return 0
+
+    raise CommandError("unknown client command")
+
+
+def print_missing_command_help(parser: argparse.ArgumentParser, argv: list[str], message: str, hints: list[str]) -> bool:
+    if argv:
+        return False
+    parser.print_help(sys.stderr)
+    print(file=sys.stderr)
+    print_error(message)
+    for hint in hints:
+        print(f"hint: {hint}", file=sys.stderr)
+    return True
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="promocaster-control")
+    argv = sys.argv[1:] if argv is None else argv
+    parser = argparse.ArgumentParser(
+        prog="promocaster-control",
+        description="Manage Promocaster Control runtime checks, client GitHub keys, and client repos.",
+        epilog=ROOT_EXAMPLES,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("doctor", help="Check config, storage, client GitHub key, and client repo health")
-    client_key = sub.add_parser("client-github-key", help="Manage Promocaster Control's client repo GitHub key")
+    client = sub.add_parser(
+        "client",
+        help="Manage clients in client.yml",
+        description="Add clients to the Promocaster Control client.yml registry.",
+        epilog="""examples:
+  promocaster-control client add acme git@github.com:example/acme.promocaster.git --name "ACME"
+  promocaster-control client-repo sync acme
+""",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    client_sub = client.add_subparsers(dest="client_command", required=True)
+    client_add = client_sub.add_parser("add", help="Add a client to client.yml")
+    client_add.add_argument("client", help="Client id to add to client.yml")
+    client_add.add_argument("repo", help="Git URL for the client content repo")
+    client_add.add_argument("--name", help="Display name for the client; defaults to the client id")
+    client_add.add_argument("--branch", default="master", help="Repo branch to track; defaults to master")
+    client_key = sub.add_parser(
+        "client-github-key",
+        help="Manage Promocaster Control's client repo GitHub key",
+        description="Manage the SSH key Promocaster Control uses for client content repos.",
+        epilog="""examples:
+  promocaster-control client-github-key generate
+  promocaster-control client-github-key show-public
+  promocaster-control client-github-key test
+""",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     client_key_sub = client_key.add_subparsers(dest="key_command", required=True)
     client_key_generate = client_key_sub.add_parser("generate", help="Generate a new client repo GitHub key")
     client_key_generate.add_argument("--force", action="store_true", help="Replace an existing client GitHub key")
     client_key_sub.add_parser("edit", help="Open the client repo private key in nano or $EDITOR")
     client_key_sub.add_parser("show-public", help="Print the public key derived from the client repo private key")
     client_key_sub.add_parser("test", help="Test client repo SSH authentication to git@github.com")
-    client_repo = sub.add_parser("client-repo", help="Sync and inspect configured client repos")
+    client_repo = sub.add_parser(
+        "client-repo",
+        help="Sync and inspect configured client repos",
+        description="List, sync, and inspect the client content repos configured in client.yml.",
+        epilog="""examples:
+  promocaster-control client-repo list
+  promocaster-control client-repo add acme git@github.com:example/acme.promocaster.git --name "ACME"
+  promocaster-control client-repo status phgi
+  promocaster-control client-repo sync phgi
+""",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     client_sub = client_repo.add_subparsers(dest="client_command", required=True)
     client_sub.add_parser("list", help="List clients from client.yml")
+    client_repo_add = client_sub.add_parser("add", help="Add a client to client.yml")
+    client_repo_add.add_argument("client", help="Client id to add to client.yml")
+    client_repo_add.add_argument("repo", help="Git URL for the client content repo")
+    client_repo_add.add_argument("--name", help="Display name for the client; defaults to the client id")
+    client_repo_add.add_argument("--branch", default="master", help="Repo branch to track; defaults to master")
     client_sync = client_sub.add_parser("sync", help="Clone or fetch a configured client repo")
     client_sync.add_argument("client", help="Client id from client.yml")
     client_status = client_sub.add_parser("status", help="Show local vs remote sync status for a client repo")
     client_status.add_argument("client", help="Client id from client.yml")
     client_status.add_argument("--no-fetch", action="store_true", help="Do not fetch origin before comparing local and remote")
+
+    if print_missing_command_help(
+        parser,
+        argv,
+        "No command provided.",
+        [
+            "start with `promocaster-control doctor` to check the install.",
+            "use `promocaster-control client-repo list` to see configured clients.",
+            "use `promocaster-control client add <id> <repo>` to add a new client.",
+        ],
+    ):
+        return 2
+    if argv == ["client"]:
+        print_missing_command_help(
+            client,
+            [],
+            "No client command provided.",
+            [
+                "use `promocaster-control client add <id> <repo>` to add a new client.",
+                "use `promocaster-control client-repo list` to see configured clients.",
+            ],
+        )
+        return 2
+    if argv == ["client-github-key"]:
+        print_missing_command_help(
+            client_key,
+            [],
+            "No client-github-key command provided.",
+            [
+                "use `promocaster-control client-github-key show-public` to print the deploy key.",
+                "use `promocaster-control client-github-key test` to check GitHub SSH access.",
+            ],
+        )
+        return 2
+    if argv == ["client-repo"]:
+        print_missing_command_help(
+            client_repo,
+            [],
+            "No client-repo command provided.",
+            [
+                "use `promocaster-control client-repo list` to see configured clients.",
+                "use `promocaster-control client-repo add <id> <repo>` to add a new client.",
+                "use `promocaster-control client-repo status phgi` to inspect a client checkout.",
+            ],
+        )
+        return 2
     args = parser.parse_args(argv)
 
     try:
         if args.command == "doctor":
             return print_checks(collect_checks())
+        if args.command == "client":
+            return command_client(args)
         if args.command == "client-github-key":
             return command_client_github_key(args)
         if args.command == "client-repo":

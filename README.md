@@ -368,11 +368,15 @@ loading decks.
 Operators can sync configured client repos from the command line:
 
 ```sh
+promocaster-control client add acme git@github.com:example/acme.promocaster.git --name "ACME"
 promocaster-control client-repo list
 promocaster-control client-repo sync phgi
 promocaster-control client-repo status phgi
 ```
 
+`client add <client> <repo>` appends a new client entry to `client.yml`. The
+client id must be lowercase and URL-safe. Use `--name` for the display name and
+`--branch` when the repo does not use `master`.
 `client-repo sync <client>` reads `client.yml`, uses the client GitHub key,
 clones or fetches into a directory named after the Git repo, writes progress
 state to `/var/lib/platter/project/sync/<client>.json`, and leaves the

@@ -1,5 +1,7 @@
 name: Promocaster Control
 branch: master
+host:
+  shortname: control
 requires:
   packages:
   commands:

@@ -284,11 +284,14 @@ packages declared in this repo's `platter.yml`, restarts the declared services,
 and then runs any project-specific commands listed under `refresh.commands`.
 
 This repo's `platter.yml` presents the generated service, rendered environment,
-operator command link, and simple Caddy reverse-proxy route as data. Platter installs those
-generically; it does not carry Promocaster-specific server logic.
+operator command link, simple Caddy reverse-proxy route, and blank firewall
+allow list as data. Platter installs those generically; it does not carry
+Promocaster-specific server logic.
 Promocaster authentication and client/location authorization stay in the
 Promocaster app. Temporary Caddy access gates, if needed, should be represented
 as generic `components.caddy.directives` in `platter.yml`.
+Promocaster Control does not expose extra ports; app traffic stays on
+`127.0.0.1:8080` behind Caddy, so `components.firewall.allow` remains blank.
 
 Promocaster Control declares `promocaster-control.service` under
 `components.service` and leaves `refresh.commands` blank. Its app deployment

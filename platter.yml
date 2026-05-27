@@ -32,6 +32,8 @@ components:
     site: control.promocaster.io
     reverse_proxy: 127.0.0.1:8080
     directives:
+  firewall:
+    allow:
 database:
   engine:
   schema:

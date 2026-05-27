@@ -1,36 +1,51 @@
 #!/usr/bin/env python3
 import argparse
-import getpass
 import json
 import os
 import shutil
-import socket
 import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 
-APP_ROOT = Path(os.environ.get("PROMOCASTER_CONTROL_APP_ROOT", "/opt/promocaster-control"))
-APP_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_APP_DIR", APP_ROOT / "app"))
-SOURCE_ROOT = Path("/root/promocaster-control")
-CONFIG_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_CONFIG_DIR", "/etc/promocaster-control"))
-CONFIG_PATH = Path(os.environ.get("PROMOCASTER_CONTROL_CONFIG_PATH", CONFIG_DIR / "config.env"))
-BASIC_AUTH_CONFIG = Path(os.environ.get("PROMOCASTER_CONTROL_BASIC_AUTH_CONFIG", CONFIG_DIR / "basic-auth.caddy"))
+def read_env_file(path: Path) -> dict[str, str]:
+    values: dict[str, str] = {}
+    if not path.exists():
+        return values
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key.strip()] = value.strip().strip('"').strip("'")
+    return values
+
+
+PLATTER_CONFIG_PATH = Path("/etc/platter/project/promocaster-control.env")
+DEFAULT_CONFIG_PATH = PLATTER_CONFIG_PATH
+CONFIG_PATH = Path(os.environ.get("PROMOCASTER_CONTROL_CONFIG_PATH", DEFAULT_CONFIG_PATH))
+CONFIG_ENV = read_env_file(CONFIG_PATH)
+
+
+def setting(name: str, default: str | Path) -> str:
+    return os.environ.get(name) or CONFIG_ENV.get(name) or str(default)
+
+
+APP_DIR = Path(setting("PROMOCASTER_CONTROL_APP_DIR", "/srv/platter/project/current"))
+SOURCE_ROOT = Path(setting("PROMOCASTER_CONTROL_SOURCE_ROOT", "/root/repo/promocaster-control"))
+CONFIG_DIR = Path(setting("PROMOCASTER_CONTROL_CONFIG_DIR", CONFIG_PATH.parent))
 SOURCE_ROOT_FILE = Path(os.environ.get("PROMOCASTER_CONTROL_SOURCE_ROOT_FILE", CONFIG_DIR / "source-root"))
-DATA_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_DATA_DIR", "/var/lib/promocaster-control"))
-SSH_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_SSH_DIR", DATA_DIR / "ssh"))
-GITHUB_KEY = Path(os.environ.get("PROMOCASTER_CONTROL_GITHUB_KEY", SSH_DIR / "github_writer_key"))
-REPOS_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_REPOS_DIR", DATA_DIR / "repos"))
-UPLOADS_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_UPLOADS_DIR", DATA_DIR / "uploads"))
-SYNC_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_SYNC_DIR", DATA_DIR / "sync"))
-CONTROL_GIT_CONFIG = Path(os.environ.get("PROMOCASTER_CONTROL_GIT_CONFIG", DATA_DIR / "gitconfig"))
-BUILD_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_BUILD_DIR", "/tmp/promocaster-control-builds"))
-SERVICE_NAME = os.environ.get("PROMOCASTER_CONTROL_SERVICE_NAME", "promocaster-control.service")
-SERVICE_USER = os.environ.get("PROMOCASTER_CONTROL_SERVICE_USER", "promocaster-control")
-CADDY_CONFIG = Path(os.environ.get("PROMOCASTER_CONTROL_CADDY_CONFIG", "/etc/caddy/promocaster-control.conf"))
-GLOBAL_BIN = Path(os.environ.get("PROMOCASTER_CONTROL_GLOBAL_BIN", "/usr/local/bin/promocaster-control"))
-SITE = os.environ.get("PROMOCASTER_CONTROL_SITE", "control.promocaster.io")
+DATA_DIR = Path(setting("PROMOCASTER_CONTROL_DATA_DIR", "/var/lib/platter/project"))
+SSH_DIR = Path(setting("PROMOCASTER_CONTROL_SSH_DIR", DATA_DIR / "ssh"))
+CLIENT_GITHUB_KEY = Path(setting("PROMOCASTER_CONTROL_CLIENT_GITHUB_KEY", SSH_DIR / "client_github_key"))
+REPOS_DIR = Path(setting("PROMOCASTER_CONTROL_REPOS_DIR", DATA_DIR / "client"))
+UPLOADS_DIR = Path(setting("PROMOCASTER_CONTROL_UPLOADS_DIR", DATA_DIR / "uploads"))
+SYNC_DIR = Path(setting("PROMOCASTER_CONTROL_SYNC_DIR", DATA_DIR / "sync"))
+CONTROL_GIT_CONFIG = Path(setting("PROMOCASTER_CONTROL_GIT_CONFIG", DATA_DIR / "gitconfig"))
+BUILD_DIR = Path(setting("PROMOCASTER_CONTROL_BUILD_DIR", "/tmp/promocaster-control-builds"))
+SERVICE_USER = setting("PROMOCASTER_CONTROL_SERVICE_USER", "platter-project")
+GLOBAL_BIN = Path(setting("PROMOCASTER_CONTROL_GLOBAL_BIN", "/usr/local/bin/promocaster-control"))
 GIB = 1024**3
 DATA_FREE_WARN_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_DATA_FREE_WARN_GB", "20")) * GIB
 DATA_FREE_FAIL_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_DATA_FREE_FAIL_GB", "8")) * GIB
@@ -108,7 +123,7 @@ def is_root() -> bool:
 
 def is_git_checkout(path: Path) -> bool:
     try:
-        return (path / ".git").exists() and (path / "install-debian.sh").exists()
+        return (path / ".git").exists() and (path / "platter.yml").exists()
     except OSError:
         return False
 
@@ -137,7 +152,7 @@ def git_env() -> dict[str, str]:
     return {
         **os.environ,
         "GIT_CONFIG_GLOBAL": str(CONTROL_GIT_CONFIG),
-        "GIT_SSH_COMMAND": f"ssh -i {GITHUB_KEY} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new",
+        "GIT_SSH_COMMAND": f"ssh -i {CLIENT_GITHUB_KEY} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new",
     }
 
 
@@ -154,15 +169,15 @@ def secure_data_paths() -> None:
         path.mkdir(parents=True, exist_ok=True)
         try:
             shutil.chown(path, user=SERVICE_USER, group=SERVICE_USER)
-        except LookupError:
+        except (LookupError, PermissionError):
             pass
         path.chmod(mode)
-    secure_github_key_files()
+    secure_client_github_key_files()
     CONTROL_GIT_CONFIG.parent.mkdir(parents=True, exist_ok=True)
     CONTROL_GIT_CONFIG.touch(mode=0o640, exist_ok=True)
     try:
         shutil.chown(CONTROL_GIT_CONFIG, user=SERVICE_USER, group=SERVICE_USER)
-    except LookupError:
+    except (LookupError, PermissionError):
         pass
     CONTROL_GIT_CONFIG.chmod(0o640)
 
@@ -170,7 +185,7 @@ def secure_data_paths() -> None:
 def chown_tree(path: Path, user: str = SERVICE_USER, group: str = SERVICE_USER) -> None:
     try:
         shutil.chown(path, user=user, group=group)
-    except LookupError:
+    except (LookupError, PermissionError):
         return
     for root, dirs, files in os.walk(path, onerror=lambda _exc: None):
         for name in dirs:
@@ -200,15 +215,10 @@ def ensure_git_safe_directory(repo_path: Path) -> bool:
     run_git(["git", "config", "--global", "--add", "safe.directory", safe_path])
     try:
         shutil.chown(CONTROL_GIT_CONFIG, user=SERVICE_USER, group=SERVICE_USER)
-    except LookupError:
+    except (LookupError, PermissionError):
         pass
     CONTROL_GIT_CONFIG.chmod(0o640)
     return True
-
-
-def systemctl_state(name: str, verb: str) -> bool:
-    proc = subprocess.run(["systemctl", verb, "--quiet", name], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    return proc.returncode == 0
 
 
 def command_exists(name: str) -> bool:
@@ -219,15 +229,6 @@ def path_mode(path: Path) -> str:
     try:
         return oct(path.stat().st_mode & 0o777)
     except OSError:
-        return "missing"
-
-
-def path_group(path: Path) -> str:
-    try:
-        import grp
-
-        return grp.getgrgid(path.stat().st_gid).gr_name
-    except (OSError, KeyError):
         return "missing"
 
 
@@ -255,59 +256,40 @@ def directory_size(path: Path) -> int:
     return total
 
 
-def github_key_public_text() -> tuple[bool, str]:
-    if not GITHUB_KEY.exists():
+def client_github_key_public_text() -> tuple[bool, str]:
+    if not CLIENT_GITHUB_KEY.exists():
         return False, "missing"
     if not command_exists("ssh-keygen"):
         return False, "ssh-keygen missing"
-    proc = subprocess.run(["ssh-keygen", "-y", "-f", str(GITHUB_KEY)], check=False, capture_output=True, text=True)
+    proc = subprocess.run(["ssh-keygen", "-y", "-f", str(CLIENT_GITHUB_KEY)], check=False, capture_output=True, text=True)
     detail = (proc.stderr or proc.stdout).strip()
     return proc.returncode == 0, detail
 
 
-def secure_github_key_files() -> None:
+def secure_client_github_key_files() -> None:
     SSH_DIR.mkdir(parents=True, exist_ok=True)
     try:
         shutil.chown(SSH_DIR, user=SERVICE_USER, group=SERVICE_USER)
-    except LookupError:
+    except (LookupError, PermissionError):
         pass
     SSH_DIR.chmod(0o700)
-    if GITHUB_KEY.exists():
+    if CLIENT_GITHUB_KEY.exists():
         try:
-            shutil.chown(GITHUB_KEY, user=SERVICE_USER, group=SERVICE_USER)
-        except LookupError:
+            shutil.chown(CLIENT_GITHUB_KEY, user=SERVICE_USER, group=SERVICE_USER)
+        except (LookupError, PermissionError):
             pass
-        GITHUB_KEY.chmod(0o600)
-    public_key = GITHUB_KEY.with_suffix(GITHUB_KEY.suffix + ".pub")
+        CLIENT_GITHUB_KEY.chmod(0o600)
+    public_key = CLIENT_GITHUB_KEY.with_suffix(CLIENT_GITHUB_KEY.suffix + ".pub")
     if public_key.exists():
         try:
             shutil.chown(public_key, user=SERVICE_USER, group=SERVICE_USER)
-        except LookupError:
+        except (LookupError, PermissionError):
             pass
         public_key.chmod(0o644)
 
 
-def generate_github_key(*, force: bool = False) -> None:
-    if not is_root():
-        raise CommandError("github-key generate must run as root")
-    if not command_exists("ssh-keygen"):
-        raise CommandError("ssh-keygen command missing; install openssh-client")
-    if GITHUB_KEY.exists() and not force:
-        raise CommandError(f"{GITHUB_KEY} already exists; use github-key generate --force to replace it")
-    SSH_DIR.mkdir(parents=True, exist_ok=True)
-    if force:
-        for path in (GITHUB_KEY, GITHUB_KEY.with_suffix(GITHUB_KEY.suffix + ".pub")):
-            try:
-                path.unlink()
-            except FileNotFoundError:
-                pass
-    comment = f"promocaster-control@{SITE}"
-    run(["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-C", comment, "-f", str(GITHUB_KEY)])
-    secure_github_key_files()
-
-
-def github_ssh_auth_detail() -> tuple[str, str]:
-    if not GITHUB_KEY.exists():
+def client_github_ssh_auth_detail() -> tuple[str, str]:
+    if not CLIENT_GITHUB_KEY.exists():
         return "fail", "missing key"
     if not command_exists("ssh"):
         return "fail", "ssh command missing"
@@ -315,7 +297,7 @@ def github_ssh_auth_detail() -> tuple[str, str]:
         [
             "ssh",
             "-i",
-            str(GITHUB_KEY),
+            str(CLIENT_GITHUB_KEY),
             "-o",
             "IdentitiesOnly=yes",
             "-o",
@@ -339,53 +321,66 @@ def github_ssh_auth_detail() -> tuple[str, str]:
     return "warn", detail
 
 
-def local_domain_ips(domain: str) -> list[str]:
-    try:
-        results = socket.getaddrinfo(domain, None)
-    except OSError:
-        return []
-    ips = sorted({result[4][0] for result in results})
-    return ips
+def generate_client_github_key(*, force: bool = False) -> None:
+    if not command_exists("ssh-keygen"):
+        raise CommandError("ssh-keygen is required to generate the client GitHub key")
+    if CLIENT_GITHUB_KEY.exists() and not force:
+        raise CommandError(f"{CLIENT_GITHUB_KEY} already exists; use client-github-key generate --force to replace it")
+    SSH_DIR.mkdir(parents=True, exist_ok=True)
+    if force:
+        CLIENT_GITHUB_KEY.unlink(missing_ok=True)
+        CLIENT_GITHUB_KEY.with_suffix(CLIENT_GITHUB_KEY.suffix + ".pub").unlink(missing_ok=True)
+    run([
+        "ssh-keygen",
+        "-t",
+        "ed25519",
+        "-N",
+        "",
+        "-C",
+        "promocaster-control-client",
+        "-f",
+        str(CLIENT_GITHUB_KEY),
+    ])
+    secure_client_github_key_files()
 
 
-def public_domain_ips(domain: str) -> list[str]:
-    if command_exists("dig"):
-        ips: set[str] = set()
-        for record_type in ("A", "AAAA"):
-            proc = subprocess.run(["dig", "+short", record_type, domain, "@1.1.1.1"], check=False, capture_output=True, text=True)
-            if proc.returncode == 0:
-                for line in proc.stdout.splitlines():
-                    value = line.strip()
-                    if value and not value.endswith("."):
-                        ips.add(value)
-        if ips:
-            return sorted(ips)
-    return local_domain_ips(domain)
+def command_client_github_key(args: argparse.Namespace) -> int:
+    if args.key_command == "generate":
+        generate_client_github_key(force=args.force)
+        ok, public_key = client_github_key_public_text()
+        if not ok:
+            raise CommandError(public_key)
+        print_ok(f"Generated client GitHub key at {CLIENT_GITHUB_KEY}")
+        print(public_key)
+        return 0
 
+    if args.key_command == "edit":
+        SSH_DIR.mkdir(parents=True, exist_ok=True)
+        CLIENT_GITHUB_KEY.touch(mode=0o600, exist_ok=True)
+        secure_client_github_key_files()
+        editor = os.environ.get("EDITOR", "nano")
+        return subprocess.run([editor, str(CLIENT_GITHUB_KEY)], check=False).returncode
 
-def public_ipv4() -> str:
-    if not command_exists("curl"):
-        return ""
-    proc = subprocess.run(["curl", "-4fsS", "--max-time", "5", "https://api.ipify.org"], check=False, capture_output=True, text=True)
-    return proc.stdout.strip() if proc.returncode == 0 else ""
+    if args.key_command == "show-public":
+        secure_client_github_key_files()
+        ok, public_key = client_github_key_public_text()
+        if not ok:
+            raise CommandError(public_key)
+        print(public_key)
+        return 0
 
+    if args.key_command == "test":
+        secure_client_github_key_files()
+        status, detail = client_github_ssh_auth_detail()
+        if status == "ok":
+            print_ok(detail)
+            return 0
+        if status == "warn":
+            print_warn(detail)
+            return 0
+        raise CommandError(detail)
 
-def port_listening(port: int) -> bool:
-    if not command_exists("ss"):
-        return False
-    proc = subprocess.run(["ss", "-ltn"], check=False, capture_output=True, text=True)
-    if proc.returncode != 0:
-        return False
-    suffix = f":{port}"
-    return any(line.split()[3].endswith(suffix) for line in proc.stdout.splitlines() if len(line.split()) >= 4)
-
-
-def caddy_validate_detail() -> tuple[bool, str]:
-    if not command_exists("caddy"):
-        return False, "caddy command missing"
-    proc = subprocess.run(["caddy", "validate", "--config", "/etc/caddy/Caddyfile"], check=False, capture_output=True, text=True)
-    detail = (proc.stderr or proc.stdout).strip()
-    return proc.returncode == 0, detail or "valid"
+    raise CommandError("unknown client-github-key command")
 
 
 def load_env(path: Path) -> dict[str, str]:
@@ -406,7 +401,7 @@ def load_clients() -> dict[str, dict[str, str]]:
     env = load_env(CONFIG_PATH)
     if "PROMOCASTER_CONTROL_CLIENTS_FILE" in env:
         candidates.append(Path(env["PROMOCASTER_CONTROL_CLIENTS_FILE"]))
-    candidates.extend([APP_DIR / "clients.yml", SOURCE_ROOT / "clients.yml", Path.cwd() / "clients.yml"])
+    candidates.extend([APP_DIR / "client.yml", SOURCE_ROOT / "client.yml", Path.cwd() / "client.yml"])
     clients_file = None
     for candidate in candidates:
         try:
@@ -416,7 +411,7 @@ def load_clients() -> dict[str, dict[str, str]]:
         except OSError:
             continue
     if clients_file is None:
-        raise CommandError("could not find clients.yml")
+        raise CommandError("could not find client.yml")
 
     clients: dict[str, dict[str, str]] = {}
     current_id = ""
@@ -445,7 +440,7 @@ def client_config(client_id: str) -> dict[str, str]:
         raise CommandError(f"unknown client: {client_id}")
     config = clients[client_id]
     if not config.get("repo"):
-        raise CommandError(f"client {client_id} is missing repo in clients.yml")
+        raise CommandError(f"client {client_id} is missing repo in client.yml")
     config.setdefault("branch", "master")
     return config
 
@@ -480,100 +475,18 @@ def write_sync_status(client_id: str, state: str, message: str, **extra) -> None
     sync_status_path(client_id).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-def copy_app(source_root: Path) -> None:
-    if APP_DIR.exists():
-        shutil.rmtree(APP_DIR)
-    ignore = shutil.ignore_patterns(".git", ".jekyll-cache", "_site", "__pycache__", "*.pyc")
-    shutil.copytree(source_root, APP_DIR, ignore=ignore)
-
-
-def sync_global_command() -> None:
-    target = APP_DIR / "bin/promocaster-control"
-    GLOBAL_BIN.parent.mkdir(parents=True, exist_ok=True)
-    if GLOBAL_BIN.exists() or GLOBAL_BIN.is_symlink():
-        GLOBAL_BIN.unlink()
-    GLOBAL_BIN.symlink_to(target)
-
-
-def sync_systemd_and_caddy() -> list[str]:
-    actions = []
-    unit_source = APP_DIR / "packaging/promocaster-control.service"
-    caddy_source = APP_DIR / "packaging/promocaster-control.Caddyfile"
-    env = load_env(CONFIG_PATH)
-    service_user = SERVICE_USER
-    bind = env.get("PROMOCASTER_CONTROL_BIND", os.environ.get("PROMOCASTER_CONTROL_BIND", "127.0.0.1"))
-    port = env.get("PROMOCASTER_CONTROL_PORT", os.environ.get("PROMOCASTER_CONTROL_PORT", "8080"))
-    site = SITE
-
-    unit_text = unit_source.read_text(encoding="utf-8")
-    unit_text = unit_text.replace("__APP_DIR__", str(APP_DIR))
-    unit_text = unit_text.replace("__CONFIG_PATH__", str(CONFIG_PATH))
-    unit_text = unit_text.replace("__SERVICE_USER__", service_user)
-    Path("/etc/systemd/system").mkdir(parents=True, exist_ok=True)
-    Path(f"/etc/systemd/system/{SERVICE_NAME}").write_text(unit_text, encoding="utf-8")
-    actions.append(f"refreshed systemd unit {SERVICE_NAME}")
-
-    Path("/etc/caddy").mkdir(parents=True, exist_ok=True)
-    caddy_text = caddy_source.read_text(encoding="utf-8")
-    caddy_text = caddy_text.replace("__SITE__", site)
-    caddy_text = caddy_text.replace("__UPSTREAM__", f"{bind}:{port}")
-    caddy_text = caddy_text.replace("__BASIC_AUTH_CONFIG__", str(BASIC_AUTH_CONFIG))
-    CADDY_CONFIG.write_text(caddy_text, encoding="utf-8")
-    Path("/etc/caddy/Caddyfile").write_text("{\n    admin localhost:2019\n}\n\nimport /etc/caddy/*.conf\n", encoding="utf-8")
-    run(["caddy", "validate", "--config", "/etc/caddy/Caddyfile"])
-    actions.append(f"refreshed Caddy config {CADDY_CONFIG}")
-    return actions
-
-
-def repair(source_root: Path | None = None, *, daemon_reload: bool = True) -> list[str]:
-    if not is_root():
-        raise CommandError("repair must run as root")
-    source_root = source_root or resolve_source_root()
-    if source_root is None:
-        raise CommandError(f"no source checkout found at {SOURCE_ROOT}")
-    if source_root != SOURCE_ROOT:
-        raise CommandError(f"source checkout must be {SOURCE_ROOT}, got {source_root}")
-    if not is_git_checkout(source_root):
-        raise CommandError(f"not a Promocaster Control checkout: {source_root}")
-
-    APP_ROOT.mkdir(parents=True, exist_ok=True)
-    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    secure_data_paths()
-    safe_actions = []
-    for repo_path in sorted(path for path in REPOS_DIR.iterdir() if path.is_dir() and (path / ".git").exists()):
-        chown_tree(repo_path)
-        if ensure_git_safe_directory(repo_path):
-            safe_actions.append(f"marked git safe.directory {repo_path}")
-
-    copy_app(source_root)
-    SOURCE_ROOT_FILE.write_text(f"{source_root}\n", encoding="utf-8")
-    sync_global_command()
-    actions = [f"copied app from {source_root} to {APP_DIR}", f"refreshed source-root file {SOURCE_ROOT_FILE}", f"refreshed command symlink {GLOBAL_BIN}"]
-    actions.extend(safe_actions)
-    actions.extend(sync_systemd_and_caddy())
-    if daemon_reload:
-        run(["systemctl", "daemon-reload"])
-        actions.append("reloaded systemd manager configuration")
-    run(["systemctl", "enable", "--now", SERVICE_NAME])
-    run(["systemctl", "enable", "--now", "caddy.service"])
-    run(["systemctl", "reload", "caddy.service"])
-    run(["systemctl", "restart", SERVICE_NAME])
-    actions.extend([f"enabled and restarted {SERVICE_NAME}", "enabled and reloaded caddy.service"])
-    return actions
-
-
 def collect_checks() -> list[Check]:
     checks: list[Check] = []
     env = load_env(CONFIG_PATH)
     web_root = Path(env.get("PROMOCASTER_CONTROL_WEB_ROOT", APP_DIR / "web"))
-    clients_file = Path(env.get("PROMOCASTER_CONTROL_CLIENTS_FILE", APP_DIR / "clients.yml"))
+    clients_file = Path(env.get("PROMOCASTER_CONTROL_CLIENTS_FILE", APP_DIR / "client.yml"))
 
-    checks.append(Check("Runtime", "config file", "ok" if CONFIG_PATH.exists() else "fail", str(CONFIG_PATH), None if CONFIG_PATH.exists() else "rerun install-debian.sh or promocaster-control repair"))
-    checks.append(Check("Runtime", "app dir", "ok" if APP_DIR.exists() else "fail", str(APP_DIR), None if APP_DIR.exists() else "run promocaster-control repair"))
-    checks.append(Check("Runtime", "web root", "ok" if web_root.exists() else "fail", str(web_root), None if web_root.exists() else "run promocaster-control repair"))
-    checks.append(Check("Runtime", "clients file", "ok" if clients_file.exists() else "fail", str(clients_file), None if clients_file.exists() else "restore clients.yml then repair"))
+    checks.append(Check("Runtime", "config file", "ok" if CONFIG_PATH.exists() else "fail", str(CONFIG_PATH), None if CONFIG_PATH.exists() else "install Platter and run platter build promocaster-control"))
+    checks.append(Check("Runtime", "app dir", "ok" if APP_DIR.exists() else "fail", str(APP_DIR), None if APP_DIR.exists() else "run platter build promocaster-control"))
+    checks.append(Check("Runtime", "web root", "ok" if web_root.exists() else "fail", str(web_root), None if web_root.exists() else "run platter build promocaster-control"))
+    checks.append(Check("Runtime", "client file", "ok" if clients_file.exists() else "fail", str(clients_file), None if clients_file.exists() else "restore client.yml and run platter build promocaster-control"))
     for child, path in (("repos", REPOS_DIR), ("uploads", UPLOADS_DIR), ("ssh", SSH_DIR), ("sync", SYNC_DIR)):
-        checks.append(Check("Runtime", f"data/{child}", "ok" if path.exists() else "fail", str(path), None if path.exists() else "run promocaster-control repair"))
+        checks.append(Check("Runtime", f"data/{child}", "ok" if path.exists() else "fail", str(path), None if path.exists() else "run platter build promocaster-control"))
 
     usage_root = DATA_DIR if DATA_DIR.exists() else DATA_DIR.parent
     try:
@@ -598,74 +511,22 @@ def collect_checks() -> list[Check]:
             checks.append(Check("Storage", f"repo {repo_path.name}", "warn" if repo_size > REPO_SIZE_WARN_BYTES else "ok", format_bytes(repo_size), "large media repo; make sure VPS disk sizing accounts for this client" if repo_size > REPO_SIZE_WARN_BYTES else None))
             if (repo_path / ".git").exists():
                 safe = str(repo_path.resolve()) in git_safe_directories()
-                checks.append(Check("Storage", f"repo {repo_path.name} git safe", "ok" if safe else "fail", str(repo_path), None if safe else f"run promocaster-control client-repo sync {repo_path.name} or promocaster-control repair"))
+                checks.append(Check("Storage", f"repo {repo_path.name} git safe", "ok" if safe else "fail", str(repo_path), None if safe else f"run promocaster-control client-repo sync {repo_path.name}"))
     uploads_size = directory_size(UPLOADS_DIR)
     checks.append(Check("Storage", "upload staging", "warn" if uploads_size > UPLOADS_WARN_BYTES else "ok", format_bytes(uploads_size), "stale staged uploads should be cleaned up" if uploads_size > UPLOADS_WARN_BYTES else None))
     build_size = directory_size(BUILD_DIR)
     checks.append(Check("Storage", "temp builds", "warn" if build_size > BUILD_WARN_BYTES else "ok", format_bytes(build_size), "validation build output should be cleaned up" if build_size > BUILD_WARN_BYTES else None))
 
-    auth_text = BASIC_AUTH_CONFIG.read_text(encoding="utf-8") if BASIC_AUTH_CONFIG.exists() else ""
-    auth_configured = ("basic_auth" in auth_text or "basicauth" in auth_text) and "respond " not in auth_text
-    checks.append(Check("Auth", "basic auth snippet", "ok" if BASIC_AUTH_CONFIG.exists() else "fail", str(BASIC_AUTH_CONFIG), None if BASIC_AUTH_CONFIG.exists() else "run promocaster-control basic-auth set <user>"))
-    if BASIC_AUTH_CONFIG.exists():
-        auth_group = path_group(BASIC_AUTH_CONFIG)
-        auth_mode = path_mode(BASIC_AUTH_CONFIG)
-        readable_by_caddy = auth_mode in {"0o640", "0o644"} and auth_group in {"caddy", "root"}
-        checks.append(Check("Auth", "basic auth readable by Caddy", "ok" if readable_by_caddy else "fail", f"{auth_mode} {auth_group}", None if readable_by_caddy else "run chown root:caddy /etc/promocaster-control/basic-auth.caddy && chmod 640 /etc/promocaster-control/basic-auth.caddy"))
-    checks.append(Check("Auth", "basic auth configured", "ok" if auth_configured else "fail", "configured" if auth_configured else "placeholder or missing", None if auth_configured else "run promocaster-control basic-auth set <user> before exposing the public site"))
-    if CADDY_CONFIG.exists():
-        caddy_text = CADDY_CONFIG.read_text(encoding="utf-8")
-        checks.append(Check("Auth", "Caddy imports auth", "ok" if str(BASIC_AUTH_CONFIG) in caddy_text else "fail", str(CADDY_CONFIG), None if str(BASIC_AUTH_CONFIG) in caddy_text else "run promocaster-control repair"))
-
-    public_ok, public_detail = github_key_public_text()
-    auth_status, auth_detail = github_ssh_auth_detail() if GITHUB_KEY.exists() else ("fail", "missing key")
-    key_mode = path_mode(GITHUB_KEY)
+    public_ok, public_detail = client_github_key_public_text()
+    auth_status, auth_detail = client_github_ssh_auth_detail() if CLIENT_GITHUB_KEY.exists() else ("fail", "missing key")
+    key_mode = path_mode(CLIENT_GITHUB_KEY)
     key_mode_ok = key_mode == "0o600"
-    checks.append(Check("GitHub Writer", "private key", "ok" if GITHUB_KEY.exists() else "fail", str(GITHUB_KEY), None if GITHUB_KEY.exists() else "run promocaster-control github-key edit"))
-    if GITHUB_KEY.exists():
-        checks.append(Check("GitHub Writer", "private key mode", "ok" if key_mode_ok else "fail", key_mode, None if key_mode_ok else f"run chmod 600 {GITHUB_KEY}"))
-        checks.append(Check("GitHub Writer", "public key derive", "ok" if public_ok else "fail", public_detail.splitlines()[0] if public_detail else "empty", None if public_ok else "paste a valid private SSH key with promocaster-control github-key edit"))
-        checks.append(Check("GitHub Writer", "github auth", auth_status, auth_detail.splitlines()[0] if auth_detail else "empty", None if auth_status == "ok" else "add the public key to GitHub with write access to the client repo"))
+    checks.append(Check("Client GitHub", "private key", "ok" if CLIENT_GITHUB_KEY.exists() else "fail", str(CLIENT_GITHUB_KEY), None if CLIENT_GITHUB_KEY.exists() else "run promocaster-control client-github-key generate"))
+    if CLIENT_GITHUB_KEY.exists():
+        checks.append(Check("Client GitHub", "private key mode", "ok" if key_mode_ok else "fail", key_mode, None if key_mode_ok else f"run chmod 600 {CLIENT_GITHUB_KEY}"))
+        checks.append(Check("Client GitHub", "public key derive", "ok" if public_ok else "fail", public_detail.splitlines()[0] if public_detail else "empty", None if public_ok else "run promocaster-control client-github-key edit"))
+        checks.append(Check("Client GitHub", "github auth", auth_status, auth_detail.splitlines()[0] if auth_detail else "empty", None if auth_status == "ok" else "add the public key to GitHub with access to the client repos"))
 
-    checks.append(Check("Services", "web service", "ok" if systemctl_state(SERVICE_NAME, "is-active") else "fail", SERVICE_NAME, f"inspect systemctl status {SERVICE_NAME}"))
-    checks.append(Check("Services", "web service enabled", "ok" if systemctl_state(SERVICE_NAME, "is-enabled") else "warn", SERVICE_NAME, f"run systemctl enable --now {SERVICE_NAME}"))
-    checks.append(Check("Services", "caddy", "ok" if systemctl_state("caddy.service", "is-active") else "fail", "caddy.service", "inspect systemctl status caddy.service"))
-    checks.append(Check("Services", "caddy config", "ok" if CADDY_CONFIG.exists() else "fail", str(CADDY_CONFIG), "run promocaster-control repair"))
-
-    caddy_config_text = CADDY_CONFIG.read_text(encoding="utf-8") if CADDY_CONFIG.exists() else ""
-    caddy_valid, caddy_detail = caddy_validate_detail()
-    public_dns_ips = public_domain_ips(SITE)
-    local_dns_ips = local_domain_ips(SITE)
-    current_ip = public_ipv4()
-    dns_status = "ok" if public_dns_ips else "warn"
-    if current_ip and public_dns_ips and current_ip not in public_dns_ips:
-        dns_status = "warn"
-    checks.append(Check("TLS", "site fqdn", "ok", SITE))
-    checks.append(Check("TLS", "public DNS resolves", dns_status, ", ".join(public_dns_ips) or "no A/AAAA records found", None if dns_status == "ok" else f"point {SITE} at this VPS before Caddy can issue Let's Encrypt certificates"))
-    if current_ip:
-        checks.append(Check("TLS", "public ipv4", "ok" if not public_dns_ips or current_ip in public_dns_ips else "warn", current_ip, None if not public_dns_ips or current_ip in public_dns_ips else f"public DNS for {SITE} does not include this public IP"))
-    if local_dns_ips and public_dns_ips and local_dns_ips != public_dns_ips:
-        checks.append(Check("TLS", "local resolver", "warn", ", ".join(local_dns_ips), "local /etc/hosts or resolver differs from public DNS; this is usually harmless for ACME if public DNS is correct"))
-    checks.append(Check("TLS", "Caddy site config", "ok" if SITE in caddy_config_text else "fail", str(CADDY_CONFIG), None if SITE in caddy_config_text else "run promocaster-control repair to rewrite the Caddy vhost"))
-    checks.append(Check("TLS", "Caddy validate", "ok" if caddy_valid else "fail", caddy_detail, None if caddy_valid else "fix Caddyfile before ACME can run"))
-    checks.append(Check("TLS", "port 80 listener", "ok" if port_listening(80) else "warn", "listening" if port_listening(80) else "not listening", "Caddy needs public TCP 80 for HTTP-01 challenges and redirects"))
-    checks.append(Check("TLS", "port 443 listener", "ok" if port_listening(443) else "warn", "listening" if port_listening(443) else "not listening", "Caddy will open TCP 443 after the site is active"))
-
-    source_root = resolve_source_root()
-    checks.append(Check("Update Path", "source checkout", "ok" if source_root else "fail", str(source_root or "missing"), f"clone repo to {SOURCE_ROOT}"))
-    if source_root:
-        checks.append(Check("Update Path", "source-root file", "ok" if SOURCE_ROOT_FILE.exists() and SOURCE_ROOT_FILE.read_text(encoding="utf-8").strip() == str(SOURCE_ROOT) else "warn", str(SOURCE_ROOT_FILE), "run promocaster-control repair"))
-        remote = git_value(source_root, "remote", "get-url", "origin")
-        branch = git_value(source_root, "branch", "--show-current")
-        upstream = git_value(source_root, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
-        clean, clean_detail = git_clean(source_root)
-        checks.append(Check("Update Path", "git remote", "ok" if remote else "fail", remote or "missing", "configure origin before update"))
-        checks.append(Check("Update Path", "git branch", "ok" if branch else "fail", branch or "detached HEAD", "check out a branch before update"))
-        checks.append(Check("Update Path", "git upstream", "ok" if upstream else "warn", upstream or "missing", "set upstream so update can pull cleanly"))
-        checks.append(Check("Update Path", "git checkout", "ok" if clean else "fail", clean_detail, "commit or stash local changes before update"))
-    expected = APP_DIR / "bin/promocaster-control"
-    resolved = GLOBAL_BIN.resolve() if GLOBAL_BIN.exists() or GLOBAL_BIN.is_symlink() else None
-    checks.append(Check("Update Path", "global command", "ok" if resolved == expected else "warn", str(resolved or GLOBAL_BIN), "run promocaster-control repair"))
     return checks
 
 
@@ -674,7 +535,7 @@ def print_checks(checks: list[Check]) -> int:
     print_info("Doctor Report")
     print("=============")
     print(f"Config: {CONFIG_PATH}")
-    for section in ("Runtime", "Storage", "Services", "TLS", "Auth", "GitHub Writer", "Update Path"):
+    for section in ("Runtime", "Storage", "Client GitHub"):
         rows = [check for check in checks if check.section == section]
         if not rows:
             continue
@@ -694,82 +555,6 @@ def print_checks(checks: list[Check]) -> int:
         return 0
     print_ok("Doctor result: OK")
     return 0
-
-
-def command_update(args: argparse.Namespace) -> int:
-    if not is_root():
-        raise CommandError("update must run as root")
-    source_root = resolve_source_root()
-    if source_root is None:
-        raise CommandError(f"no source checkout found; clone to {SOURCE_ROOT}")
-    if not args.no_pull:
-        branch = git_value(source_root, "branch", "--show-current")
-        if not branch:
-            raise CommandError(f"detached HEAD detected in {source_root}; check out a branch before update")
-        clean, detail = git_clean(source_root)
-        if not clean:
-            raise CommandError(f"git checkout is not clean for {source_root}:\n{detail}")
-        before = git_value(source_root, "rev-parse", "HEAD")
-        run(["git", "-C", str(source_root), "pull", "--ff-only", "origin", branch])
-        after = git_value(source_root, "rev-parse", "HEAD")
-        changed = before != after
-    else:
-        changed = args.force
-
-    if changed or args.force or not APP_DIR.exists():
-        actions = repair(source_root, daemon_reload=True)
-        mode = "updated"
-    else:
-        actions = repair(source_root, daemon_reload=args.daemon_reload)
-        mode = "refreshed"
-
-    print()
-    print_info("Update Result")
-    print("=============")
-    for action in actions:
-        print_ok(action)
-    if mode == "updated":
-        print_ok("Update completed successfully after refreshing the checkout.")
-    else:
-        print_info("No new code was pulled; checkout wiring was refreshed.")
-    return 0
-
-
-def command_github_key(args: argparse.Namespace) -> int:
-    if args.github_command == "generate":
-        generate_github_key(force=args.force)
-        ok, public_key = github_key_public_text()
-        if not ok:
-            raise CommandError(public_key)
-        print_ok(f"Generated GitHub writer key at {GITHUB_KEY}")
-        print()
-        print("Add this public key to GitHub with write access:")
-        print(public_key)
-        return 0
-    if args.github_command == "edit":
-        if not is_root():
-            raise CommandError("github-key edit must run as root")
-        if not command_exists("nano"):
-            raise CommandError("nano not found. Install it first: apt-get install nano")
-        secure_github_key_files()
-        if not GITHUB_KEY.exists():
-            GITHUB_KEY.touch(mode=0o600)
-        secure_github_key_files()
-        print(f"Opening {GITHUB_KEY} in nano")
-        run(["nano", str(GITHUB_KEY)])
-        secure_github_key_files()
-        return 0
-    if args.github_command == "show-public":
-        ok, detail = github_key_public_text()
-        if not ok:
-            raise CommandError(detail)
-        print(detail)
-        return 0
-    if args.github_command == "test":
-        status, detail = github_ssh_auth_detail()
-        print(detail)
-        return 0 if status == "ok" else 1
-    raise CommandError("unknown github-key command")
 
 
 def command_client_repo(args: argparse.Namespace) -> int:
@@ -842,10 +627,8 @@ def command_client_repo(args: argparse.Namespace) -> int:
         return 1
 
     if args.client_command == "sync":
-        if not is_root():
-            raise CommandError("client-repo sync must run as root")
-        if not GITHUB_KEY.exists():
-            raise CommandError(f"missing GitHub writer key: {GITHUB_KEY}")
+        if not CLIENT_GITHUB_KEY.exists():
+            raise CommandError(f"missing client GitHub key: {CLIENT_GITHUB_KEY}")
         REPOS_DIR.mkdir(parents=True, exist_ok=True)
         write_sync_status(args.client, "syncing", "starting repo sync", repo_path=str(repo_path), branch=branch)
         try:
@@ -880,125 +663,34 @@ def command_client_repo(args: argparse.Namespace) -> int:
     raise CommandError("unknown client-repo command")
 
 
-def reload_caddy_if_available() -> None:
-    if command_exists("caddy"):
-        run(["caddy", "validate", "--config", "/etc/caddy/Caddyfile"])
-    if systemctl_state("caddy.service", "is-active"):
-        run(["systemctl", "reload", "caddy.service"])
-
-
-def secure_basic_auth_config() -> None:
-    try:
-        shutil.chown(BASIC_AUTH_CONFIG, user="root", group="caddy")
-    except LookupError:
-        pass
-    except PermissionError as exc:
-        raise CommandError(f"could not set {BASIC_AUTH_CONFIG} owner/group: {exc}") from exc
-    BASIC_AUTH_CONFIG.chmod(0o640)
-
-
-def command_basic_auth(args: argparse.Namespace) -> int:
-    if args.auth_command == "set":
-        if not is_root():
-            raise CommandError("basic-auth set must run as root")
-        if not command_exists("caddy"):
-            raise CommandError("caddy command missing; install Caddy before hashing passwords")
-        password = getpass.getpass(f"Password for {args.username}: ")
-        confirm = getpass.getpass("Confirm password: ")
-        if not password:
-            raise CommandError("password cannot be empty")
-        if password != confirm:
-            raise CommandError("passwords did not match")
-        if any(char.isspace() for char in args.username) or "{" in args.username or "}" in args.username:
-            raise CommandError("username must not contain whitespace or braces")
-        proc = subprocess.run(["caddy", "hash-password", "--plaintext", password], check=False, capture_output=True, text=True)
-        if proc.returncode != 0:
-            raise CommandError((proc.stderr or proc.stdout).strip() or "caddy hash-password failed")
-        hashed = proc.stdout.strip()
-        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        BASIC_AUTH_CONFIG.write_text(f"basicauth {{\n    {args.username} {hashed}\n}}\n", encoding="utf-8")
-        secure_basic_auth_config()
-        reload_caddy_if_available()
-        print_ok(f"Basic auth configured for {args.username} at {BASIC_AUTH_CONFIG}")
-        return 0
-    if args.auth_command == "edit":
-        if not is_root():
-            raise CommandError("basic-auth edit must run as root")
-        if not command_exists("nano"):
-            raise CommandError("nano not found. Install it first: apt-get install nano")
-        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        if not BASIC_AUTH_CONFIG.exists():
-            BASIC_AUTH_CONFIG.write_text('respond "Promocaster Control basic auth is not configured. Run: promocaster-control basic-auth set <user>" 503\n', encoding="utf-8")
-        secure_basic_auth_config()
-        print(f"Opening {BASIC_AUTH_CONFIG} in nano")
-        run(["nano", str(BASIC_AUTH_CONFIG)])
-        secure_basic_auth_config()
-        reload_caddy_if_available()
-        return 0
-    if args.auth_command == "test":
-        text = BASIC_AUTH_CONFIG.read_text(encoding="utf-8") if BASIC_AUTH_CONFIG.exists() else ""
-        if ("basic_auth" not in text and "basicauth" not in text) or "respond " in text:
-            raise CommandError(f"basic auth is not configured at {BASIC_AUTH_CONFIG}")
-        print_ok(f"Basic auth snippet is configured at {BASIC_AUTH_CONFIG}")
-        return 0
-    raise CommandError("unknown basic-auth command")
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="promocaster-control")
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("doctor", help="Check config, services, and checkout update health")
-    sub.add_parser("tls-check", help="Check Let's Encrypt/Caddy prerequisites for the public FQDN")
-    repair_parser = sub.add_parser("repair", help="Refresh installed app, service, Caddy config, and command wiring")
-    repair_parser.add_argument("--no-daemon-reload", action="store_true", help="Skip systemd daemon-reload")
-    update_parser = sub.add_parser("update", help="Pull and activate a checkout update safely")
-    update_parser.add_argument("--no-pull", action="store_true", help="Skip git pull and just refresh installed wiring")
-    update_parser.add_argument("--daemon-reload", action="store_true", help="Reload systemd even when no new code was pulled")
-    update_parser.add_argument("--force", action="store_true", help="Run the full refresh path even when no new code was pulled")
-    github_key = sub.add_parser("github-key", help="Manage the GitHub writer SSH key")
-    github_sub = github_key.add_subparsers(dest="github_command", required=True)
-    github_generate = github_sub.add_parser("generate", help="Generate a new GitHub writer SSH key")
-    github_generate.add_argument("--force", action="store_true", help="Replace the existing writer key")
-    github_sub.add_parser("edit", help="Open the GitHub writer private key in nano")
-    github_sub.add_parser("show-public", help="Print the public key derived from the private key")
-    github_sub.add_parser("test", help="Test SSH authentication to git@github.com")
+    sub.add_parser("doctor", help="Check config, storage, client GitHub key, and client repo health")
+    client_key = sub.add_parser("client-github-key", help="Manage Promocaster Control's client repo GitHub key")
+    client_key_sub = client_key.add_subparsers(dest="key_command", required=True)
+    client_key_generate = client_key_sub.add_parser("generate", help="Generate a new client repo GitHub key")
+    client_key_generate.add_argument("--force", action="store_true", help="Replace an existing client GitHub key")
+    client_key_sub.add_parser("edit", help="Open the client repo private key in nano or $EDITOR")
+    client_key_sub.add_parser("show-public", help="Print the public key derived from the client repo private key")
+    client_key_sub.add_parser("test", help="Test client repo SSH authentication to git@github.com")
     client_repo = sub.add_parser("client-repo", help="Sync and inspect configured client repos")
     client_sub = client_repo.add_subparsers(dest="client_command", required=True)
-    client_sub.add_parser("list", help="List clients from clients.yml")
+    client_sub.add_parser("list", help="List clients from client.yml")
     client_sync = client_sub.add_parser("sync", help="Clone or fetch a configured client repo")
-    client_sync.add_argument("client", help="Client id from clients.yml")
+    client_sync.add_argument("client", help="Client id from client.yml")
     client_status = client_sub.add_parser("status", help="Show local vs remote sync status for a client repo")
-    client_status.add_argument("client", help="Client id from clients.yml")
+    client_status.add_argument("client", help="Client id from client.yml")
     client_status.add_argument("--no-fetch", action="store_true", help="Do not fetch origin before comparing local and remote")
-    basic_auth = sub.add_parser("basic-auth", help="Manage phase-1 Caddy Basic Auth")
-    auth_sub = basic_auth.add_subparsers(dest="auth_command", required=True)
-    auth_set = auth_sub.add_parser("set", help="Hash and install a Caddy Basic Auth password")
-    auth_set.add_argument("username", help="Basic Auth username")
-    auth_sub.add_parser("edit", help="Open the Caddy Basic Auth snippet in nano")
-    auth_sub.add_parser("test", help="Check whether Basic Auth is configured")
     args = parser.parse_args(argv)
 
     try:
         if args.command == "doctor":
             return print_checks(collect_checks())
-        if args.command == "tls-check":
-            return print_checks([check for check in collect_checks() if check.section in {"Services", "TLS"}])
-        if args.command == "repair":
-            actions = repair(daemon_reload=not args.no_daemon_reload)
-            print()
-            print_info("Repair Actions")
-            print("==============")
-            for action in actions:
-                print_ok(action)
-            return print_checks(collect_checks())
-        if args.command == "update":
-            return command_update(args)
-        if args.command == "github-key":
-            return command_github_key(args)
+        if args.command == "client-github-key":
+            return command_client_github_key(args)
         if args.command == "client-repo":
             return command_client_repo(args)
-        if args.command == "basic-auth":
-            return command_basic_auth(args)
     except CommandError as exc:
         print_error(str(exc))
         return 1

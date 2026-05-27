@@ -1,5 +1,10 @@
 # promocaster-control
 
+Promocaster Control is the Promocaster-specific admin UI/API. Platter is the
+installable Debian server component that builds and serves the project repo
+cloned to `/root/project`. This repo contributes
+`platter.yml` and does not own Debian installation.
+
 Promocaster Control is the authenticated admin surface for managing client
 slideshow content repos.
 
@@ -12,6 +17,9 @@ single slideshow selected by the device-local `promocaster.location` value.
 Local development checkouts:
 
 - Control/admin repo: `/home/pan/temp/promocaster-control`
+- Debian project host repo: `/home/pan/temp/platter`
+- Fleet orchestration repo: `/home/pan/temp/fleet.sh`
+- Monitor core repo: `/home/pan/temp/monitor.core`
 - PHGI runtime/content repo: `/home/pan/temp/promocaster.phgi`
 - Device-side Nix appliance repo: `/home/pan/temp/nix.promocaster`
 
@@ -20,17 +28,22 @@ Remote repos:
 - Control/admin repo: `git@github.com:peternickol/promocaster-control.git`
 - PHGI runtime/content repo: `git@github.com:peternickol/promocaster.phgi.git`
 
-This repo is the future global control plane. It may know about many clients,
-but it must only expose the authenticated user's allowed clients and allowed
-locations through the API.
+This repo is the global control plane. It may know about many clients, but it
+must only expose the authenticated user's allowed clients and allowed locations
+through the API.
 
 ## Current Split
 
 - `web/` contains the editor and inspector UI copied out of the PHGI content repo.
-- `clients.yml` is the control-side registry of clients and content repos.
+- `client.yml` is the control-side registry of clients and content repos.
 - Locations are derived from the synced client repo's `_data/media.yml`.
-- The `clients.yml` key is the client id.
+- The `client.yml` key is the client id.
 - `server/` contains the authenticated API and git publisher.
+- Platter owns Debian install, Caddy/service wiring, project builds, refreshes,
+  and Platter self-update.
+- Promocaster client/content repos are cached under
+  `/var/lib/platter/project/client/<directory>`, not under Platter's
+  `/root/project` source checkout.
 
 The editor and inspector now load deck data from the synced client repo through
 `GET /api/clients/:client/decks`. The first save path is also wired:
@@ -43,12 +56,18 @@ This repo owns:
 
 - authenticated admin UI
 - client/location access control
+- users, sessions, roles, and authorization policy
 - deck editor and inspector
 - media uploads
 - validation before publish
 - git writer/publisher for client repos
 
+Platter may render generic Caddy directives from `platter.yml`, but Platter does
+not own Promocaster users or authorization. Do not add Promocaster-specific auth
+commands to Platter.
+
 This repo does not get deployed to signage devices.
+This repo is deployed on a Debian host by Platter from `/root/project`.
 
 Client runtime/content repos, such as `/home/pan/temp/promocaster.phgi`, own:
 
@@ -60,6 +79,8 @@ Client runtime/content repos, such as `/home/pan/temp/promocaster.phgi`, own:
 - `assets/css/promocaster.css`
 
 Do not put editor/inspector/admin assets back into client runtime repos.
+Do not add `platter.yml` to client runtime repos unless they are intentionally
+being hosted as standalone Platter projects.
 
 ## PHGI Client Repo
 
@@ -147,43 +168,30 @@ The pages call the local API, so use the installed app or run
 
 ## Debian VPS Setup
 
-This repo owns the operator-facing Debian installer for the control server:
+Platter is the intended Debian server component. A server should install
+Platter, clone this repo to `/root/project`, and let Platter read this
+repo's `platter.yml` to build/publish/refresh the control app.
 
 ```sh
-bash install-debian.sh
+platter project clone git@github.com:peternickol/promocaster-control.git
+platter build
 ```
 
-Run server setup commands from a root shell. These installs assume root-operated
-Debian boxes, like the monitor repos, and do not assume `sudo` is installed.
-
-The installer follows the same product-repo pattern used by the monitor repos:
-install Debian packages, create a service user, copy this repo into
-`/opt/promocaster-control/app`, create `/var/lib/promocaster-control`, install a
-systemd service, and put Caddy in front of the local app.
-Caddy is configured for `control.promocaster.io` by default.
-Caddy owns Let's Encrypt certificate issuance and renewal. There is no separate
-certbot job.
-
-Default runtime layout:
+Platter-style runtime layout:
 
 ```text
-/root/promocaster-control         source checkout used by install/update
-/opt/promocaster-control/app       copied application repo
-/etc/promocaster-control/config.env
-/etc/promocaster-control/basic-auth.caddy
-/etc/promocaster-control/source-root
-/var/lib/promocaster-control/repos client repo checkouts
-/var/lib/promocaster-control/uploads upload staging
-/var/lib/promocaster-control/sync  repo sync progress state
-/var/lib/promocaster-control/ssh   GitHub writer key material
-/usr/local/bin/promocaster-control operator maintenance command
+/root/project                 source checkout used by Platter
+/root/project/platter.yml
+/srv/platter/project/current
+/var/lib/platter/project
+/var/lib/platter/project/client
+/var/lib/platter/status/status.json
 ```
 
-Useful install overrides:
-
-```sh
-PROMOCASTER_CONTROL_PORT=8080 bash install-debian.sh
-```
+Promocaster Control runs as the unprivileged `platter-project` service user.
+Platter performs host operations as root, but the app only writes under
+`/var/lib/platter/project`, including client repo checkouts, sync state, uploads,
+Git config, and its client GitHub key.
 
 The current server serves `web/`, redirects `/` to the editor, exposes
 `GET /api/health`, reads synced client deck data, serves synced media previews,
@@ -196,43 +204,50 @@ Before standing up a Debian test box, confirm:
 
 - `control.promocaster.io` has an `A` record pointing at the VPS.
 - Public TCP ports `80` and `443` reach the VPS.
-- The repo is cloned at the fixed server path: `/root/promocaster-control`.
+- Platter is installed on the VPS.
+- Platter's deploy key public half has read access to this repo, unless the
+  first clone is being done with a separate operator SSH key.
+- The repo is cloned at `/root/project`.
 - The VPS has enough disk for large client repos. For testing, keep at least
-  `40-60 GB` free under `/var/lib/promocaster-control`.
-- After install, the generated GitHub writer public key must be added to
-  `promocaster.phgi` with write access.
+  `40-60 GB` free under `/var/lib/platter/project`.
+- After install, Promocaster Control needs its own client GitHub key with write
+  access to `promocaster.phgi`.
 
 Initial install flow:
 
 ```sh
 cd /root
-git clone git@github.com:peternickol/promocaster-control.git
-cd /root/promocaster-control
+git clone git@github.com:peternickol/platter.git /root/platter
+cd /root/platter
 bash install-debian.sh
-promocaster-control basic-auth set peter
-promocaster-control github-key show-public
-promocaster-control github-key test
+platter build
+promocaster-control client-github-key generate
+promocaster-control client-github-key show-public
+promocaster-control client-github-key test
 promocaster-control client-repo sync phgi
-promocaster-control tls-check
 promocaster-control doctor
 ```
 
+During `bash install-debian.sh`, Platter generates its deploy key, prints the
+public key to add to the Promocaster Control GitHub repo, then asks for the
+project repo URL. Enter:
+
+```text
+git@github.com:peternickol/promocaster-control.git
+```
+
+Run `platter build` before any `promocaster-control ...` command. The global
+`promocaster-control` command is installed by Platter from this repo's
+`components.bin` declaration and does not exist until the project has been
+published.
+
 The first test deployment should prove:
 
-- Debian package installation
-- systemd service wiring
-- Caddy reverse proxy wiring
-- Let's Encrypt issuance and renewal path
-- HTTP-to-HTTPS redirect
-- Phase 1 Basic Auth guard
-- GitHub SSH authentication
+- Platter can install the Debian host component
+- Platter can build and publish this repo from `platter.yml`
+- Platter's one-minute refresh timer can pull and rebuild repo updates
+- client GitHub SSH authentication
 - `doctor` diagnostics
-
-The installer also disables cloud-init `manage_etc_hosts` with
-`/etc/cloud/cloud.cfg.d/99-promocaster-control-hosts.cfg`, then removes
-`control.promocaster.io` from loopback entries in `/etc/hosts` if Debian put the
-FQDN on `127.0.1.1`. The short hostname can stay there, but the public FQDN must
-resolve through DNS so Caddy and Let's Encrypt see the real VPS address.
 
 Current limitation: Jekyll validation is not yet implemented. The existing save
 path covers order, duration, start date, expiration date, new media upload,
@@ -241,77 +256,64 @@ and push.
 
 ### Maintenance Commands
 
-The installer records the source checkout in
-`/etc/promocaster-control/source-root` and exposes a global command. On the VPS,
-the repo checkout is always `/root/promocaster-control`.
+Platter owns app install, build, refresh, update, and Platter/project GitHub key
+management. Promocaster Control's operator command is only for app-specific
+checks, its client GitHub key, and client/content repo syncs.
+
+Platter's README is the point of truth for Platter install, manifest, refresh,
+status, and fleet behavior. Keep Promocaster Control documentation focused on
+what this hosted app owns.
 
 ```sh
 promocaster-control doctor
-promocaster-control basic-auth set peter
-promocaster-control basic-auth test
-promocaster-control github-key generate
-promocaster-control github-key edit
-promocaster-control github-key show-public
-promocaster-control github-key test
 promocaster-control client-repo list
 promocaster-control client-repo sync phgi
 promocaster-control client-repo status phgi
-promocaster-control tls-check
-promocaster-control update
-promocaster-control update --no-pull
-promocaster-control update --force
-promocaster-control repair
 ```
 
-This intentionally mirrors the hard-won monitor pattern. `doctor` checks runtime
-paths, storage pressure, service state, Caddy wiring, GitHub writer key health,
-and whether the source checkout is clean and pullable. `update` refuses detached
-heads and dirty checkouts, pulls with `--ff-only`, refreshes
-`/opt/promocaster-control/app`, rewrites systemd and Caddy files, reloads
-services, and leaves the global command symlink in sync. `repair` performs that
-refresh path without pulling.
-
-### Phase 1 Authentication
-
-Phase 1 uses Caddy Basic Auth as a public-site guard while the app-level Google
-OAuth/user model is still pending. This is intentionally coarse: anyone with the
-Basic Auth password can reach the control UI, so do not use it as the final
-client authorization model.
-
-Set the initial login on the VPS:
+Use Platter for build and update work:
 
 ```sh
-promocaster-control basic-auth set peter
-promocaster-control basic-auth test
-promocaster-control doctor
+platter build
+platter refresh
+platter update
 ```
 
-The password is hashed with `caddy hash-password` and written to:
+`platter refresh` pulls the app repo, rebuilds/publishes it, installs missing
+packages declared in this repo's `platter.yml`, restarts the declared services,
+and then runs any project-specific commands listed under `refresh.commands`.
 
-```text
-/etc/promocaster-control/basic-auth.caddy
-```
+This repo's `platter.yml` presents the generated service, rendered environment,
+operator command link, and simple Caddy reverse-proxy route as data. Platter installs those
+generically; it does not carry Promocaster-specific server logic.
+Promocaster authentication and client/location authorization stay in the
+Promocaster app. Temporary Caddy access gates, if needed, should be represented
+as generic `components.caddy.directives` in `platter.yml`.
 
-The Caddy site imports that snippet before proxying to the app. Until credentials
-are configured, the installer writes a placeholder snippet that returns `503`
-instead of exposing the app. `doctor` reports this as a failed `Auth` check.
-Caddy also passes the authenticated Basic Auth username to the app as
-`X-Promocaster-User`, and the save endpoint records that value in the git commit
-message.
+Promocaster Control declares `promocaster-control.service` under
+`components.service` and leaves `refresh.commands` blank. Its app deployment
+has no extra post-refresh step beyond Platter's build, publish, component
+install, and service restart. `promocaster-control client-repo sync <client>`
+is intentionally separate: it refreshes a client/content repo under
+`/var/lib/platter/project/client`, not the Promocaster Control app under
+`/root/project`.
 
-For manual recovery, the snippet can be edited directly:
+Promocaster Control is currently file/repo-backed. If it later needs a database,
+the database engine and schema file should be declared in this repo's
+`platter.yml` under `database` so Platter can build and refresh it from
+project-owned files.
+If that database becomes server-owned state, Platter's built-in database
+commands own backup, export, restore, and clear.
 
-```sh
-promocaster-control basic-auth edit
-caddy validate --config /etc/caddy/Caddyfile
-systemctl reload caddy.service
-```
+`promocaster-control doctor` checks runtime paths, storage pressure, client
+GitHub key health, and client repo status.
 
 ### Storage Checks
 
 Client content repos can be large. PHGI-style repos may already be around 1.5 GB,
 and control may eventually cache many client repos under
-`/var/lib/promocaster-control/repos`. `doctor` reports:
+`/var/lib/platter/project/client`. This is intentionally separate from
+Platter's `/root/project` source checkout. `doctor` reports:
 
 - free space on the data filesystem
 - total repo cache size
@@ -355,7 +357,8 @@ Example response while a first clone is running:
 ```
 
 The placeholder server already exposes that status endpoint. The future repo
-sync worker should write status JSON to `/var/lib/promocaster-control/sync` as
+sync worker should write status JSON to
+`/var/lib/platter/project/sync` as
 it clones/fetches, and the UI should poll until `state` becomes `ready` before
 loading decks.
 
@@ -367,20 +370,20 @@ promocaster-control client-repo sync phgi
 promocaster-control client-repo status phgi
 ```
 
-`client-repo sync <client>` reads `clients.yml`, uses the GitHub writer key,
+`client-repo sync <client>` reads `client.yml`, uses the client GitHub key,
 clones or fetches into a directory named after the Git repo, writes progress
-state to `/var/lib/promocaster-control/sync/<client>.json`, and leaves the
+state to `/var/lib/platter/project/sync/<client>.json`, and leaves the
 checkout at the configured branch. It also repairs ownership of the checkout for
 the `promocaster-control` service user and adds the checkout to Control's Git
-`safe.directory` list in `/var/lib/promocaster-control/gitconfig`.
+`safe.directory` list in `/var/lib/platter/project/gitconfig`.
 `client-repo status <client>` fetches origin and reports whether the local
 checkout is clean and matches the remote branch.
 For PHGI, that means:
 
 ```text
-/var/lib/promocaster-control/repos/promocaster.phgi
-/var/lib/promocaster-control/sync/phgi.json
-/var/lib/promocaster-control/gitconfig
+/var/lib/platter/project/client/promocaster.phgi
+/var/lib/platter/project/sync/phgi.json
+/var/lib/platter/project/gitconfig
 ```
 
 First sync can take a while for large media repos.
@@ -389,64 +392,86 @@ If Git reports `detected dubious ownership` for a cached client repo, run:
 
 ```sh
 promocaster-control client-repo sync phgi
-systemctl restart promocaster-control.service
 ```
 
-`promocaster-control repair` also walks cached repos, repairs ownership, and
-marks them safe.
+`promocaster-control client-repo sync <client>` also repairs ownership and marks
+the client checkout safe.
 
-### GitHub Writer Key
+### GitHub Keys
 
-The control API needs a GitHub SSH key with write access to each client content
-repo it manages, starting with `promocaster.phgi`. The installer generates a
-dedicated ed25519 writer key on first install:
+There are three GitHub keys in a full Promocaster Control install, with
+different owners.
+
+Platter manages its own deploy key for pulling the hosted project repo into
+`/root/project` and updating Platter itself from `/root/platter`:
 
 ```text
-/var/lib/promocaster-control/ssh/github_writer_key
-/var/lib/promocaster-control/ssh/github_writer_key.pub
+/var/lib/platter/ssh/deploy_key
+/var/lib/platter/ssh/deploy_key.pub
+```
+
+Manage it with:
+
+```sh
+platter github-key show-public
+platter github-key test
+platter github-key generate
+platter github-key edit
+```
+
+Platter manages the hosted project key for the Promocaster Control project
+lifecycle. That key belongs to Platter's project layer:
+
+```text
+/var/lib/platter/project/ssh/github_key
+/var/lib/platter/project/ssh/github_key.pub
+```
+
+Manage it with:
+
+```sh
+platter project github-key show-public
+platter project github-key test
+platter project github-key generate
+platter project github-key edit
+```
+
+Promocaster Control separately manages a client GitHub key. This key is
+project-specific and is used only for the downstream client repos listed in
+`client.yml`, starting with `promocaster.phgi`:
+
+```text
+/var/lib/platter/project/ssh/client_github_key
+/var/lib/platter/project/ssh/client_github_key.pub
 ```
 
 Show the public key and test GitHub auth:
 
 ```sh
-promocaster-control github-key show-public
-promocaster-control github-key test
+promocaster-control client-github-key show-public
+promocaster-control client-github-key test
 promocaster-control doctor
 ```
 
-Add the public key printed by `github-key show-public` to GitHub with write
-access. For one repo, a writable deploy key is fine. For many client repos, use a
-dedicated machine user such as `promocaster-bot` and grant that user write access
-to the client repos.
+Add the public key printed by `promocaster-control client-github-key
+show-public` to GitHub with write access to the client content repos. For one
+repo, a writable deploy key is fine. For many client repos, use a dedicated
+machine user such as `promocaster-bot` and grant that user write access to the
+client repos.
 
-Manual key commands:
-
-```sh
-promocaster-control github-key generate
-promocaster-control github-key generate --force
-promocaster-control github-key edit
-```
-
-`github-key generate` creates a key if one does not already exist. Use
-`generate --force` only when intentionally rotating the GitHub writer key.
-`github-key edit` follows the same operator pattern as `wg-manager edit`: it
-creates the secure directory/file if needed, locks permissions down, and opens
-the private key in `nano` for paste/edit workflows.
-
-### Let's Encrypt Bring-Up
-
-For the public control site, point DNS for `control.promocaster.io` at the VPS
-before expecting HTTPS to come up. Public TCP ports `80` and `443` must reach
-Caddy on the box. Caddy uses port `80` for HTTP-01 challenges and redirects all
-normal HTTP traffic to HTTPS. The control app is served on `443`.
-
-Useful checks on the server:
+Manual client key commands:
 
 ```sh
-promocaster-control tls-check
-journalctl -u caddy.service -n 100 --no-pager
-caddy validate --config /etc/caddy/Caddyfile
+promocaster-control client-github-key generate
+promocaster-control client-github-key generate --force
+promocaster-control client-github-key edit
 ```
+
+`promocaster-control client-github-key generate` creates a key if one does not
+already exist. Use `--force` only when intentionally rotating the client key.
+`promocaster-control client-github-key edit` creates the secure directory/file
+if needed, locks permissions down, and opens the private key in `$EDITOR` or
+`nano` for paste/edit workflows.
 
 ## API Contract
 
@@ -459,7 +484,7 @@ editor and inspector.
 
 Returns the authenticated user and the clients/locations they can access.
 Locations are discovered from the client repo after sync, then filtered by auth
-policy. They are not duplicated in `clients.yml`.
+policy. They are not duplicated in `client.yml`.
 
 ```json
 {

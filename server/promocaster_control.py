@@ -12,11 +12,11 @@ from urllib.parse import quote, unquote, urlparse
 
 WEB_ROOT = Path(os.environ.get("PROMOCASTER_CONTROL_WEB_ROOT", "web")).resolve()
 DATA_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_DATA_DIR", ".")).resolve()
-CLIENTS_FILE = Path(os.environ.get("PROMOCASTER_CONTROL_CLIENTS_FILE", "clients.yml")).resolve()
-REPOS_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_REPOS_DIR", DATA_DIR / "repos")).resolve()
+CLIENTS_FILE = Path(os.environ.get("PROMOCASTER_CONTROL_CLIENTS_FILE", "client.yml")).resolve()
+REPOS_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_REPOS_DIR", DATA_DIR / "client")).resolve()
 SYNC_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_SYNC_DIR", DATA_DIR / "sync")).resolve()
 SSH_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_SSH_DIR", DATA_DIR / "ssh")).resolve()
-GITHUB_KEY = Path(os.environ.get("PROMOCASTER_CONTROL_GITHUB_KEY", SSH_DIR / "github_writer_key")).resolve()
+CLIENT_GITHUB_KEY = Path(os.environ.get("PROMOCASTER_CONTROL_CLIENT_GITHUB_KEY", SSH_DIR / "client_github_key")).resolve()
 CONTROL_GIT_CONFIG = Path(os.environ.get("PROMOCASTER_CONTROL_GIT_CONFIG", DATA_DIR / "gitconfig")).resolve()
 BIND = os.environ.get("PROMOCASTER_CONTROL_BIND", "127.0.0.1")
 PORT = int(os.environ.get("PROMOCASTER_CONTROL_PORT", "8080"))
@@ -263,7 +263,7 @@ def git_env():
     return {
         **os.environ,
         "GIT_CONFIG_GLOBAL": str(CONTROL_GIT_CONFIG),
-        "GIT_SSH_COMMAND": f"ssh -i {GITHUB_KEY} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new",
+        "GIT_SSH_COMMAND": f"ssh -i {CLIENT_GITHUB_KEY} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new",
     }
 
 

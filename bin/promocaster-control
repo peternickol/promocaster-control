@@ -23,9 +23,8 @@ def read_env_file(path: Path) -> dict[str, str]:
     return values
 
 
-PLATTER_CONFIG_PATH = Path("/etc/platter/project/promocaster-control.env")
 DISH_CONFIG_PATH = Path("/etc/dish/project/config.env")
-DEFAULT_CONFIG_PATH = DISH_CONFIG_PATH if DISH_CONFIG_PATH.exists() else PLATTER_CONFIG_PATH
+DEFAULT_CONFIG_PATH = DISH_CONFIG_PATH
 CONFIG_PATH = Path(os.environ.get("PROMOCASTER_CONTROL_CONFIG_PATH", DEFAULT_CONFIG_PATH))
 CONFIG_ENV = read_env_file(CONFIG_PATH)
 
@@ -133,7 +132,7 @@ def is_root() -> bool:
 
 def is_git_checkout(path: Path) -> bool:
     try:
-        return (path / ".git").exists() and ((path / "dish.yml").exists() or (path / "platter.yml").exists())
+        return (path / ".git").exists() and (path / "dish.yml").exists()
     except OSError:
         return False
 

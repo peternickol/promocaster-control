@@ -1,9 +1,9 @@
 # promocaster-control
 
-Promocaster Control is the Promocaster-specific admin UI/API. Platter is the
+Promocaster Control is the Promocaster-specific admin UI/API. Dish is the
 installable Debian server component that builds and serves the project repo
 cloned to `/root/project`. This repo contributes
-`platter.yml` and does not own Debian installation.
+`dish.yml` and does not own Debian installation.
 
 Promocaster Control is the authenticated admin surface for managing client
 slideshow content repos.
@@ -17,7 +17,7 @@ single slideshow selected by the device-local `promocaster.location` value.
 Local development checkouts:
 
 - Control/admin repo: `/home/pan/temp/promocaster-control`
-- Debian project host repo: `/home/pan/temp/platter`
+- Debian project host repo: `/home/pan/temp/dish`
 - Fleet orchestration repo: `/home/pan/temp/fleet.sh`
 - Monitor core repo: `/home/pan/temp/monitor.core`
 - PHGI runtime/content repo: `/home/pan/temp/promocaster.phgi`
@@ -39,10 +39,10 @@ through the API.
 - Locations are derived from the synced client repo's `_data/media.yml`.
 - The `client.yml` key is the client id.
 - `server/` contains the authenticated API and git publisher.
-- Platter owns Debian install, Caddy/service wiring, project builds, refreshes,
-  and Platter self-update.
+- Dish owns Debian install, Caddy/service wiring, project builds, refreshes,
+  and Dish self-update.
 - Promocaster client/content repos are cached under
-  `/var/lib/platter/project/client/<directory>`, not under Platter's
+  `/var/lib/dish/project/client/<directory>`, not under Dish's
   `/root/project` source checkout.
 
 The editor and inspector now load deck data from the synced client repo through
@@ -62,12 +62,12 @@ This repo owns:
 - validation before publish
 - git writer/publisher for client repos
 
-Platter may render generic Caddy directives from `platter.yml`, but Platter does
+Dish may render generic Caddy directives from `dish.yml`, but Dish does
 not own Promocaster users or authorization. Do not add Promocaster-specific auth
-commands to Platter.
+commands to Dish.
 
 This repo does not get deployed to signage devices.
-This repo is deployed on a Debian host by Platter from `/root/project`.
+This repo is deployed on a Debian host by Dish from `/root/project`.
 
 Client runtime/content repos, such as `/home/pan/temp/promocaster.phgi`, own:
 
@@ -79,8 +79,8 @@ Client runtime/content repos, such as `/home/pan/temp/promocaster.phgi`, own:
 - `assets/css/promocaster.css`
 
 Do not put editor/inspector/admin assets back into client runtime repos.
-Do not add `platter.yml` to client runtime repos unless they are intentionally
-being hosted as standalone Platter projects.
+Do not add `dish.yml` to client runtime repos unless they are intentionally
+being hosted as standalone Dish projects.
 
 ## PHGI Client Repo
 
@@ -168,29 +168,29 @@ The pages call the local API, so use the installed app or run
 
 ## Debian VPS Setup
 
-Platter is the intended Debian server component. A server should install
-Platter, clone this repo to `/root/project`, and let Platter read this
-repo's `platter.yml` to build/publish/refresh the control app.
+Dish is the intended Debian server component. A server should install
+Dish, clone this repo to `/root/project`, and let Dish read this
+repo's `dish.yml` to build/publish/refresh the control app.
 
 ```sh
-platter project clone git@github.com:peternickol/promocaster-control.git
-platter build
+dish project clone git@github.com:peternickol/promocaster-control.git
+dish build
 ```
 
-Platter-style runtime layout:
+Dish-style runtime layout:
 
 ```text
-/root/project                 source checkout used by Platter
-/root/project/platter.yml
-/srv/platter/project/current
-/var/lib/platter/project
-/var/lib/platter/project/client
-/var/lib/platter/status/status.json
+/root/project                 source checkout used by Dish
+/root/project/dish.yml
+/srv/dish/project/current
+/var/lib/dish/project
+/var/lib/dish/project/client
+/var/lib/dish/status/status.json
 ```
 
-Promocaster Control runs as the unprivileged `platter-project` service user.
-Platter performs host operations as root, but the app only writes under
-`/var/lib/platter/project`, including client repo checkouts, sync state, uploads,
+Promocaster Control runs as the unprivileged `dish-project` service user.
+Dish performs host operations as root, but the app only writes under
+`/var/lib/dish/project`, including client repo checkouts, sync state, uploads,
 Git config, and its client GitHub key.
 
 The current server serves `web/`, redirects `/` to the editor, exposes
@@ -204,12 +204,12 @@ Before standing up a Debian test box, confirm:
 
 - `control.promocaster.io` has an `A` record pointing at the VPS.
 - Public TCP ports `80` and `443` reach the VPS.
-- Platter is installed on the VPS.
-- Platter's deploy key public half has read access to this repo, unless the
+- Dish is installed on the VPS.
+- Dish's deploy key public half has read access to this repo, unless the
   first clone is being done with a separate operator SSH key.
 - The repo is cloned at `/root/project`.
 - The VPS has enough disk for large client repos. For testing, keep at least
-  `40-60 GB` free under `/var/lib/platter/project`.
+  `40-60 GB` free under `/var/lib/dish/project`.
 - After install, Promocaster Control needs its own client GitHub key with write
   access to `promocaster.phgi`.
 
@@ -217,10 +217,10 @@ Initial install flow:
 
 ```sh
 cd /root
-git clone git@github.com:peternickol/platter.git /root/platter
-cd /root/platter
+git clone git@github.com:peternickol/dish.git /root/dish
+cd /root/dish
 bash install-debian.sh
-platter build
+dish build
 promocaster-control client-github-key generate
 promocaster-control client-github-key show-public
 promocaster-control client-github-key test
@@ -228,7 +228,7 @@ promocaster-control client-repo sync phgi
 promocaster-control doctor
 ```
 
-During `bash install-debian.sh`, Platter generates its deploy key, prints the
+During `bash install-debian.sh`, Dish generates its deploy key, prints the
 public key to add to the Promocaster Control GitHub repo, then asks for the
 project repo URL. Enter:
 
@@ -236,16 +236,16 @@ project repo URL. Enter:
 git@github.com:peternickol/promocaster-control.git
 ```
 
-Run `platter build` before any `promocaster-control ...` command. The global
-`promocaster-control` command is installed by Platter from this repo's
+Run `dish build` before any `promocaster-control ...` command. The global
+`promocaster-control` command is installed by Dish from this repo's
 `components.bin` declaration and does not exist until the project has been
 published.
 
 The first test deployment should prove:
 
-- Platter can install the Debian host component
-- Platter can build and publish this repo from `platter.yml`
-- Platter's one-minute refresh timer can pull and rebuild repo updates
+- Dish can install the Debian host component
+- Dish can build and publish this repo from `dish.yml`
+- Dish's one-minute refresh timer can pull and rebuild repo updates
 - client GitHub SSH authentication
 - `doctor` diagnostics
 
@@ -256,11 +256,11 @@ unreferenced media files, commit, and push.
 
 ### Maintenance Commands
 
-Platter owns app install, build, refresh, update, and Platter/project GitHub key
+Dish owns app install, build, refresh, update, and Dish/project GitHub key
 management. Promocaster Control's operator command is only for app-specific
 checks, its client GitHub key, and client/content repo syncs.
 
-Platter's README is the point of truth for Platter install, manifest, refresh,
+Dish's README is the point of truth for Dish install, manifest, refresh,
 status, and fleet behavior. Keep Promocaster Control documentation focused on
 what this hosted app owns.
 
@@ -271,41 +271,41 @@ promocaster-control client-repo sync phgi
 promocaster-control client-repo status phgi
 ```
 
-Use Platter for build and update work:
+Use Dish for build and update work:
 
 ```sh
-platter build
-platter refresh
-platter update
+dish build
+dish refresh
+dish update
 ```
 
-`platter refresh` pulls the app repo, rebuilds/publishes it, installs missing
-packages declared in this repo's `platter.yml`, restarts the declared services,
+`dish refresh` pulls the app repo, rebuilds/publishes it, installs missing
+packages declared in this repo's `dish.yml`, restarts the declared services,
 and then runs any project-specific commands listed under `refresh.commands`.
 
-This repo's `platter.yml` presents the project host shortname, generated
+This repo's `dish.yml` presents the project host shortname, generated
 service, rendered environment, operator command link, simple Caddy reverse-proxy
-route, and blank firewall allow list as data. Platter installs those
+route, and blank firewall allow list as data. Dish installs those
 generically; it does not carry Promocaster-specific server logic.
 Promocaster authentication and client/location authorization stay in the
 Promocaster app. Temporary Caddy access gates, if needed, should be represented
-as generic `components.caddy.directives` in `platter.yml`.
+as generic `components.caddy.directives` in `dish.yml`.
 Promocaster Control does not expose extra ports; app traffic stays on
 `127.0.0.1:8080` behind Caddy, so `components.firewall.allow` remains blank.
 
 Promocaster Control declares `promocaster-control.service` under
 `components.service` and leaves `refresh.commands` blank. Its app deployment
-has no extra post-refresh step beyond Platter's build, publish, component
+has no extra post-refresh step beyond Dish's build, publish, component
 install, and service restart. `promocaster-control client-repo sync <client>`
 is intentionally separate: it refreshes a client/content repo under
-`/var/lib/platter/project/client`, not the Promocaster Control app under
+`/var/lib/dish/project/client`, not the Promocaster Control app under
 `/root/project`.
 
 Promocaster Control is currently file/repo-backed. If it later needs a database,
 the database engine and schema file should be declared in this repo's
-`platter.yml` under `database` so Platter can build and refresh it from
+`dish.yml` under `database` so Dish can build and refresh it from
 project-owned files.
-If that database becomes server-owned state, Platter's built-in database
+If that database becomes server-owned state, Dish's built-in database
 commands own backup, export, restore, and clear.
 
 `promocaster-control doctor` checks runtime paths, storage pressure, client
@@ -315,8 +315,8 @@ GitHub key health, and client repo status.
 
 Client content repos can be large. PHGI-style repos may already be around 1.5 GB,
 and control may eventually cache many client repos under
-`/var/lib/platter/project/client`. This is intentionally separate from
-Platter's `/root/project` source checkout. `doctor` reports:
+`/var/lib/dish/project/client`. This is intentionally separate from
+Dish's `/root/project` source checkout. `doctor` reports:
 
 - free space on the data filesystem
 - total repo cache size
@@ -361,7 +361,7 @@ Example response while a first clone is running:
 
 The placeholder server already exposes that status endpoint. The future repo
 sync worker should write status JSON to
-`/var/lib/platter/project/sync` as
+`/var/lib/dish/project/sync` as
 it clones/fetches, and the UI should poll until `state` becomes `ready` before
 loading decks.
 
@@ -379,18 +379,18 @@ client id must be lowercase and URL-safe. Use `--name` for the display name and
 `--branch` when the repo does not use `master`.
 `client-repo sync <client>` reads `client.yml`, uses the client GitHub key,
 clones or fetches into a directory named after the Git repo, writes progress
-state to `/var/lib/platter/project/sync/<client>.json`, and leaves the
+state to `/var/lib/dish/project/sync/<client>.json`, and leaves the
 checkout at the configured branch. It also repairs ownership of the checkout for
 the `promocaster-control` service user and adds the checkout to Control's Git
-`safe.directory` list in `/var/lib/platter/project/gitconfig`.
+`safe.directory` list in `/var/lib/dish/project/gitconfig`.
 `client-repo status <client>` fetches origin and reports whether the local
 checkout is clean and matches the remote branch.
 For PHGI, that means:
 
 ```text
-/var/lib/platter/project/client/promocaster.phgi
-/var/lib/platter/project/sync/phgi.json
-/var/lib/platter/project/gitconfig
+/var/lib/dish/project/client/promocaster.phgi
+/var/lib/dish/project/sync/phgi.json
+/var/lib/dish/project/gitconfig
 ```
 
 First sync can take a while for large media repos.
@@ -409,38 +409,38 @@ the client checkout safe.
 There are three GitHub keys in a full Promocaster Control install, with
 different owners.
 
-Platter manages its own deploy key for pulling the hosted project repo into
-`/root/project` and updating Platter itself from `/root/platter`:
+Dish manages its own deploy key for pulling the hosted project repo into
+`/root/project` and updating Dish itself from `/root/dish`:
 
 ```text
-/var/lib/platter/ssh/deploy_key
-/var/lib/platter/ssh/deploy_key.pub
+/var/lib/dish/ssh/deploy_key
+/var/lib/dish/ssh/deploy_key.pub
 ```
 
 Manage it with:
 
 ```sh
-platter github-key show-public
-platter github-key test
-platter github-key generate
-platter github-key edit
+dish github-key show-public
+dish github-key test
+dish github-key generate
+dish github-key edit
 ```
 
-Platter manages the hosted project key for the Promocaster Control project
-lifecycle. That key belongs to Platter's project layer:
+Dish manages the hosted project key for the Promocaster Control project
+lifecycle. That key belongs to Dish's project layer:
 
 ```text
-/var/lib/platter/project/ssh/github_key
-/var/lib/platter/project/ssh/github_key.pub
+/var/lib/dish/project/ssh/github_key
+/var/lib/dish/project/ssh/github_key.pub
 ```
 
 Manage it with:
 
 ```sh
-platter project github-key show-public
-platter project github-key test
-platter project github-key generate
-platter project github-key edit
+dish project github-key show-public
+dish project github-key test
+dish project github-key generate
+dish project github-key edit
 ```
 
 Promocaster Control separately manages a client GitHub key. This key is
@@ -448,8 +448,8 @@ project-specific and is used only for the downstream client repos listed in
 `client.yml`, starting with `promocaster.phgi`:
 
 ```text
-/var/lib/platter/project/ssh/client_github_key
-/var/lib/platter/project/ssh/client_github_key.pub
+/var/lib/dish/project/ssh/client_github_key
+/var/lib/dish/project/ssh/client_github_key.pub
 ```
 
 Show the public key and test GitHub auth:

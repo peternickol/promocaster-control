@@ -36,6 +36,7 @@ VIDEO_WARN_HEIGHT = int(os.environ.get("PROMOCASTER_CONTROL_VIDEO_WARN_HEIGHT", 
 VIDEO_WARN_DURATION_SECONDS = float(os.environ.get("PROMOCASTER_CONTROL_VIDEO_WARN_DURATION_SECONDS", "120"))
 VIDEO_WARN_SIZE_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_VIDEO_WARN_SIZE_MB", "250")) * 1024 * 1024
 VIDEO_PREFERRED_CODEC = os.environ.get("PROMOCASTER_CONTROL_VIDEO_PREFERRED_CODEC", "h264")
+SUBPROCESS_CWD = Path("/")
 
 
 def load_clients():
@@ -119,6 +120,7 @@ def image_size(command, image_path):
         check=True,
         capture_output=True,
         text=True,
+        cwd=str(SUBPROCESS_CWD),
     )
     width, height = proc.stdout.strip().split()
     return int(width), int(height)
@@ -150,6 +152,7 @@ def video_metadata(video_path):
         check=True,
         capture_output=True,
         text=True,
+        cwd=str(SUBPROCESS_CWD),
     )
     data = json.loads(proc.stdout)
     streams = data.get("streams") or []
@@ -279,6 +282,7 @@ def write_upload_media(upload, media_path):
             check=True,
             capture_output=True,
             text=True,
+            cwd=str(SUBPROCESS_CWD),
         )
         output_path.replace(media_path)
         output_path = None
@@ -485,6 +489,7 @@ def run_git(repo_path, args, *, check=True, capture=True):
         capture_output=capture,
         text=True,
         env=git_env(),
+        cwd=str(SUBPROCESS_CWD),
     )
     if check and proc.returncode != 0:
         detail = (proc.stderr or proc.stdout or "").strip()
@@ -510,6 +515,7 @@ def ensure_git_safe_directory(repo_path):
         capture_output=True,
         text=True,
         env=git_env(),
+        cwd=str(SUBPROCESS_CWD),
     )
     safe_paths = {line.strip() for line in proc.stdout.splitlines() if line.strip()}
     if safe_path not in safe_paths:
@@ -519,6 +525,7 @@ def ensure_git_safe_directory(repo_path):
             capture_output=True,
             text=True,
             env=git_env(),
+            cwd=str(SUBPROCESS_CWD),
         )
         if proc.returncode != 0:
             detail = (proc.stderr or proc.stdout or "").strip()

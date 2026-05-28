@@ -18,6 +18,7 @@ build:
   - __DATA_DIR__/.venv/bin/python -m pip install --upgrade pip
   - __DATA_DIR__/.venv/bin/python -m pip install -r requirements.txt
   - __DATA_DIR__/.venv/bin/python -m py_compile backend/main.py backend/control.py bin/promocaster-control
+  - __DATA_DIR__/.venv/bin/python -c "import backend.main"
 components:
   service_user: dish-project
   service:

@@ -8,17 +8,19 @@ from pathlib import Path
 from urllib.parse import unquote
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from backend.control import (
+    ASSETS_DIR,
     CLIENTS_FILE,
     DATA_DIR,
     MAX_JSON_BODY_BYTES,
     MAX_MULTIPART_BODY_BYTES,
     REPOS_DIR,
     SYNC_DIR,
-    WEB_ROOT,
+    TEMPLATE_DIR,
     client_branch,
     client_repo_name,
     deck_to_media_yml,
@@ -35,6 +37,8 @@ from backend.control import (
 
 
 app = FastAPI(title="Promocaster Control")
+app.mount("/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
+templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
 
 
 def repo_path(client: str) -> Path:
@@ -114,8 +118,10 @@ def iter_file_range(path: Path, start: int, length: int):
 
 @app.on_event("startup")
 def ensure_runtime_dirs() -> None:
-    if not WEB_ROOT.exists():
-        raise RuntimeError(f"web root does not exist: {WEB_ROOT}")
+    if not ASSETS_DIR.exists():
+        raise RuntimeError(f"assets directory does not exist: {ASSETS_DIR}")
+    if not TEMPLATE_DIR.exists():
+        raise RuntimeError(f"template directory does not exist: {TEMPLATE_DIR}")
     SYNC_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -306,9 +312,16 @@ async def save_decks(
         return api_error("save_failed", str(exc), 500)
 
 
-@app.api_route("/", methods=["GET", "HEAD"])
-def editor() -> FileResponse:
-    return FileResponse(WEB_ROOT / "editor.html")
+@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def home() -> RedirectResponse:
+    return RedirectResponse(url="/editor", status_code=307)
 
 
-app.mount("/", StaticFiles(directory=str(WEB_ROOT), html=True), name="web")
+@app.api_route("/editor", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def editor(request: Request):
+    return templates.TemplateResponse("editor.html", {"request": request})
+
+
+@app.api_route("/inspector", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def inspector(request: Request):
+    return templates.TemplateResponse("inspector.html", {"request": request})

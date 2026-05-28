@@ -546,12 +546,14 @@ def write_sync_status(client_id: str, state: str, message: str, **extra) -> None
 def collect_checks() -> list[Check]:
     checks: list[Check] = []
     env = load_env(CONFIG_PATH)
-    web_root = Path(env.get("PROMOCASTER_CONTROL_WEB_ROOT", APP_DIR / "web"))
+    assets_dir = Path(env.get("PROMOCASTER_CONTROL_ASSETS_DIR", APP_DIR / "assets"))
+    template_dir = Path(env.get("PROMOCASTER_CONTROL_TEMPLATE_DIR", APP_DIR / "backend" / "templates"))
     clients_file = Path(env.get("PROMOCASTER_CONTROL_CLIENTS_FILE", APP_DIR / "client.yml"))
 
     checks.append(Check("Runtime", "config file", "ok" if CONFIG_PATH.exists() else "fail", str(CONFIG_PATH), None if CONFIG_PATH.exists() else "install Dish and run dish build"))
     checks.append(Check("Runtime", "app dir", "ok" if APP_DIR.exists() else "fail", str(APP_DIR), None if APP_DIR.exists() else "run dish build"))
-    checks.append(Check("Runtime", "web root", "ok" if web_root.exists() else "fail", str(web_root), None if web_root.exists() else "run dish build"))
+    checks.append(Check("Runtime", "assets dir", "ok" if assets_dir.exists() else "fail", str(assets_dir), None if assets_dir.exists() else "run dish build"))
+    checks.append(Check("Runtime", "template dir", "ok" if template_dir.exists() else "fail", str(template_dir), None if template_dir.exists() else "run dish build"))
     checks.append(Check("Runtime", "client file", "ok" if clients_file.exists() else "fail", str(clients_file), None if clients_file.exists() else "restore client.yml and run dish build"))
     image_command = shutil.which("magick") or shutil.which("convert")
     checks.append(Check("Runtime", "image processing", "ok" if image_command else "fail", image_command or "missing ImageMagick", None if image_command else "install ImageMagick or run dish build"))

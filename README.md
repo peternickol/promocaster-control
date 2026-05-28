@@ -34,7 +34,8 @@ through the API.
 
 ## Current Split
 
-- `web/` contains the editor and inspector UI copied out of the PHGI content repo.
+- `backend/templates/` contains the editor and inspector pages.
+- `assets/` contains shared CSS, JavaScript, images, and vendored browser assets.
 - `client.yml` is the control-side registry of clients and content repos.
 - Locations are derived from the synced client repo's `_data/media.yml`.
 - The `client.yml` key is the client id.
@@ -189,7 +190,8 @@ Dish performs host operations as root, but the app only writes under
 `/var/lib/dish/project`, including client repo checkouts, sync state, uploads,
 Git config, and its client GitHub key.
 
-The FastAPI app serves `web/`, serves `/` as the editor, exposes
+The FastAPI app serves `backend/templates/`, exposes static files from
+`assets/`, redirects `/` to `/editor`, exposes
 `GET /api/health`, reads synced client deck data, serves synced media previews,
 processes media uploads, and can save deck edits back to the client repo. Full
 Jekyll validation is still pending.

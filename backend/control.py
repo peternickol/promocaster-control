@@ -8,7 +8,9 @@ from pathlib import Path
 from urllib.parse import quote
 
 
-WEB_ROOT = Path(os.environ.get("PROMOCASTER_CONTROL_WEB_ROOT", "web")).resolve()
+BASE_DIR = Path(__file__).resolve().parents[1]
+ASSETS_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_ASSETS_DIR", BASE_DIR / "assets")).resolve()
+TEMPLATE_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_TEMPLATE_DIR", BASE_DIR / "backend" / "templates")).resolve()
 DATA_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_DATA_DIR", ".")).resolve()
 CLIENTS_FILE = Path(os.environ.get("PROMOCASTER_CONTROL_CLIENTS_FILE", "client.yml")).resolve()
 REPOS_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_REPOS_DIR", DATA_DIR / "client")).resolve()

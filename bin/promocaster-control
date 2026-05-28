@@ -406,6 +406,13 @@ def load_env(path: Path) -> dict[str, str]:
     return values
 
 
+def current_working_dir() -> Path | None:
+    try:
+        return Path.cwd()
+    except FileNotFoundError:
+        return None
+
+
 def client_file_candidates() -> list[Path]:
     candidates = []
     if "PROMOCASTER_CONTROL_CLIENTS_FILE" in os.environ:
@@ -413,7 +420,10 @@ def client_file_candidates() -> list[Path]:
     env = load_env(CONFIG_PATH)
     if "PROMOCASTER_CONTROL_CLIENTS_FILE" in env:
         candidates.append(Path(env["PROMOCASTER_CONTROL_CLIENTS_FILE"]))
-    candidates.extend([APP_DIR / "client.yml", SOURCE_ROOT / "client.yml", Path.cwd() / "client.yml"])
+    candidates.extend([APP_DIR / "client.yml", SOURCE_ROOT / "client.yml"])
+    cwd = current_working_dir()
+    if cwd:
+        candidates.append(cwd / "client.yml")
     return candidates
 
 
@@ -426,7 +436,10 @@ def clients_file_path(*, create: bool = False) -> Path:
         except OSError:
             continue
     if create:
-        return candidates[0] if candidates else Path.cwd() / "client.yml"
+        if candidates:
+            return candidates[0]
+        cwd = current_working_dir()
+        return (cwd or APP_DIR) / "client.yml"
     searched = ", ".join(str(candidate) for candidate in candidates)
     raise CommandError(f"could not find client.yml; looked in {searched}")
 

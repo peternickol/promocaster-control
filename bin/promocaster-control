@@ -24,7 +24,8 @@ def read_env_file(path: Path) -> dict[str, str]:
 
 
 PLATTER_CONFIG_PATH = Path("/etc/platter/project/promocaster-control.env")
-DEFAULT_CONFIG_PATH = PLATTER_CONFIG_PATH
+DISH_CONFIG_PATH = Path("/etc/dish/project/config.env")
+DEFAULT_CONFIG_PATH = DISH_CONFIG_PATH if DISH_CONFIG_PATH.exists() else PLATTER_CONFIG_PATH
 CONFIG_PATH = Path(os.environ.get("PROMOCASTER_CONTROL_CONFIG_PATH", DEFAULT_CONFIG_PATH))
 CONFIG_ENV = read_env_file(CONFIG_PATH)
 
@@ -33,11 +34,11 @@ def setting(name: str, default: str | Path) -> str:
     return os.environ.get(name) or CONFIG_ENV.get(name) or str(default)
 
 
-APP_DIR = Path(setting("PROMOCASTER_CONTROL_APP_DIR", "/srv/platter/project/current"))
-SOURCE_ROOT = Path(setting("PROMOCASTER_CONTROL_SOURCE_ROOT", "/root/repo/promocaster-control"))
+APP_DIR = Path(setting("PROMOCASTER_CONTROL_APP_DIR", "/srv/dish/project/current"))
+SOURCE_ROOT = Path(setting("PROMOCASTER_CONTROL_SOURCE_ROOT", "/root/project"))
 CONFIG_DIR = Path(setting("PROMOCASTER_CONTROL_CONFIG_DIR", CONFIG_PATH.parent))
 SOURCE_ROOT_FILE = Path(os.environ.get("PROMOCASTER_CONTROL_SOURCE_ROOT_FILE", CONFIG_DIR / "source-root"))
-DATA_DIR = Path(setting("PROMOCASTER_CONTROL_DATA_DIR", "/var/lib/platter/project"))
+DATA_DIR = Path(setting("PROMOCASTER_CONTROL_DATA_DIR", "/var/lib/dish/project"))
 SSH_DIR = Path(setting("PROMOCASTER_CONTROL_SSH_DIR", DATA_DIR / "ssh"))
 CLIENT_GITHUB_KEY = Path(setting("PROMOCASTER_CONTROL_CLIENT_GITHUB_KEY", SSH_DIR / "client_github_key"))
 REPOS_DIR = Path(setting("PROMOCASTER_CONTROL_REPOS_DIR", DATA_DIR / "client"))
@@ -45,7 +46,7 @@ UPLOADS_DIR = Path(setting("PROMOCASTER_CONTROL_UPLOADS_DIR", DATA_DIR / "upload
 SYNC_DIR = Path(setting("PROMOCASTER_CONTROL_SYNC_DIR", DATA_DIR / "sync"))
 CONTROL_GIT_CONFIG = Path(setting("PROMOCASTER_CONTROL_GIT_CONFIG", DATA_DIR / "gitconfig"))
 BUILD_DIR = Path(setting("PROMOCASTER_CONTROL_BUILD_DIR", "/tmp/promocaster-control-builds"))
-SERVICE_USER = setting("PROMOCASTER_CONTROL_SERVICE_USER", "platter-project")
+SERVICE_USER = setting("PROMOCASTER_CONTROL_SERVICE_USER", "dish-project")
 GLOBAL_BIN = Path(setting("PROMOCASTER_CONTROL_GLOBAL_BIN", "/usr/local/bin/promocaster-control"))
 GIB = 1024**3
 DATA_FREE_WARN_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_DATA_FREE_WARN_GB", "20")) * GIB
@@ -132,7 +133,7 @@ def is_root() -> bool:
 
 def is_git_checkout(path: Path) -> bool:
     try:
-        return (path / ".git").exists() and (path / "platter.yml").exists()
+        return (path / ".git").exists() and ((path / "dish.yml").exists() or (path / "platter.yml").exists())
     except OSError:
         return False
 
@@ -426,7 +427,8 @@ def clients_file_path(*, create: bool = False) -> Path:
             continue
     if create:
         return candidates[0] if candidates else Path.cwd() / "client.yml"
-    raise CommandError("could not find client.yml")
+    searched = ", ".join(str(candidate) for candidate in candidates)
+    raise CommandError(f"could not find client.yml; looked in {searched}")
 
 
 def load_clients() -> dict[str, dict[str, str]]:
@@ -535,16 +537,16 @@ def collect_checks() -> list[Check]:
     web_root = Path(env.get("PROMOCASTER_CONTROL_WEB_ROOT", APP_DIR / "web"))
     clients_file = Path(env.get("PROMOCASTER_CONTROL_CLIENTS_FILE", APP_DIR / "client.yml"))
 
-    checks.append(Check("Runtime", "config file", "ok" if CONFIG_PATH.exists() else "fail", str(CONFIG_PATH), None if CONFIG_PATH.exists() else "install Platter and run platter build promocaster-control"))
-    checks.append(Check("Runtime", "app dir", "ok" if APP_DIR.exists() else "fail", str(APP_DIR), None if APP_DIR.exists() else "run platter build promocaster-control"))
-    checks.append(Check("Runtime", "web root", "ok" if web_root.exists() else "fail", str(web_root), None if web_root.exists() else "run platter build promocaster-control"))
-    checks.append(Check("Runtime", "client file", "ok" if clients_file.exists() else "fail", str(clients_file), None if clients_file.exists() else "restore client.yml and run platter build promocaster-control"))
+    checks.append(Check("Runtime", "config file", "ok" if CONFIG_PATH.exists() else "fail", str(CONFIG_PATH), None if CONFIG_PATH.exists() else "install Dish and run dish build"))
+    checks.append(Check("Runtime", "app dir", "ok" if APP_DIR.exists() else "fail", str(APP_DIR), None if APP_DIR.exists() else "run dish build"))
+    checks.append(Check("Runtime", "web root", "ok" if web_root.exists() else "fail", str(web_root), None if web_root.exists() else "run dish build"))
+    checks.append(Check("Runtime", "client file", "ok" if clients_file.exists() else "fail", str(clients_file), None if clients_file.exists() else "restore client.yml and run dish build"))
     image_command = shutil.which("magick") or shutil.which("convert")
-    checks.append(Check("Runtime", "image processing", "ok" if image_command else "fail", image_command or "missing ImageMagick", None if image_command else "install ImageMagick or run platter build promocaster-control"))
+    checks.append(Check("Runtime", "image processing", "ok" if image_command else "fail", image_command or "missing ImageMagick", None if image_command else "install ImageMagick or run dish build"))
     video_command = shutil.which("ffprobe")
-    checks.append(Check("Runtime", "video inspection", "ok" if video_command else "fail", video_command or "missing ffprobe", None if video_command else "install ffmpeg or run platter build promocaster-control"))
+    checks.append(Check("Runtime", "video inspection", "ok" if video_command else "fail", video_command or "missing ffprobe", None if video_command else "install ffmpeg or run dish build"))
     for child, path in (("repos", REPOS_DIR), ("uploads", UPLOADS_DIR), ("ssh", SSH_DIR), ("sync", SYNC_DIR)):
-        checks.append(Check("Runtime", f"data/{child}", "ok" if path.exists() else "fail", str(path), None if path.exists() else "run platter build promocaster-control"))
+        checks.append(Check("Runtime", f"data/{child}", "ok" if path.exists() else "fail", str(path), None if path.exists() else "run dish build"))
 
     usage_root = DATA_DIR if DATA_DIR.exists() else DATA_DIR.parent
     try:

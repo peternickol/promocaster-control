@@ -10,7 +10,7 @@ requires:
     - ffprobe
     - magick
 components:
-  service_user: platter-project
+  service_user: dish-project
   service:
     name: promocaster-control.service
     description: Promocaster Control web service

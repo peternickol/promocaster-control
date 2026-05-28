@@ -6,15 +6,24 @@ requires:
   packages:
     - ffmpeg
     - imagemagick
+    - python3
+    - python3-pip
+    - python3-venv
   commands:
     - ffprobe
     - magick
+    - python3
+build:
+  - python3 -m venv __DATA_DIR__/.venv
+  - __DATA_DIR__/.venv/bin/python -m pip install --upgrade pip
+  - __DATA_DIR__/.venv/bin/python -m pip install -r requirements.txt
+  - __DATA_DIR__/.venv/bin/python -m py_compile backend/main.py backend/control.py bin/promocaster-control
 components:
   service_user: dish-project
   service:
     name: promocaster-control.service
     description: Promocaster Control web service
-    command: /usr/bin/python3 __APP_DIR__/server/promocaster_control.py
+    command: __DATA_DIR__/.venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8080
     working_directory: __APP_DIR__
     restart: on-failure
     restart_sec: 5
@@ -30,8 +39,6 @@ components:
     PROMOCASTER_CONTROL_CLIENT_GITHUB_KEY: __DATA_DIR__/ssh/client_github_key
     PROMOCASTER_CONTROL_GIT_CONFIG: __DATA_DIR__/gitconfig
     PROMOCASTER_CONTROL_SERVICE_USER: __SERVICE_USER__
-    PROMOCASTER_CONTROL_BIND: 127.0.0.1
-    PROMOCASTER_CONTROL_PORT: 8080
   bin:
     promocaster-control: __APP_DIR__/bin/promocaster-control
   caddy:
@@ -43,8 +50,6 @@ components:
 database:
   engine:
   schema:
-build:
-  - python3 -m py_compile server/promocaster_control.py bin/promocaster-control
 publish:
   source: .
 refresh:

@@ -1,2 +1,4 @@
 .agents
 .codex
+.venv/
+__pycache__/

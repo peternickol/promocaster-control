@@ -38,7 +38,7 @@ through the API.
 - `client.yml` is the control-side registry of clients and content repos.
 - Locations are derived from the synced client repo's `_data/media.yml`.
 - The `client.yml` key is the client id.
-- `server/` contains the authenticated API and git publisher.
+- `backend/` contains the FastAPI web app and Promocaster domain helpers.
 - Dish owns Debian install, Caddy/service wiring, project builds, refreshes,
   and Dish self-update.
 - Promocaster client/content repos are cached under
@@ -154,17 +154,13 @@ Deletion safety rules:
 - use `git rm -- media/<filename>` so the deletion is committed and pushed
 - include deleted files in the API response so the UI can show what changed
 
-## Local Static Preview
+## Local Development
 
-The copied UI can be viewed with any static file server from `web/`:
+Run the FastAPI app with a synced repo path when testing real data:
 
 ```sh
-cd web
-python3 -m http.server 4173
+uvicorn backend.main:app --host 127.0.0.1 --port 8080 --reload
 ```
-
-The pages call the local API, so use the installed app or run
-`server/promocaster_control.py` with a synced repo path when testing real data.
 
 ## Debian VPS Setup
 
@@ -193,10 +189,10 @@ Dish performs host operations as root, but the app only writes under
 `/var/lib/dish/project`, including client repo checkouts, sync state, uploads,
 Git config, and its client GitHub key.
 
-The current server serves `web/`, redirects `/` to the editor, exposes
+The FastAPI app serves `web/`, serves `/` as the editor, exposes
 `GET /api/health`, reads synced client deck data, serves synced media previews,
-and can save deck edits back to the client repo. Upload handling and full Jekyll
-validation are still pending.
+processes media uploads, and can save deck edits back to the client repo. Full
+Jekyll validation is still pending.
 
 ### Test Box Preflight
 
@@ -340,7 +336,7 @@ These can be adjusted with environment variables such as
 `PROMOCASTER_CONTROL_REPO_SIZE_WARN_GB` if the VPS is sized differently.
 
 Initial repo sync must never make the UI look frozen. A first clone can take a
-while, so editor/inspector should show a progress state while the server clones
+while, so editor/inspector should show a progress state while Control clones
 or fetches the client repo. The intended API shape is:
 
 ```http
@@ -359,8 +355,7 @@ Example response while a first clone is running:
 }
 ```
 
-The placeholder server already exposes that status endpoint. The future repo
-sync worker should write status JSON to
+The FastAPI app exposes that status endpoint. The future repo sync worker should write status JSON to
 `/var/lib/dish/project/sync` as
 it clones/fetches, and the UI should poll until `state` becomes `ready` before
 loading decks.
@@ -564,7 +559,7 @@ metadata, and write with quality 85. Videos are not transformed. If an uploaded
 image is smaller than 1920x1080, the save response includes a warning so the
 operator knows the source is below the 1080p target.
 
-Video uploads (`.mp4`) are inspected with `ffprobe` before commit. The server
+Video uploads (`.mp4`) are inspected with `ffprobe` before commit. Control
 rejects files that are not valid videos and warns when a video is below or above
 the 1920x1080 target, uses a non-H.264 codec, runs longer than 120 seconds, or
 is larger than 250 MB.
@@ -583,7 +578,7 @@ Source: Promocaster Control
 
 Standalone media uploads are not the current path. Media files are uploaded as
 part of `POST /api/clients/:client/decks` so YAML and files land in one commit.
-The server rejects invalid media filenames and unsupported extensions.
+Control rejects invalid media filenames and unsupported extensions.
 
 ### Publish
 

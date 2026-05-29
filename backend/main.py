@@ -322,6 +322,11 @@ def editor(request: Request):
     return templates.TemplateResponse("editor.html", {"request": request})
 
 
-@app.api_route("/inspector", methods=["GET", "HEAD"], response_class=HTMLResponse)
-def inspector(request: Request):
-    return templates.TemplateResponse("inspector.html", {"request": request})
+@app.api_route("/viewer", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def viewer(request: Request):
+    return templates.TemplateResponse("viewer.html", {"request": request})
+
+
+@app.api_route("/inspector", methods=["GET", "HEAD"], include_in_schema=False)
+def legacy_inspector():
+    return RedirectResponse(url="/viewer")

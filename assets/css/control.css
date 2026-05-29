@@ -93,7 +93,7 @@ button:not(.btn):hover {
   background: var(--accent-soft);
 }
 
-:is(.editor-shell, .inspector-shell) {
+:is(.editor-shell, .viewer-shell) {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
   min-height: 100vh;

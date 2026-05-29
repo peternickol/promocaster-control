@@ -253,7 +253,7 @@
 }
 
 @media (max-width: 960px) {
-  .inspector-shell {
+  .viewer-shell {
     grid-template-columns: 240px minmax(0, 1fr);
   }
 
@@ -268,7 +268,7 @@
 }
 
 @media (max-width: 760px) {
-  .inspector-shell {
+  .viewer-shell {
     grid-template-columns: 1fr;
   }
 

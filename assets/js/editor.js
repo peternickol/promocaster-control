@@ -14,7 +14,7 @@
   const saveDecks = document.getElementById("save-decks");
   const themeToggle = document.getElementById("theme-toggle");
   const themeStorageKey = "promocaster-admin-theme";
-  const legacyThemeStorageKeys = ["promocaster-editor-theme", "promocaster-inspector-theme"];
+  const legacyThemeStorageKeys = ["promocaster-editor-theme", "promocaster-viewer-theme"];
   const controlClient = document.body.dataset.client || "phgi";
 
   let data = { locations: [] };

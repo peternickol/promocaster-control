@@ -14,7 +14,7 @@
   const nextSlide = document.getElementById("next-slide");
   const themeToggle = document.getElementById("theme-toggle");
   const themeStorageKey = "promocaster-admin-theme";
-  const legacyThemeStorageKeys = ["promocaster-inspector-theme", "promocaster-editor-theme"];
+  const legacyThemeStorageKeys = ["promocaster-viewer-theme", "promocaster-editor-theme"];
   const controlClient = document.body.dataset.client || "phgi";
 
   let data = { locations: [] };
@@ -361,7 +361,7 @@
   }
 
   document.body.addEventListener("htmx:afterRequest", (event) => {
-    if (event.target?.id !== "inspector-data") return;
+    if (event.target?.id !== "viewer-data") return;
     const payload = parseJson(event.detail.xhr.responseText);
     if (payload) loadData(payload);
   });

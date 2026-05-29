@@ -34,7 +34,7 @@ through the API.
 
 ## Current Split
 
-- `backend/templates/` contains the editor and inspector pages.
+- `backend/templates/` contains the editor and viewer pages.
 - `assets/` contains shared CSS, JavaScript, images, and vendored browser assets.
 - `client.yml` is the control-side registry of clients and content repos.
 - Locations are derived from the synced client repo's `_data/media.yml`.
@@ -46,7 +46,7 @@ through the API.
   `/var/lib/dish/project/client/<directory>`, not under Dish's
   `/root/project` source checkout.
 
-The editor and inspector now load deck data from the synced client repo through
+The editor and viewer now load deck data from the synced client repo through
 `GET /api/clients/:client/decks`. The first save path is also wired:
 `POST /api/clients/:client/decks` rewrites `_data/media.yml`, deletes media that
 is no longer referenced anywhere, commits, and pushes the client repo.
@@ -58,7 +58,7 @@ This repo owns:
 - authenticated admin UI
 - client/location access control
 - users, sessions, roles, and authorization policy
-- deck editor and inspector
+- deck editor and viewer
 - media uploads
 - validation before publish
 - git writer/publisher for client repos
@@ -79,7 +79,7 @@ Client runtime/content repos, such as `/home/pan/temp/promocaster.phgi`, own:
 - `assets/js/promocaster.js`
 - `assets/css/promocaster.css`
 
-Do not put editor/inspector/admin assets back into client runtime repos.
+Do not put editor/viewer/admin assets back into client runtime repos.
 Do not add `dish.yml` to client runtime repos unless they are intentionally
 being hosted as standalone Dish projects.
 
@@ -338,7 +338,7 @@ These can be adjusted with environment variables such as
 `PROMOCASTER_CONTROL_REPO_SIZE_WARN_GB` if the VPS is sized differently.
 
 Initial repo sync must never make the UI look frozen. A first clone can take a
-while, so editor/inspector should show a progress state while Control clones
+while, so editor/viewer should show a progress state while Control clones
 or fetches the client repo. The intended API shape is:
 
 ```http
@@ -480,7 +480,7 @@ if needed, locks permissions down, and opens the private key in `$EDITOR` or
 ## API Contract
 
 Initial API shape for replacing the embedded Jekyll data used by the prototype
-editor and inspector.
+editor and viewer.
 
 ### Session
 

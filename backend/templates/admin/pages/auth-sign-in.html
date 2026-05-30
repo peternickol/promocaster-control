@@ -3,16 +3,10 @@
 {% block title %}Sign In - Promocaster Control{% endblock title %}
 
 {% block content %}
-<div class="flex min-h-screen items-center p-12.5">
+<div class="flex min-h-screen items-center bg-slate-950 p-12.5">
 <div class="container">
 <div class="flex justify-center">
 <div class="xl:w-5/6">
-<div class="absolute end-0 top-0">
-<img alt="auth-card-bg" src="{{ url_for('admin_assets', path='images/auth-card-bg.svg') }}"/>
-</div>
-<div class="absolute start-0 bottom-0 rotate-180">
-<img alt="auth-card-bg" src="{{ url_for('admin_assets', path='images/auth-card-bg.svg') }}"/>
-</div>
 <div class="card rounded-2xl">
 <div class="grid grid-cols-1 lg:grid-cols-2">
 <div class="card-body relative p-12.5">
@@ -63,18 +57,8 @@ Promocaster Control
 </p>
 </div>
 </div>
-<div class="relative hidden h-full overflow-hidden rounded-e-2xl bg-slate-950 lg:block">
-<div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(22,119,255,.28),transparent_32%),linear-gradient(135deg,#020617,#0f172a_55%,#111827)]"></div>
-<div class="relative flex h-full flex-col justify-between p-12.5 text-white">
-<div class="flex items-center gap-3">
-<img alt="Promocaster" class="size-11" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-light.svg') }}"/>
-<span class="text-xl font-bold">Promocaster</span>
-</div>
-<div>
-<p class="mb-3 text-sm font-semibold uppercase text-primary-200">Control Center</p>
-<h2 class="mb-4 text-3xl font-bold text-white">Manage every screen from one place.</h2>
-<p class="max-w-md text-base text-slate-300">Update decks, review client locations, and control access without leaving the Promocaster workflow.</p>
-</div>
+<div class="relative hidden h-full overflow-hidden rounded-e-2xl bg-slate-950 bg-cover bg-center lg:block" style="background-image: url({{ url_for('admin_assets', path='images/auth.jpg') }})">
+<div class="absolute inset-0 bg-slate-950/20"></div>
 </div>
 </div>
 </div>

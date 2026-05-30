@@ -55,7 +55,7 @@
 {% for client in deck_clients %}
 <li class="menu-item hs-accordion{% if client.id == selected_client_id %} active{% endif %}">
 <a aria-controls="promocaster-client-{{ client.id }}" aria-expanded="{{ 'true' if client.id == selected_client_id else 'false' }}" class="hs-accordion-toggle menu-link{% if client.id == selected_client_id %} bg-light/60{% endif %}" data-deck-nav-link href="{{ client.href }}">
-<span class="menu-icon"><i class="iconify tabler--building-store"></i></span>
+<span class="menu-icon"><i class="iconify tabler--briefcase"></i></span>
 <span class="menu-text" title="{{ client.name }}">{{ client.name }}</span>
 {% if client.locations %}
 <span class="menu-arrow"></span>

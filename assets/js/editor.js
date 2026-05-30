@@ -5,6 +5,7 @@
   const clientName = document.getElementById("client-name");
   const locationList = document.getElementById("location-list");
   const locationTitle = document.getElementById("location-title");
+  const summary = document.getElementById("summary");
   const deckSummary = document.getElementById("deck-summary");
   const slideList = document.getElementById("slide-list");
   const pendingFiles = document.getElementById("pending-files");
@@ -105,6 +106,18 @@
     return labels.join(" / ");
   }
 
+  function isExpired(expiresOn) {
+    if (!expiresOn) return false;
+    const expiresAt = new Date(`${expiresOn}T23:59:59`);
+    return Number.isFinite(expiresAt.getTime()) && Date.now() > expiresAt.getTime();
+  }
+
+  function hasStarted(startsOn) {
+    if (!startsOn) return true;
+    const startsAt = new Date(`${startsOn}T00:00:00`);
+    return !Number.isFinite(startsAt.getTime()) || Date.now() >= startsAt.getTime();
+  }
+
   function secondsToMs(seconds, fallbackSeconds = 10) {
     return Math.max(Math.round((Number(seconds) || fallbackSeconds) * 1000), 1000);
   }
@@ -137,16 +150,48 @@
     });
   }
 
+  function renderSummary(location) {
+    const slides = location?.slides || [];
+    const images = slides.filter((slide) => slide.type === "image").length;
+    const videos = slides.filter((slide) => slide.type === "video").length;
+    const scheduled = slides.filter((slide) => !hasStarted(slide.startsOn)).length;
+    const expired = slides.filter((slide) => isExpired(slide.expiresOn)).length;
+    const totalMs = slides.reduce((sum, slide) => (
+      sum + (slide.type === "video" ? Number(slide.maxDurationMs) || 0 : Number(slide.durationMs) || 0)
+    ), 0);
+
+    summary.replaceChildren(
+      summaryItem("Slides", slides.length),
+      summaryItem("Images", images),
+      summaryItem("Videos", videos),
+      summaryItem("Scheduled", scheduled),
+      summaryItem("Expired", expired),
+      summaryItem("Runtime", formatDuration(totalMs)),
+    );
+  }
+
+  function summaryItem(label, value) {
+    const wrapper = document.createElement("div");
+    const term = document.createElement("dt");
+    const detail = document.createElement("dd");
+    term.textContent = label;
+    detail.textContent = String(value);
+    wrapper.append(term, detail);
+    return wrapper;
+  }
+
   function renderSlides() {
     const location = getLocation();
     slideList.replaceChildren();
     if (!location) {
       locationTitle.textContent = "No locations";
       deckSummary.textContent = "0 slides";
+      summary.replaceChildren();
       return;
     }
 
     locationTitle.textContent = location.name;
+    renderSummary(location);
     const estimatedRuntime = location.slides.reduce((sum, slide) => (
       sum + (slide.type === "video" ? Number(slide.maxDurationMs) || 0 : Number(slide.durationMs) || 0)
     ), 0);

@@ -236,16 +236,20 @@
     const wrapper = document.createElement("div");
     wrapper.className = "timing-control";
 
+    const label = document.createElement("span");
+    label.className = "control-label";
+    label.textContent = slide.type === "video" ? "Timeout" : "Duration";
+
     if (slide.type === "video" && !slide.maxDurationMs) {
       const enable = document.createElement("button");
       enable.type = "button";
       enable.className = "timeout-enable btn btn-outline-secondary btn-sm";
-      enable.append(icon("timer"), document.createTextNode("Timeout"));
+      enable.append(icon("timer"), document.createTextNode("Set timeout"));
       enable.addEventListener("click", () => {
         slide.maxDurationMs = 5 * 60 * 1000;
         markChanged();
       });
-      wrapper.append(enable);
+      wrapper.append(label, enable);
       return wrapper;
     }
 
@@ -265,12 +269,14 @@
       }
       markChanged();
     });
-    wrapper.append(input);
-
     const unit = document.createElement("span");
     unit.className = "time-unit";
     unit.textContent = "sec";
-    wrapper.append(unit);
+
+    const inputGroup = document.createElement("div");
+    inputGroup.className = "duration-input-group";
+    inputGroup.append(input, unit);
+    wrapper.append(label, inputGroup);
 
     if (slide.type === "video") {
       const clear = document.createElement("button");
@@ -298,27 +304,31 @@
     const wrapper = document.createElement("div");
     wrapper.className = "schedule-control";
     wrapper.append(
-      dateControl(slide, index, "startsOn", "Enable start", "Start date"),
-      dateControl(slide, index, "expiresOn", "Enable expiration", "Expiration date"),
+      dateControl(slide, index, "startsOn", "Start", "Start date"),
+      dateControl(slide, index, "expiresOn", "End", "Expiration date"),
     );
     return wrapper;
   }
 
-  function dateControl(slide, index, field, enableLabel, ariaLabel) {
+  function dateControl(slide, index, field, labelText, ariaLabel) {
     const wrapper = document.createElement("div");
     wrapper.className = "date-control";
+
+    const label = document.createElement("span");
+    label.className = "control-label";
+    label.textContent = labelText;
 
     if (!slide[field]) {
       const enable = document.createElement("button");
       enable.type = "button";
       enable.className = "date-enable btn btn-outline-secondary btn-sm";
-      enable.append(icon(field === "startsOn" ? "calendar-plus" : "calendar-x"), document.createTextNode(enableLabel.replace("Enable ", "")));
+      enable.append(icon(field === "startsOn" ? "calendar-plus" : "calendar-x"), document.createTextNode(field === "startsOn" ? "Start" : "End"));
       enable.addEventListener("click", () => {
         slide[field] = todayYmd();
         dateFocus = { location: selectedLocation, index, field };
         markChanged();
       });
-      wrapper.append(enable);
+      wrapper.append(label, enable);
       return wrapper;
     }
 
@@ -344,7 +354,7 @@
       markChanged();
     });
 
-    wrapper.append(input, clear);
+    wrapper.append(label, input, clear);
     return wrapper;
   }
 

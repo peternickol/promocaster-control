@@ -46,6 +46,15 @@ through the API.
   `/var/lib/dish/project/client/<directory>`, not under Dish's
   `/root/project` source checkout.
 
+## UI Standards
+
+- Use Lucide for all UI icons across Promocaster projects.
+- Do not add new Iconify, Tabler, Solar, Boxicons, or mixed icon-system markup.
+- Use `data-lucide="icon-name"` in templates and call `lucide.createIcons()`
+  from the page or shared footer after the Lucide bundle loads.
+- Existing vendored/demo theme assets may contain other icon systems, but
+  product templates and project-owned CSS/JS should stay Lucide-only.
+
 The editor and viewer now load deck data from the synced client repo through
 `GET /api/clients/:client/decks`. The first save path is also wired:
 `POST /api/clients/:client/decks` rewrites `_data/media.yml`, deletes media that

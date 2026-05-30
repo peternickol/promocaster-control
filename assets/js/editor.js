@@ -300,6 +300,12 @@
     return `${now.getFullYear()}-${month}-${day}`;
   }
 
+  function normalizeSchedule(slide) {
+    if (!slide.startsOn || !slide.expiresOn) return;
+    if (slide.expiresOn >= slide.startsOn) return;
+    slide.expiresOn = slide.startsOn;
+  }
+
   function scheduleControl(slide, index) {
     const wrapper = document.createElement("div");
     wrapper.className = "schedule-control";
@@ -324,7 +330,9 @@
       enable.className = "date-enable btn btn-outline-secondary btn-sm";
       enable.append(icon(field === "startsOn" ? "calendar-plus" : "calendar-x"), document.createTextNode(field === "startsOn" ? "Start" : "End"));
       enable.addEventListener("click", () => {
-        slide[field] = todayYmd();
+        const today = todayYmd();
+        slide[field] = field === "expiresOn" && slide.startsOn && today < slide.startsOn ? slide.startsOn : today;
+        normalizeSchedule(slide);
         dateFocus = { location: selectedLocation, index, field };
         markChanged();
       });
@@ -337,11 +345,14 @@
     input.classList.add("form-control", "form-control-sm");
     input.type = "date";
     input.value = slide[field];
+    if (field === "startsOn" && slide.expiresOn) input.max = slide.expiresOn;
+    if (field === "expiresOn" && slide.startsOn) input.min = slide.startsOn;
     input.dataset.dateField = field;
     input.dataset.dateIndex = String(index);
     input.ariaLabel = `${ariaLabel} for ${slide.name}`;
     input.addEventListener("change", () => {
       slide[field] = input.value;
+      normalizeSchedule(slide);
       markChanged();
     });
 

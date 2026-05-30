@@ -7,7 +7,6 @@
 
 .deck-header {
   align-items: end;
-  padding: 2px 2px 0;
 }
 
 .deck-actions {
@@ -54,7 +53,7 @@
 }
 
 .add-panel {
-  padding: 14px;
+  padding: 0;
   background:
     linear-gradient(180deg, rgba(22, 119, 255, 0.035), rgba(22, 119, 255, 0)),
     color-mix(in srgb, var(--panel) 92%, var(--panel-alt));
@@ -113,7 +112,7 @@
 .editor-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
-  gap: 20px;
+  gap: 18px;
   align-items: start;
 }
 

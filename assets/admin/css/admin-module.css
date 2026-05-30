@@ -140,9 +140,14 @@ html[data-sidenav-size="condensed"] .app-menu .sub-menu {
 
 .promocaster-theme .pro-username {
     max-width: 220px;
+    color: #0f172a;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.promocaster-theme #user-dropdown-detailed .flex-col > span {
+    color: #64748b;
 }
 
 .promocaster-theme .app-menu {
@@ -442,6 +447,14 @@ html[data-theme="dark"] .promocaster-theme .topnav-toggle-button:focus {
 html[data-theme="dark"] .promocaster-theme #user-dropdown-detailed .topbar-link > span:first-child {
     background: rgba(96, 165, 250, 0.16);
     color: #93c5fd;
+}
+
+html[data-theme="dark"] .promocaster-theme .pro-username {
+    color: #e5edf8;
+}
+
+html[data-theme="dark"] .promocaster-theme #user-dropdown-detailed .flex-col > span {
+    color: #94a3b8;
 }
 
 html[data-theme="dark"] .promocaster-theme .card {

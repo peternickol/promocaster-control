@@ -64,7 +64,7 @@
 
   function setClientName(payload) {
     const name = payload?.client?.name || controlClient;
-    clientName.textContent = name;
+    if (clientName) clientName.textContent = name;
   }
 
   function formatDuration(ms) {
@@ -103,6 +103,7 @@
   }
 
   function renderLocations() {
+    if (!locationList) return;
     locationList.replaceChildren();
     data.locations.forEach((location) => {
       const button = document.createElement("button");

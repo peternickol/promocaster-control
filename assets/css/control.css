@@ -369,7 +369,7 @@ button:not(.btn):hover {
 
 .control-workspace {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   align-items: start;
 }
@@ -476,7 +476,7 @@ button:not(.btn):hover {
 
 @media (max-width: 1180px) {
   .control-workspace {
-    grid-template-columns: 240px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

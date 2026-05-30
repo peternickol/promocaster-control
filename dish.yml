@@ -9,17 +9,20 @@ requires:
     - python3
     - python3-pip
     - python3-venv
+    - sqlite3
   commands:
     - ffprobe
     - magick
     - python3
+    - sqlite3
 build:
   - python3 -m venv __DATA_DIR__/.venv
   - __DATA_DIR__/.venv/bin/python -m pip install --upgrade pip
   - __DATA_DIR__/.venv/bin/python -m pip install -r requirements.txt
   - __DATA_DIR__/.venv/bin/python -m py_compile backend/main.py backend/control.py bin/promocaster-control
   - __DATA_DIR__/.venv/bin/python -c "import backend.main"
-  - PROMOCASTER_CONTROL_DATA_DIR=__DATA_DIR__ PROMOCASTER_CONTROL_REPOS_DIR=__DATA_DIR__/client PROMOCASTER_CONTROL_SYNC_DIR=__DATA_DIR__/sync PROMOCASTER_CONTROL_SSH_DIR=__DATA_DIR__/ssh PROMOCASTER_CONTROL_GIT_CONFIG=__DATA_DIR__/gitconfig PROMOCASTER_CONTROL_SERVICE_USER=__SERVICE_USER__ ./bin/promocaster-control runtime prepare
+  - test -e __DATABASE_PATH__ || test ! -e __DATA_DIR__/control.sqlite3 || cp __DATA_DIR__/control.sqlite3 __DATABASE_PATH__
+  - PROMOCASTER_CONTROL_DATA_DIR=__DATA_DIR__ PROMOCASTER_CONTROL_AUTH_DB=__DATABASE_PATH__ PROMOCASTER_CONTROL_REPOS_DIR=__DATA_DIR__/client PROMOCASTER_CONTROL_SYNC_DIR=__DATA_DIR__/sync PROMOCASTER_CONTROL_SSH_DIR=__DATA_DIR__/ssh PROMOCASTER_CONTROL_GIT_CONFIG=__DATA_DIR__/gitconfig PROMOCASTER_CONTROL_SERVICE_USER=__SERVICE_USER__ ./bin/promocaster-control runtime prepare
 components:
   service_user: dish-project
   service:
@@ -38,6 +41,7 @@ components:
     PROMOCASTER_CONTROL_REPOS_DIR: __DATA_DIR__/client
     PROMOCASTER_CONTROL_SYNC_DIR: __DATA_DIR__/sync
     PROMOCASTER_CONTROL_SSH_DIR: __DATA_DIR__/ssh
+    PROMOCASTER_CONTROL_AUTH_DB: __DATABASE_PATH__
     PROMOCASTER_CONTROL_CLIENT_GITHUB_KEY: __DATA_DIR__/ssh/client_github_key
     PROMOCASTER_CONTROL_GIT_CONFIG: __DATA_DIR__/gitconfig
     PROMOCASTER_CONTROL_SERVICE_USER: __SERVICE_USER__
@@ -50,8 +54,7 @@ components:
   firewall:
     allow:
 database:
-  engine:
-  schema:
+  engine: sqlite
 publish:
   source: .
 refresh:

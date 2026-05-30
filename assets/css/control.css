@@ -357,6 +357,28 @@ button:not(.btn):hover {
 
 .promocaster-control-page {
   min-height: 100vh;
+  --bg: var(--color-body-bg);
+  --panel: var(--color-card);
+  --panel-alt: var(--color-light);
+  --text: var(--color-body-color);
+  --muted: var(--color-default-400);
+  --muted-strong: var(--color-default-500);
+  --border: rgba(148, 163, 184, 0.28);
+  --border-soft: rgba(148, 163, 184, 0.18);
+  --accent: var(--color-primary);
+  --accent-soft: rgba(22, 119, 255, 0.1);
+  --accent-border: rgba(22, 119, 255, 0.24);
+  --success: var(--color-success);
+  --success-soft: rgba(16, 185, 129, 0.12);
+  --warning: #b54708;
+  --warning-soft: rgba(245, 158, 11, 0.12);
+  --preview-bg: #05070d;
+  --badge-bg: rgba(15, 23, 42, 0.78);
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 10px 24px rgba(15, 23, 42, 0.04);
+  --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 22px rgba(15, 23, 42, 0.05);
+  --ok: #067647;
+  --error: #d92d20;
+  color: var(--text);
 }
 
 .promocaster-control-page .page-content main {
@@ -364,7 +386,11 @@ button:not(.btn):hover {
 }
 
 .promocaster-control-page .container-fluid {
-  padding-bottom: 24px;
+  padding-bottom: 28px;
+}
+
+.promocaster-control-page .page-title-head {
+  margin-bottom: 18px;
 }
 
 .control-workspace {
@@ -376,7 +402,7 @@ button:not(.btn):hover {
 
 .control-main {
   display: grid;
-  gap: 20px;
+  gap: 24px;
   min-width: 0;
 }
 
@@ -391,6 +417,31 @@ button:not(.btn):hover {
 .slide-library-card .card-header {
   align-items: center;
   gap: 12px;
+}
+
+.promocaster-control-page .deck-card,
+.promocaster-control-page .preview-panel,
+.promocaster-control-page .slide-library-card {
+  overflow: hidden;
+  border-color: var(--border);
+  background: var(--panel);
+}
+
+.promocaster-control-page .deck-card > .card-body,
+.promocaster-control-page .preview-panel > .card-body {
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+}
+
+.promocaster-control-page .deck-header,
+.promocaster-control-page .audit-header,
+.promocaster-control-page .slide-toolbar,
+.promocaster-control-page .section-header {
+  border-color: var(--border-soft);
+  background:
+    linear-gradient(180deg, rgba(22, 119, 255, 0.035), rgba(22, 119, 255, 0)),
+    color-mix(in srgb, var(--panel) 94%, var(--panel-alt));
 }
 
 .location-list {
@@ -426,6 +477,7 @@ button:not(.btn):hover {
 .preview-actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
   justify-content: flex-end;
 }
@@ -435,9 +487,9 @@ button:not(.btn):hover {
   align-items: center;
   gap: 3px;
   padding: 3px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-soft);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--panel-alt) 78%, transparent);
+  background: color-mix(in srgb, var(--panel-alt) 72%, transparent);
 }
 
 .control-mode-toggle a {
@@ -457,7 +509,9 @@ button:not(.btn):hover {
 
 .control-mode-toggle a:hover,
 .control-mode-toggle a.is-active {
-  background: var(--accent-soft);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0)),
+    var(--accent-soft);
   color: var(--accent);
   box-shadow: inset 0 0 0 1px var(--accent-border);
 }
@@ -472,6 +526,20 @@ button:not(.btn):hover {
 .icon-button .lucide {
   width: 16px;
   height: 16px;
+}
+
+html[data-theme="dark"] .promocaster-control-page {
+  --border: rgba(148, 163, 184, 0.2);
+  --border-soft: rgba(148, 163, 184, 0.14);
+  --accent-soft: rgba(22, 119, 255, 0.16);
+  --accent-border: rgba(96, 165, 250, 0.34);
+  --warning: #fdb022;
+  --warning-soft: rgba(253, 176, 34, 0.14);
+  --badge-bg: rgba(2, 6, 23, 0.84);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 16px 30px rgba(0, 0, 0, 0.22);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.28), 0 12px 24px rgba(0, 0, 0, 0.18);
+  --ok: #32d583;
+  --error: #ff8a7a;
 }
 
 @media (max-width: 1180px) {

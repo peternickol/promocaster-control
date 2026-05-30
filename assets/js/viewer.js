@@ -12,9 +12,6 @@
   const auditStatus = document.getElementById("audit-status");
   const prevSlide = document.getElementById("prev-slide");
   const nextSlide = document.getElementById("next-slide");
-  const themeToggles = Array.from(document.querySelectorAll("#theme-toggle, [data-control-theme-toggle]"));
-  const themeStorageKey = "promocaster-admin-theme";
-  const legacyThemeStorageKeys = ["promocaster-viewer-theme", "promocaster-editor-theme"];
   const controlClient = document.body.dataset.client || "";
   const initialLocation = document.body.dataset.location || "";
 
@@ -29,29 +26,6 @@
         "stroke-width": 2,
       },
     });
-  }
-
-  function preferredTheme() {
-    const stored = window.localStorage.getItem(themeStorageKey);
-    if (stored === "light" || stored === "dark") return stored;
-    for (const legacyKey of legacyThemeStorageKeys) {
-      const legacyTheme = window.localStorage.getItem(legacyKey);
-      if (legacyTheme === "light" || legacyTheme === "dark") {
-        window.localStorage.setItem(themeStorageKey, legacyTheme);
-        return legacyTheme;
-      }
-    }
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  }
-
-  function setTheme(theme, persist = true) {
-    const nextTheme = theme === "dark" ? "dark" : "light";
-    document.documentElement.dataset.theme = nextTheme;
-    document.documentElement.dataset.bsTheme = nextTheme;
-    themeToggles.forEach((toggle) => {
-      toggle.setAttribute("aria-label", `Switch to ${nextTheme === "dark" ? "light" : "dark"} mode`);
-    });
-    if (persist) window.localStorage.setItem(themeStorageKey, nextTheme);
   }
 
   function parseJson(text) {
@@ -392,11 +366,6 @@
     }
   }
 
-  themeToggles.forEach((toggle) => toggle.addEventListener("click", () => {
-    const currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
-    setTheme(currentTheme === "dark" ? "light" : "dark");
-  }));
-
   prevSlide.addEventListener("click", () => moveSlide(-1));
   nextSlide.addEventListener("click", () => moveSlide(1));
   window.addEventListener("hashchange", () => {
@@ -405,7 +374,6 @@
   });
   window.addEventListener("popstate", () => loadRemoteDecks());
 
-  setTheme(preferredTheme(), false);
   const embeddedData = parseJson(initialData?.textContent || "{}") || {};
   setClientName(embeddedData);
   loadData(embeddedData);

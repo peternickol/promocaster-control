@@ -12,9 +12,6 @@
   const saveStatus = document.getElementById("save-status");
   const mediaUpload = document.getElementById("media-upload");
   const saveDecks = document.getElementById("save-decks");
-  const themeToggles = Array.from(document.querySelectorAll("#theme-toggle, [data-control-theme-toggle]"));
-  const themeStorageKey = "promocaster-admin-theme";
-  const legacyThemeStorageKeys = ["promocaster-editor-theme", "promocaster-viewer-theme"];
   const controlClient = document.body.dataset.client || "";
   const initialLocation = document.body.dataset.location || "";
 
@@ -44,29 +41,6 @@
     } catch {
       return null;
     }
-  }
-
-  function preferredTheme() {
-    const stored = window.localStorage.getItem(themeStorageKey);
-    if (stored === "light" || stored === "dark") return stored;
-    for (const legacyKey of legacyThemeStorageKeys) {
-      const legacyTheme = window.localStorage.getItem(legacyKey);
-      if (legacyTheme === "light" || legacyTheme === "dark") {
-        window.localStorage.setItem(themeStorageKey, legacyTheme);
-        return legacyTheme;
-      }
-    }
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  }
-
-  function setTheme(theme, persist = true) {
-    const nextTheme = theme === "dark" ? "dark" : "light";
-    document.documentElement.dataset.theme = nextTheme;
-    document.documentElement.dataset.bsTheme = nextTheme;
-    themeToggles.forEach((toggle) => {
-      toggle.setAttribute("aria-label", `Switch to ${nextTheme === "dark" ? "light" : "dark"} mode`);
-    });
-    if (persist) window.localStorage.setItem(themeStorageKey, nextTheme);
   }
 
   function normalizeInitialData(payload) {
@@ -569,10 +543,6 @@
 
   mediaUpload.addEventListener("change", () => addFiles(mediaUpload.files));
   saveDecks.addEventListener("click", () => saveToRepo());
-  themeToggles.forEach((toggle) => toggle.addEventListener("click", () => {
-    const currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
-    setTheme(currentTheme === "dark" ? "light" : "dark");
-  }));
   window.addEventListener("hashchange", () => {
     const hashLocation = decodeURIComponent(window.location.hash.replace(/^#/, ""));
     if (hashLocation && getLocation(hashLocation)) {
@@ -582,7 +552,6 @@
   });
   window.addEventListener("popstate", () => loadRemoteDecks());
 
-  setTheme(preferredTheme(), false);
   const embeddedData = parseJson(initialData?.textContent || "{}") || {};
   setClientName(embeddedData);
   data = normalizeInitialData(embeddedData);

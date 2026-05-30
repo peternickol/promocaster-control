@@ -55,13 +55,13 @@
                       <strong>{{ location.name }}</strong>
                       <small>{{ location.slide_count }} {{ 'slide' if location.slide_count == 1 else 'slides' }}</small>
                     </span>
-                    <span class="client-location-open"><i class="iconify tabler--arrow-right"></i></span>
+                    <span class="client-location-open"><i class="iconify tabler--chevron-right"></i></span>
                   </a>
                   {% endfor %}
                 </div>
                 {% else %}
                 <div class="client-location-empty">
-                  <span class="client-location-icon"><i class="iconify tabler--map-pin-off"></i></span>
+                  <span class="client-location-icon"><i class="iconify tabler--map-pin"></i></span>
                   <div>
                     <h3>No locations found</h3>
                     <p>This client does not have location deck data loaded yet.</p>

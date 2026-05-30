@@ -501,6 +501,8 @@ def write_sync_status(client_id: str, state: str, message: str, **extra) -> None
     from datetime import datetime, timezone
 
     SYNC_DIR.mkdir(parents=True, exist_ok=True)
+    status_path = sync_status_path(client_id)
+    tmp_path = status_path.with_name(f".{status_path.name}.tmp")
     payload = {
         "client": client_id,
         "state": state,
@@ -508,7 +510,17 @@ def write_sync_status(client_id: str, state: str, message: str, **extra) -> None
         "updated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         **extra,
     }
-    sync_status_path(client_id).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    try:
+        tmp_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        tmp_path.chmod(0o640)
+        try:
+            shutil.chown(tmp_path, user=SERVICE_USER, group=SERVICE_USER)
+        except (LookupError, PermissionError):
+            pass
+        tmp_path.replace(status_path)
+    except PermissionError as exc:
+        tmp_path.unlink(missing_ok=True)
+        raise CommandError(f"cannot write sync status at {status_path}: {exc}; run dish refresh or promocaster-control runtime prepare") from exc
 
 
 def collect_checks() -> list[Check]:
@@ -568,6 +580,17 @@ def collect_checks() -> list[Check]:
         checks.append(Check("Client GitHub", "github auth", auth_status, auth_detail.splitlines()[0] if auth_detail else "empty", None if auth_status == "ok" else "add the public key to GitHub with access to the client repos"))
 
     return checks
+
+
+def command_runtime(args: argparse.Namespace) -> int:
+    if args.runtime_command == "prepare":
+        secure_data_paths()
+        print_ok("Prepared Promocaster Control runtime paths")
+        print(f"     data: {DATA_DIR}")
+        print(f"     repos: {REPOS_DIR}")
+        print(f"     sync: {SYNC_DIR}")
+        return 0
+    raise CommandError("unknown runtime command")
 
 
 def print_checks(checks: list[Check]) -> int:
@@ -752,6 +775,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     auth_sub = auth.add_subparsers(dest="auth_command", required=True)
     auth_sub.add_parser("setup-token", help="Print the first-admin setup token if setup is still pending")
+    runtime = sub.add_parser("runtime", help="Prepare runtime path ownership")
+    runtime_sub = runtime.add_subparsers(dest="runtime_command", required=True)
+    runtime_sub.add_parser("prepare", help="Create and repair runtime data directories")
     client_repo = sub.add_parser(
         "client-repo",
         help="Sync and inspect configured client repos",
@@ -803,6 +829,14 @@ def main(argv: list[str] | None = None) -> int:
             ],
         )
         return 2
+    if argv == ["runtime"]:
+        print_missing_command_help(
+            runtime,
+            [],
+            "No runtime command provided.",
+            ["use `promocaster-control runtime prepare` to repair runtime path ownership."],
+        )
+        return 2
     if argv == ["client-repo"]:
         print_missing_command_help(
             client_repo,
@@ -824,6 +858,8 @@ def main(argv: list[str] | None = None) -> int:
             return command_client_github_key(args)
         if args.command == "auth":
             return command_auth(args)
+        if args.command == "runtime":
+            return command_runtime(args)
         if args.command == "client-repo":
             return command_client_repo(args)
     except CommandError as exc:

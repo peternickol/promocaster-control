@@ -51,7 +51,7 @@ templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
 admin_templates = Jinja2Templates(directory=str(ADMIN_TEMPLATE_DIR))
 
 
-def deck_nav(mode: str = "editor") -> list[dict]:
+def deck_nav(mode: str = "viewer") -> list[dict]:
     clients = []
     for client_id, config in load_clients().items():
         locations = []
@@ -81,18 +81,18 @@ def deck_nav(mode: str = "editor") -> list[dict]:
     return clients
 
 
-def deck_href(client: str, location: str = "", mode: str = "editor") -> str:
-    selected_mode = "viewer" if mode == "viewer" else "editor"
+def deck_href(client: str, location: str = "", mode: str = "viewer") -> str:
+    selected_mode = "editor" if mode == "editor" else "viewer"
     path = f"/deck/{quote(client, safe='')}"
     if location:
         path += f"/{quote(location, safe='')}"
     return f"{path}?mode={selected_mode}"
 
 
-def first_deck_href(mode: str = "editor") -> str:
+def first_deck_href(mode: str = "viewer") -> str:
     nav = deck_nav(mode)
     if not nav:
-        return f"/deck?mode={'viewer' if mode == 'viewer' else 'editor'}"
+        return f"/deck?mode={'editor' if mode == 'editor' else 'viewer'}"
     first_client = nav[0]
     if first_client["locations"]:
         return first_client["locations"][0]["href"]
@@ -105,7 +105,7 @@ def admin_context(request: Request, page_title: str = "Dashboard") -> dict:
         or request.headers.get("X-Remote-Role")
         or "admin"
     ).strip().lower()
-    mode = request.query_params.get("mode", "editor")
+    mode = request.query_params.get("mode", "viewer")
     return {
         "request": request,
         "title": page_title,
@@ -118,7 +118,7 @@ def admin_context(request: Request, page_title: str = "Dashboard") -> dict:
         "selected_location_name": "",
         "editor_href": "/deck?mode=editor",
         "viewer_href": "/deck?mode=viewer",
-        "deck_mode": "viewer" if mode == "viewer" else "editor",
+        "deck_mode": "editor" if mode == "editor" else "viewer",
         "show_components": False,
         "sidebar_variant": "promocaster",
     }
@@ -453,13 +453,13 @@ def login_submit() -> RedirectResponse:
 
 
 @app.api_route("/deck", methods=["GET", "HEAD"], response_class=HTMLResponse)
-def deck(request: Request, mode: str = "editor"):
+def deck(request: Request, mode: str = "viewer"):
     return RedirectResponse(url=first_deck_href(mode), status_code=307)
 
 
 @app.api_route("/deck/{client}", methods=["GET", "HEAD"], response_class=HTMLResponse)
-def deck_client(request: Request, client: str, mode: str = "editor"):
-    selected_mode = "viewer" if mode == "viewer" else "editor"
+def deck_client(request: Request, client: str, mode: str = "viewer"):
+    selected_mode = "editor" if mode == "editor" else "viewer"
     context = admin_context(request, "Viewer" if selected_mode == "viewer" else "Editor")
     context["deck_mode"] = selected_mode
     context["selected_client_id"] = client
@@ -473,8 +473,8 @@ def deck_client(request: Request, client: str, mode: str = "editor"):
 
 
 @app.api_route("/deck/{client}/{location:path}", methods=["GET", "HEAD"], response_class=HTMLResponse)
-def deck_location(request: Request, client: str, location: str, mode: str = "editor"):
-    selected_mode = "viewer" if mode == "viewer" else "editor"
+def deck_location(request: Request, client: str, location: str, mode: str = "viewer"):
+    selected_mode = "editor" if mode == "editor" else "viewer"
     context = admin_context(request, "Viewer" if selected_mode == "viewer" else "Editor")
     context["deck_mode"] = selected_mode
     context["selected_client_id"] = client

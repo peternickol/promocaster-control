@@ -356,6 +356,7 @@ html[data-theme="light"] .promocaster-theme .app-menu {
 
 html[data-theme="light"] .promocaster-theme .app-menu .logo-box {
     border-bottom-color: rgba(148, 163, 184, 0.18);
+    color: #0f172a;
 }
 
 html[data-theme="light"] .promocaster-theme .app-menu .logo-light {

@@ -63,8 +63,18 @@ Promocaster Control
 </p>
 </div>
 </div>
-<div class="relative hidden h-full overflow-hidden rounded-e-2xl bg-cover bg-center object-cover lg:block" style="background-image: url({{ url_for('admin_assets', path='images/auth.jpg') }})">
-<div class="absolute inset-0 flex items-end justify-center rounded-e-sm p-9 [background:linear-gradient(to_top,#0f172a,rgba(15,23,42,.76),rgba(15,23,42,.35))]">
+<div class="relative hidden h-full overflow-hidden rounded-e-2xl bg-slate-950 lg:block">
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(22,119,255,.28),transparent_32%),linear-gradient(135deg,#020617,#0f172a_55%,#111827)]"></div>
+<div class="relative flex h-full flex-col justify-between p-12.5 text-white">
+<div class="flex items-center gap-3">
+<img alt="Promocaster" class="size-11" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-light.svg') }}"/>
+<span class="text-xl font-bold">Promocaster</span>
+</div>
+<div>
+<p class="mb-3 text-sm font-semibold uppercase text-primary-200">Control Center</p>
+<h2 class="mb-4 text-3xl font-bold text-white">Manage every screen from one place.</h2>
+<p class="max-w-md text-base text-slate-300">Update decks, review client locations, and control access without leaving the Promocaster workflow.</p>
+</div>
 </div>
 </div>
 </div>

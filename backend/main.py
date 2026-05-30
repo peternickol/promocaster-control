@@ -4,6 +4,7 @@ import json
 import mimetypes
 import posixpath
 import re
+import sqlite3
 from http import HTTPStatus
 from pathlib import Path
 from urllib.parse import quote, unquote
@@ -15,6 +16,25 @@ from fastapi.templating import Jinja2Templates
 from jinja2 import TemplateNotFound
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from backend.auth import (
+    SETUP_TOKEN_PATH,
+    ROLE_LABELS,
+    SESSION_COOKIE,
+    allowed_client_ids,
+    authenticate,
+    consume_setup_token,
+    create_session,
+    create_user,
+    delete_session,
+    get_user,
+    init_auth_db,
+    list_users,
+    set_user_clients,
+    update_user,
+    user_for_session,
+    users_exist,
+    verify_setup_token,
+)
 from backend.control import (
     ASSETS_DIR,
     CLIENTS_FILE,
@@ -51,9 +71,57 @@ templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
 admin_templates = Jinja2Templates(directory=str(ADMIN_TEMPLATE_DIR))
 
 
-def deck_nav(mode: str = "viewer") -> list[dict]:
+def request_user(request: Request) -> dict | None:
+    if hasattr(request.state, "user"):
+        return request.state.user
+    user = user_for_session(request.cookies.get(SESSION_COOKIE))
+    request.state.user = user
+    return user
+
+
+def login_redirect(request: Request) -> RedirectResponse:
+    next_path = request.url.path
+    if request.url.query:
+        next_path = f"{next_path}?{request.url.query}"
+    return RedirectResponse(url=f"/?next={quote(next_path, safe='/?=&')}", status_code=303)
+
+
+def safe_next_path(next_path: str | None) -> str:
+    next_path = (next_path or "/deck").strip() or "/deck"
+    if not next_path.startswith("/") or next_path.startswith("//"):
+        return "/deck"
+    return next_path
+
+
+def require_user(request: Request) -> dict:
+    user = request_user(request)
+    if not user:
+        raise HTTPException(status_code=401)
+    return user
+
+
+def require_admin(request: Request) -> dict:
+    user = require_user(request)
+    if user["role"] != "admin":
+        raise HTTPException(status_code=403)
+    return user
+
+
+def ensure_client_access(request: Request, client: str) -> dict:
+    user = require_user(request)
+    if client not in allowed_client_ids(user):
+        raise HTTPException(status_code=403)
+    return user
+
+
+def deck_nav(mode: str = "viewer", user: dict | None = None) -> list[dict]:
     clients = []
+    allowed = allowed_client_ids(user)
     for client_id, config in load_clients().items():
+        if allowed and client_id not in allowed:
+            continue
+        if not allowed and user is not None:
+            continue
         locations = []
         media_yml = repo_path(client_id) / "_data" / "media.yml"
         if media_yml.exists():
@@ -91,8 +159,8 @@ def deck_href(client: str, location: str = "", mode: str = "viewer") -> str:
     return path
 
 
-def first_deck_href(mode: str = "viewer") -> str:
-    nav = deck_nav(mode)
+def first_deck_href(mode: str = "viewer", user: dict | None = None) -> str:
+    nav = deck_nav(mode, user)
     if not nav:
         return "/deck?mode=editor" if mode == "editor" else "/deck"
     first_client = nav[0]
@@ -102,20 +170,18 @@ def first_deck_href(mode: str = "viewer") -> str:
 
 
 def admin_context(request: Request, page_title: str = "Dashboard") -> dict:
-    role = (
-        request.headers.get("X-Promocaster-Role")
-        or request.headers.get("X-Remote-Role")
-        or "admin"
-    ).strip().lower()
+    user = request_user(request)
+    role = (user or {}).get("role", "viewer")
     mode = request.query_params.get("mode", "viewer")
     return {
         "request": request,
         "title": page_title,
         "admin_title": "Promocaster Control",
-        "admin_user": "Peter Lawson",
-        "admin_role": "Administrator" if role == "admin" else "User",
+        "current_user": user,
+        "admin_user": (user or {}).get("email", "Promocaster"),
+        "admin_role": ROLE_LABELS.get(role, role.title()),
         "is_admin": role == "admin",
-        "deck_clients": deck_nav(mode),
+        "deck_clients": deck_nav(mode, user),
         "selected_client_id": "",
         "selected_location_name": "",
         "editor_href": "/deck?mode=editor",
@@ -124,6 +190,51 @@ def admin_context(request: Request, page_title: str = "Dashboard") -> dict:
         "show_components": False,
         "sidebar_variant": "promocaster",
     }
+
+
+def client_choices() -> list[dict]:
+    return [
+        {"id": client_id, "name": config.get("name") or client_id}
+        for client_id, config in sorted(load_clients().items(), key=lambda item: (item[1].get("name") or item[0]).lower())
+    ]
+
+
+def user_admin_context(request: Request, page_title: str, **extra) -> dict:
+    context = admin_context(request, page_title)
+    context.update(
+        {
+            "roles": ROLE_LABELS,
+            "clients": client_choices(),
+            "form_error": "",
+            "form_values": {},
+        }
+    )
+    context.update(extra)
+    return context
+
+
+async def user_form_data(request: Request, *, require_password: bool) -> tuple[dict, list[str], str]:
+    form = await request.form()
+    password = str(form.get("password") or "")
+    confirm_password = str(form.get("confirm_password") or "")
+    data = {
+        "email": str(form.get("email") or "").strip(),
+        "role": str(form.get("role") or "viewer").strip().lower(),
+        "active": str(form.get("status") or "active") == "active",
+        "password": password,
+    }
+    client_ids = [str(client_id) for client_id in form.getlist("client_ids")]
+    if not data["email"]:
+        return data, client_ids, "Email is required."
+    if data["role"] not in ROLE_LABELS:
+        return data, client_ids, "Choose a valid role."
+    if require_password and not password:
+        return data, client_ids, "Password is required."
+    if password and password != confirm_password:
+        return data, client_ids, "Passwords do not match."
+    if data["role"] != "admin" and not client_ids:
+        return data, client_ids, "Assign at least one client for editor and viewer users."
+    return data, client_ids, ""
 
 
 def repo_path(client: str) -> Path:
@@ -135,6 +246,9 @@ def api_error(error: str, message: str, status_code: int) -> JSONResponse:
 
 
 def authenticated_user(request: Request) -> str:
+    user = request_user(request)
+    if user:
+        return user.get("email") or "unknown"
     return (
         request.headers.get("X-Promocaster-User")
         or request.headers.get("Remote-User")
@@ -252,6 +366,26 @@ def ensure_runtime_dirs() -> None:
     if not TEMPLATE_DIR.exists():
         raise RuntimeError(f"template directory does not exist: {TEMPLATE_DIR}")
     SYNC_DIR.mkdir(parents=True, exist_ok=True)
+    init_auth_db()
+
+
+@app.middleware("http")
+async def require_authentication(request: Request, call_next):
+    path = request.url.path
+    public = (
+        path == "/"
+        or path == "/login"
+        or path == "/setup"
+        or path.startswith("/assets/")
+        or path.startswith("/admin/assets/")
+        or path == "/api/health"
+    )
+    request.state.user = user_for_session(request.cookies.get(SESSION_COOKIE))
+    if not public and not request.state.user:
+        if path.startswith("/api/"):
+            return api_error("not_authenticated", "Sign in required", 401)
+        return login_redirect(request)
+    return await call_next(request)
 
 
 @app.get("/api/health")
@@ -266,13 +400,21 @@ def health() -> dict:
     }
 
 
+@app.get("/api/me")
+def api_me(request: Request) -> dict:
+    user = require_user(request)
+    return {"user": user, "clients": deck_nav("viewer", user)}
+
+
 @app.get("/api/clients/{client}/sync/status")
-def sync_status(client: str) -> dict:
+def sync_status(request: Request, client: str) -> dict:
+    ensure_client_access(request, client)
     return read_sync_status(client)
 
 
 @app.get("/api/clients/{client}/decks")
-def get_decks(client: str):
+def get_decks(request: Request, client: str):
+    ensure_client_access(request, client)
     path = repo_path(client)
     media_yml = path / "_data" / "media.yml"
     if not path.exists():
@@ -287,6 +429,7 @@ def get_decks(client: str):
 
 @app.api_route("/api/clients/{client}/media/{requested_name:path}", methods=["GET", "HEAD"])
 def get_media(client: str, requested_name: str, request: Request):
+    ensure_client_access(request, client)
     safe_name = posixpath.normpath("/" + unquote(requested_name)).lstrip("/")
     if safe_name.startswith("../") or safe_name == "..":
         raise HTTPException(status_code=403)
@@ -341,6 +484,9 @@ async def save_decks(
     deck: str | None = Form(default=None),
     media: list[UploadFile] | None = File(default=None),
 ):
+    user = ensure_client_access(request, client)
+    if user["role"] not in {"admin", "editor"}:
+        return api_error("not_authorized", "Editor access required", 403)
     try:
         payload, uploads = await read_save_request(request, deck, media or [])
         path = repo_path(client)
@@ -443,25 +589,105 @@ async def save_decks(
 
 
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
-def login(request: Request):
+def login(request: Request, next: str = "/deck", error: str = ""):
+    next = safe_next_path(next)
+    if not users_exist():
+        return admin_templates.TemplateResponse(
+            "pages/auth-sign-in.html",
+            {
+                **admin_context(request, "Set Up"),
+                "setup_mode": True,
+                "next": next,
+                "login_error": error,
+                "setup_token_path": str(SETUP_TOKEN_PATH),
+            },
+        )
+    if request_user(request):
+        return RedirectResponse(url=next, status_code=303)
     return admin_templates.TemplateResponse(
         "pages/auth-sign-in.html",
-        admin_context(request, "Sign In"),
+        {**admin_context(request, "Sign In"), "setup_mode": False, "next": next, "login_error": error},
     )
 
 
 @app.post("/login", response_class=RedirectResponse)
-def login_submit() -> RedirectResponse:
-    return RedirectResponse(url="/deck", status_code=303)
+def login_submit(
+    request: Request,
+    email: str = Form(default=""),
+    password: str = Form(default=""),
+    remember: str | None = Form(default=None),
+    next: str = Form(default="/deck"),
+) -> RedirectResponse:
+    user = authenticate(email, password)
+    if not user:
+        return RedirectResponse(url=f"/?error=invalid&next={quote(safe_next_path(next), safe='/?=&')}", status_code=303)
+    token, expires = create_session(user["id"], remember=bool(remember))
+    response = RedirectResponse(url=safe_next_path(next), status_code=303)
+    response.set_cookie(
+        SESSION_COOKIE,
+        token,
+        expires=expires,
+        httponly=True,
+        secure=request.url.scheme == "https",
+        samesite="lax",
+    )
+    return response
+
+
+@app.post("/setup", response_class=RedirectResponse)
+def setup_submit(
+    request: Request,
+    setup_token: str = Form(default=""),
+    email: str = Form(default=""),
+    password: str = Form(default=""),
+    confirm_password: str = Form(default=""),
+) -> RedirectResponse:
+    if users_exist():
+        return RedirectResponse(url="/", status_code=303)
+    if (
+        not verify_setup_token(setup_token)
+        or not email.strip()
+        or not password
+        or password != confirm_password
+    ):
+        return RedirectResponse(url="/?error=setup", status_code=303)
+    user_id = create_user(
+        {
+            "email": email,
+            "role": "admin",
+            "active": True,
+            "password": password,
+        },
+        [],
+    )
+    consume_setup_token()
+    token, expires = create_session(user_id, remember=False)
+    response = RedirectResponse(url="/deck", status_code=303)
+    response.set_cookie(SESSION_COOKIE, token, expires=expires, httponly=True, secure=request.url.scheme == "https", samesite="lax")
+    return response
+
+
+@app.api_route("/logout", methods=["GET", "POST"], response_class=RedirectResponse)
+def logout(request: Request) -> RedirectResponse:
+    delete_session(request.cookies.get(SESSION_COOKIE))
+    response = RedirectResponse(url="/", status_code=303)
+    response.delete_cookie(SESSION_COOKIE)
+    return response
 
 
 @app.api_route("/deck", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def deck(request: Request, mode: str = "viewer"):
-    return RedirectResponse(url=first_deck_href(mode), status_code=307)
+    nav = deck_nav(mode, require_user(request))
+    if not nav:
+        raise HTTPException(status_code=403)
+    first_client = nav[0]
+    href = first_client["locations"][0]["href"] if first_client["locations"] else first_client["href"]
+    return RedirectResponse(url=href, status_code=307)
 
 
 @app.api_route("/deck/{client}", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def deck_client(request: Request, client: str, mode: str = "viewer"):
+    ensure_client_access(request, client)
     selected_mode = "editor" if mode == "editor" else "viewer"
     context = admin_context(request, "Viewer" if selected_mode == "viewer" else "Editor")
     context["deck_mode"] = selected_mode
@@ -470,13 +696,14 @@ def deck_client(request: Request, client: str, mode: str = "viewer"):
     context["selected_location_name"] = ""
     context["editor_href"] = deck_href(client, "", "editor")
     context["viewer_href"] = deck_href(client, "", "viewer")
-    context["deck_clients"] = deck_nav(selected_mode)
+    context["deck_clients"] = deck_nav(selected_mode, request_user(request))
     template_name = "viewer.html" if selected_mode == "viewer" else "editor.html"
     return templates.TemplateResponse(template_name, context)
 
 
 @app.api_route("/deck/{client}/{location:path}", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def deck_location(request: Request, client: str, location: str, mode: str = "viewer"):
+    ensure_client_access(request, client)
     selected_mode = "editor" if mode == "editor" else "viewer"
     context = admin_context(request, "Viewer" if selected_mode == "viewer" else "Editor")
     context["deck_mode"] = selected_mode
@@ -485,22 +712,131 @@ def deck_location(request: Request, client: str, location: str, mode: str = "vie
     context["selected_location_name"] = unquote(location)
     context["editor_href"] = deck_href(client, unquote(location), "editor")
     context["viewer_href"] = deck_href(client, unquote(location), "viewer")
-    context["deck_clients"] = deck_nav(selected_mode)
+    context["deck_clients"] = deck_nav(selected_mode, request_user(request))
     template_name = "viewer.html" if selected_mode == "viewer" else "editor.html"
     return templates.TemplateResponse(template_name, context)
 
 
 @app.api_route("/admin", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def admin_home(request: Request):
+    require_admin(request)
     return RedirectResponse(url="/dashboard", status_code=307)
 
 
 @app.api_route("/dashboard", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def dashboard(request: Request):
+    require_admin(request)
     return admin_templates.TemplateResponse(
         "pages/promocaster-dashboard.html",
         admin_context(request, "Dashboard"),
     )
+
+
+@app.api_route("/user", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def users_page(request: Request):
+    require_admin(request)
+    return admin_templates.TemplateResponse(
+        "pages/promocaster-users.html",
+        user_admin_context(request, "Users", users=list_users()),
+    )
+
+
+@app.api_route("/user/new", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def user_new_page(request: Request):
+    require_admin(request)
+    return admin_templates.TemplateResponse(
+        "pages/promocaster-user-add.html",
+        user_admin_context(request, "Add User", form_values={"role": "editor", "status": "active", "client_ids": []}),
+    )
+
+
+@app.post("/user/new", response_class=HTMLResponse)
+async def user_new_submit(request: Request):
+    require_admin(request)
+    data, client_ids, error = await user_form_data(request, require_password=True)
+    if error:
+        data["client_ids"] = client_ids
+        data["status"] = "active" if data.get("active") else "disabled"
+        return admin_templates.TemplateResponse(
+            "pages/promocaster-user-add.html",
+            user_admin_context(request, "Add User", form_error=error, form_values=data),
+            status_code=400,
+        )
+    try:
+        user_id = create_user(data, client_ids)
+    except sqlite3.IntegrityError:
+        data["client_ids"] = client_ids
+        data["status"] = "active" if data.get("active") else "disabled"
+        return admin_templates.TemplateResponse(
+            "pages/promocaster-user-add.html",
+            user_admin_context(request, "Add User", form_error="Email already exists.", form_values=data),
+            status_code=400,
+        )
+    return RedirectResponse(url=f"/user/edit/{user_id}", status_code=303)
+
+
+@app.api_route("/user/edit/{user_id}", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def user_edit_page(request: Request, user_id: int):
+    require_admin(request)
+    edit_user = get_user(user_id)
+    if not edit_user:
+        raise HTTPException(status_code=404)
+    return admin_templates.TemplateResponse(
+        "pages/promocaster-user-edit.html",
+        user_admin_context(request, "Edit User", edit_user=edit_user),
+    )
+
+
+@app.post("/user/edit/{user_id}", response_class=HTMLResponse)
+async def user_edit_submit(request: Request, user_id: int):
+    require_admin(request)
+    edit_user = get_user(user_id)
+    if not edit_user:
+        raise HTTPException(status_code=404)
+    data, client_ids, error = await user_form_data(request, require_password=False)
+    if error:
+        data["id"] = user_id
+        data["clients"] = client_ids
+        data["status"] = "active" if data.get("active") else "disabled"
+        return admin_templates.TemplateResponse(
+            "pages/promocaster-user-edit.html",
+            user_admin_context(request, "Edit User", form_error=error, edit_user=data),
+            status_code=400,
+        )
+    try:
+        update_user(user_id, data, client_ids)
+    except sqlite3.IntegrityError:
+        data["id"] = user_id
+        data["clients"] = client_ids
+        data["status"] = "active" if data.get("active") else "disabled"
+        return admin_templates.TemplateResponse(
+            "pages/promocaster-user-edit.html",
+            user_admin_context(request, "Edit User", form_error="Email already exists.", edit_user=data),
+            status_code=400,
+        )
+    return RedirectResponse(url=f"/user/edit/{user_id}", status_code=303)
+
+
+@app.api_route("/access", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def access_page(request: Request):
+    require_admin(request)
+    return admin_templates.TemplateResponse(
+        "pages/promocaster-access.html",
+        user_admin_context(request, "Access", users=list_users()),
+    )
+
+
+@app.post("/access", response_class=HTMLResponse)
+async def access_submit(request: Request):
+    require_admin(request)
+    form = await request.form()
+    user_id = int(str(form.get("user_id") or "0") or 0)
+    edit_user = get_user(user_id)
+    if not edit_user:
+        raise HTTPException(status_code=404)
+    if edit_user["role"] != "admin":
+        set_user_clients(user_id, [str(client_id) for client_id in form.getlist("client_ids")])
+    return RedirectResponse(url="/access", status_code=303)
 
 
 ADMIN_PAGE_ROUTES = {
@@ -517,6 +853,8 @@ ADMIN_PAGE_ROUTES = {
 
 @app.api_route("/{page_path:path}", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def admin_flat_page(request: Request, page_path: str):
+    if page_path in {"clients", "client", "client-sync", "user", "user/edit", "user/new", "access"}:
+        require_admin(request)
     safe_path = posixpath.normpath("/" + unquote(page_path)).lstrip("/")
     route = ADMIN_PAGE_ROUTES.get(safe_path)
     if not route:

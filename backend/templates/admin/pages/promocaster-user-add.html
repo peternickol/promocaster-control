@@ -17,56 +17,50 @@
 <main>
 {% include 'partials/page-title.html' %}
 <div class="container-fluid">
+{% if form_error %}
+<div class="mb-4 rounded-md border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">{{ form_error }}</div>
+{% endif %}
+<form action="/user/new" method="post">
 <div class="grid grid-cols-1 gap-base xl:grid-cols-[1fr_360px]">
 <div class="card">
 <div class="card-header">
 <h4 class="card-title">User Details</h4>
 </div>
 <div class="card-body grid gap-5">
-<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-<label class="grid gap-1">
-<span class="text-sm font-semibold">Display Name</span>
-<input class="form-input" type="text" placeholder="Jane Smith">
-</label>
-<label class="grid gap-1">
-<span class="text-sm font-semibold">Username</span>
-<input class="form-input" type="text" placeholder="jane">
-</label>
-</div>
 <label class="grid gap-1">
 <span class="text-sm font-semibold">Email</span>
-<input class="form-input" type="email" placeholder="jane@example.com">
+<input class="form-input" name="email" required type="email" placeholder="jane@example.com" value="{{ form_values.email or '' }}">
 </label>
 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 <label class="grid gap-1">
 <span class="text-sm font-semibold">Role</span>
-<select class="form-select">
-<option>Admin</option>
-<option selected>Editor</option>
-<option>Viewer</option>
+<select class="form-select" name="role">
+{% for role, label in roles.items() %}
+<option value="{{ role }}" {% if (form_values.role or 'editor') == role %}selected{% endif %}>{{ label }}</option>
+{% endfor %}
 </select>
 </label>
 <label class="grid gap-1">
 <span class="text-sm font-semibold">Status</span>
-<select class="form-select">
-<option selected>Active</option>
-<option>Disabled</option>
+<select class="form-select" name="status">
+<option value="active" {% if (form_values.status or 'active') == 'active' %}selected{% endif %}>Active</option>
+<option value="disabled" {% if form_values.status == 'disabled' %}selected{% endif %}>Disabled</option>
 </select>
 </label>
 </div>
 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 <label class="grid gap-1">
 <span class="text-sm font-semibold">Initial Password</span>
-<input class="form-input" type="password">
+<input class="form-input" name="password" required type="password">
 </label>
 <label class="grid gap-1">
 <span class="text-sm font-semibold">Confirm Password</span>
-<input class="form-input" type="password">
+<input class="form-input" name="confirm_password" required type="password">
 </label>
 </div>
 <div class="flex flex-wrap gap-2">
 <a class="btn bg-light hover:text-primary" href="/user">Cancel</a>
-<button class="btn bg-primary text-white hover:bg-primary-hover" type="button">Create User</button>
+<button class="btn bg-primary text-white hover:bg-primary-hover" type="submit">Create User</button>
 </div>
 </div>
 </div>
@@ -76,10 +70,14 @@
 <h4 class="card-title">Client Access</h4>
 </div>
 <div class="card-body grid gap-3">
+{% for client in clients %}
 <label class="flex items-center gap-2">
-<input class="form-checkbox" type="checkbox" checked>
-<span>PHGI</span>
+<input class="form-checkbox" name="client_ids" type="checkbox" value="{{ client.id }}" {% if client.id in (form_values.client_ids or []) %}checked{% endif %}>
+<span>{{ client.name }}</span>
 </label>
+{% else %}
+<p class="text-sm text-default-400">No clients are configured in client.yml.</p>
+{% endfor %}
 <a class="btn bg-light hover:text-primary justify-start" href="/access"><i class="iconify tabler--shield-lock"></i>Manage Access Rules</a>
 </div>
 </div>
@@ -95,6 +93,7 @@
 </div>
 </div>
 </div>
+</form>
 </div>
 </main>
 {% include 'partials/footer.html' %}

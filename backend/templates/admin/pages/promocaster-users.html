@@ -35,7 +35,9 @@
 </select>
 <select class="form-select w-auto">
 <option>All clients</option>
-<option>PHGI</option>
+{% for client in clients %}
+<option>{{ client.name }}</option>
+{% endfor %}
 </select>
 </div>
 </div>
@@ -45,48 +47,47 @@
 <tr><th>User</th><th>Role</th><th>Access</th><th>Status</th><th class="text-end">Actions</th></tr>
 </thead>
 <tbody>
+{% for user in users %}
 <tr>
 <td>
 <div>
-<p class="font-semibold">Peter Lawson</p>
-<p class="text-xs text-default-400">peter@promocaster.local</p>
+<p class="font-semibold">{{ user.email }}</p>
 </div>
 </td>
-<td><span class="badge badge-label bg-primary/15 text-primary">Admin</span></td>
-<td><span class="badge badge-label bg-primary/15 text-primary">Implicit full access</span></td>
-<td><span class="badge badge-label bg-success/15 text-success">Active</span></td>
-<td class="text-end">
-<a class="btn btn-sm bg-light hover:text-primary" href="/user/edit"><i class="iconify tabler--edit"></i>Edit</a>
-</td>
-</tr>
-<tr>
 <td>
-<div>
-<p class="font-semibold">Adam Mercer</p>
-<p class="text-xs text-default-400">adam@promocaster.local</p>
-</div>
+{% if user.role == 'admin' %}
+<span class="badge badge-label bg-primary/15 text-primary">{{ user.role_label }}</span>
+{% elif user.role == 'editor' %}
+<span class="badge badge-label bg-success/15 text-success">{{ user.role_label }}</span>
+{% else %}
+<span class="badge badge-label bg-info/15 text-info">{{ user.role_label }}</span>
+{% endif %}
 </td>
-<td><span class="badge badge-label bg-success/15 text-success">Editor</span></td>
-<td>PHGI</td>
-<td><span class="badge badge-label bg-success/15 text-success">Active</span></td>
-<td class="text-end">
-<a class="btn btn-sm bg-light hover:text-primary" href="/user/edit"><i class="iconify tabler--edit"></i>Edit</a>
-</td>
-</tr>
-<tr>
 <td>
-<div>
-<p class="font-semibold">Matt Rivera</p>
-<p class="text-xs text-default-400">matt@promocaster.local</p>
-</div>
+{% if user.role == 'admin' %}
+<span class="badge badge-label bg-primary/15 text-primary">Implicit full access</span>
+{% elif user.clients %}
+{{ user.clients | join(', ') }}
+{% else %}
+<span class="text-danger">No clients assigned</span>
+{% endif %}
 </td>
-<td><span class="badge badge-label bg-info/15 text-info">Viewer</span></td>
-<td>PHGI</td>
-<td><span class="badge badge-label bg-success/15 text-success">Active</span></td>
+<td>
+{% if user.active %}
+<span class="badge badge-label bg-success/15 text-success">Active</span>
+{% else %}
+<span class="badge badge-label bg-danger/15 text-danger">Disabled</span>
+{% endif %}
+</td>
 <td class="text-end">
-<a class="btn btn-sm bg-light hover:text-primary" href="/user/edit"><i class="iconify tabler--edit"></i>Edit</a>
+<a class="btn btn-sm bg-light hover:text-primary" href="/user/edit/{{ user.id }}"><i class="iconify tabler--edit"></i>Edit</a>
 </td>
 </tr>
+{% else %}
+<tr>
+<td class="py-8 text-center text-default-400" colspan="5">No users have been created.</td>
+</tr>
+{% endfor %}
 </tbody>
 </table>
 </div>

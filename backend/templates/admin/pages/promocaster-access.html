@@ -22,20 +22,30 @@
 <h4 class="card-title">Assign Clients</h4>
 </div>
 <div class="card-body grid gap-4">
-<label class="grid gap-1">
-<span class="text-sm font-semibold">User</span>
-<select class="form-select">
-<option>Adam Mercer</option>
-<option>Matt Rivera</option>
-</select>
+{% for user in users if user.role != 'admin' %}
+<form action="/access" class="rounded-md border border-default-200 p-4" method="post">
+<input name="user_id" type="hidden" value="{{ user.id }}">
+<div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+<div>
+<p class="font-semibold">{{ user.email }}</p>
+<p class="text-xs text-default-400">{{ user.role_label }}</p>
+</div>
+<button class="btn btn-sm bg-primary text-white hover:bg-primary-hover" type="submit">Save</button>
+</div>
+<div class="grid gap-2 sm:grid-cols-2">
+{% for client in clients %}
+<label class="flex items-center gap-2">
+<input class="form-checkbox" name="client_ids" type="checkbox" value="{{ client.id }}" {% if client.id in user.clients %}checked{% endif %}>
+<span>{{ client.name }}</span>
 </label>
-<label class="grid gap-1">
-<span class="text-sm font-semibold">Client</span>
-<select class="form-select">
-<option>PHGI</option>
-</select>
-</label>
-<button class="btn bg-primary text-white hover:bg-primary-hover w-fit" type="button">Save Access</button>
+{% else %}
+<p class="text-sm text-default-400">No clients are configured in client.yml.</p>
+{% endfor %}
+</div>
+</form>
+{% else %}
+<p class="text-sm text-default-400">Create an editor or viewer before assigning client access.</p>
+{% endfor %}
 </div>
 </div>
 <div class="card">
@@ -46,8 +56,21 @@
 <table class="table-custom table">
 <thead class="thead-sm"><tr><th>User</th><th>Client</th><th>Role</th></tr></thead>
 <tbody>
-<tr><td>Adam Mercer</td><td>PHGI</td><td>Editor</td></tr>
-<tr><td>Matt Rivera</td><td>PHGI</td><td>Viewer</td></tr>
+{% for user in users if user.role != 'admin' %}
+<tr>
+<td>{{ user.email }}</td>
+<td>
+{% if user.clients %}
+{{ user.clients | join(', ') }}
+{% else %}
+<span class="text-danger">No clients assigned</span>
+{% endif %}
+</td>
+<td>{{ user.role_label }}</td>
+</tr>
+{% else %}
+<tr><td class="py-8 text-center text-default-400" colspan="3">No client assignments yet.</td></tr>
+{% endfor %}
 </tbody>
 </table>
 </div>
@@ -57,7 +80,7 @@
 <span class="size-10 flex items-center justify-center rounded-full bg-primary/15 text-primary"><i class="iconify tabler--shield-check text-xl"></i></span>
 <div>
 <p class="font-semibold">Admins have implicit access to every client.</p>
-<p class="text-sm text-default-400">Peter Lawson is not assigned here because the Admin role grants full Promocaster access by default.</p>
+<p class="text-sm text-default-400">Admin users are not assigned here because the Admin role grants full Promocaster access by default.</p>
 </div>
 </div>
 </div>

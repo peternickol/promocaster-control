@@ -17,56 +17,50 @@
 <main>
 {% include 'partials/page-title.html' %}
 <div class="container-fluid">
+{% if form_error %}
+<div class="mb-4 rounded-md border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">{{ form_error }}</div>
+{% endif %}
+<form action="/user/edit/{{ edit_user.id }}" method="post">
 <div class="grid grid-cols-1 gap-base xl:grid-cols-[1fr_360px]">
 <div class="card">
 <div class="card-header">
 <h4 class="card-title">User Details</h4>
 </div>
 <div class="card-body grid gap-5">
-<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-<label class="grid gap-1">
-<span class="text-sm font-semibold">Display Name</span>
-<input class="form-input" type="text" value="Adam Mercer">
-</label>
-<label class="grid gap-1">
-<span class="text-sm font-semibold">Username</span>
-<input class="form-input" type="text" value="adam">
-</label>
-</div>
 <label class="grid gap-1">
 <span class="text-sm font-semibold">Email</span>
-<input class="form-input" type="email" value="adam@promocaster.local">
+<input class="form-input" name="email" required type="email" value="{{ edit_user.email }}">
 </label>
 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 <label class="grid gap-1">
 <span class="text-sm font-semibold">Role</span>
-<select class="form-select">
-<option>Admin</option>
-<option selected>Editor</option>
-<option>Viewer</option>
+<select class="form-select" name="role">
+{% for role, label in roles.items() %}
+<option value="{{ role }}" {% if edit_user.role == role %}selected{% endif %}>{{ label }}</option>
+{% endfor %}
 </select>
 </label>
 <label class="grid gap-1">
 <span class="text-sm font-semibold">Status</span>
-<select class="form-select">
-<option selected>Active</option>
-<option>Disabled</option>
+<select class="form-select" name="status">
+<option value="active" {% if edit_user.active %}selected{% endif %}>Active</option>
+<option value="disabled" {% if not edit_user.active %}selected{% endif %}>Disabled</option>
 </select>
 </label>
 </div>
 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 <label class="grid gap-1">
 <span class="text-sm font-semibold">New Password</span>
-<input class="form-input" type="password" placeholder="Leave blank to keep current">
+<input class="form-input" name="password" type="password" placeholder="Leave blank to keep current">
 </label>
 <label class="grid gap-1">
 <span class="text-sm font-semibold">Confirm Password</span>
-<input class="form-input" type="password" placeholder="Leave blank to keep current">
+<input class="form-input" name="confirm_password" type="password" placeholder="Leave blank to keep current">
 </label>
 </div>
 <div class="flex flex-wrap gap-2">
 <a class="btn bg-light hover:text-primary" href="/user">Cancel</a>
-<button class="btn bg-primary text-white hover:bg-primary-hover" type="button">Save User</button>
+<button class="btn bg-primary text-white hover:bg-primary-hover" type="submit">Save User</button>
 </div>
 </div>
 </div>
@@ -76,10 +70,14 @@
 <h4 class="card-title">Client Access</h4>
 </div>
 <div class="card-body grid gap-3">
+{% for client in clients %}
 <label class="flex items-center gap-2">
-<input class="form-checkbox" type="checkbox" checked>
-<span>PHGI</span>
+<input class="form-checkbox" name="client_ids" type="checkbox" value="{{ client.id }}" {% if client.id in (edit_user.clients or []) %}checked{% endif %}>
+<span>{{ client.name }}</span>
 </label>
+{% else %}
+<p class="text-sm text-default-400">No clients are configured in client.yml.</p>
+{% endfor %}
 <a class="btn bg-light hover:text-primary justify-start" href="/access"><i class="iconify tabler--shield-lock"></i>Manage Access Rules</a>
 </div>
 </div>
@@ -88,12 +86,12 @@
 <h4 class="card-title">Session Controls</h4>
 </div>
 <div class="card-body grid gap-3">
-<button class="btn bg-light hover:text-primary justify-start" type="button"><i class="iconify tabler--logout"></i>Sign Out User</button>
-<button class="btn bg-danger/10 text-danger hover:bg-danger hover:text-white justify-start" type="button"><i class="iconify tabler--user-x"></i>Disable User</button>
+<p class="text-sm text-default-400">Changing status to Disabled blocks future sign-ins for this user.</p>
 </div>
 </div>
 </div>
 </div>
+</form>
 </div>
 </main>
 {% include 'partials/footer.html' %}

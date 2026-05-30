@@ -2,3 +2,5 @@
 .codex
 .venv/
 __pycache__/
+control.sqlite3
+setup-token

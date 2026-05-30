@@ -37,14 +37,10 @@
 <i class="iconify tabler--user-circle text-base"></i>
                                     Identity
                                 </h5>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-base">
-<div>
-<label class="form-label" for="username">Username</label>
-<input autocomplete="username" class="form-input" id="username" name="username" placeholder="admin" type="text" value="{{ admin_user }}"/>
-</div>
+<div class="grid grid-cols-1 gap-base">
 <div>
 <label class="form-label" for="email">Email</label>
-<input autocomplete="email" class="form-input" id="email" name="email" placeholder="admin@example.com" type="email"/>
+<input autocomplete="email" class="form-input" id="email" name="email" placeholder="admin@example.com" type="email" value="{{ current_user.email if current_user else '' }}"/>
 </div>
 </div>
 </section>

@@ -223,6 +223,7 @@ promocaster-control client-github-key generate
 promocaster-control client-github-key show-public
 promocaster-control client-github-key test
 promocaster-control client-repo sync phgi
+promocaster-control auth setup-token
 promocaster-control doctor
 ```
 
@@ -238,6 +239,14 @@ Run `dish build` before any `promocaster-control ...` command. The global
 `promocaster-control` command is installed by Dish from this repo's
 `components.bin` declaration and does not exist until the project has been
 published.
+
+After the service starts for the first time, create the first admin user from
+the login page. The setup token is stored under the Dish project data directory
+and can be printed with:
+
+```sh
+promocaster-control auth setup-token
+```
 
 The first test deployment should prove:
 
@@ -264,6 +273,7 @@ what this hosted app owns.
 
 ```sh
 promocaster-control doctor
+promocaster-control auth setup-token
 promocaster-control client-repo list
 promocaster-control client-repo sync phgi
 promocaster-control client-repo status phgi

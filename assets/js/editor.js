@@ -348,7 +348,9 @@
     const clear = document.createElement("button");
     clear.type = "button";
     clear.className = "date-clear btn btn-outline-secondary btn-sm";
-    clear.append(icon("x"), document.createTextNode("Clear"));
+    clear.append(icon("x"));
+    clear.title = "Clear";
+    clear.setAttribute("aria-label", `Clear ${ariaLabel.toLowerCase()}`);
     clear.addEventListener("click", () => {
       slide[field] = "";
       markChanged();

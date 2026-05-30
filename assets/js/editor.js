@@ -357,7 +357,7 @@
       media.muted = true;
       media.defaultMuted = true;
       media.playsInline = true;
-      media.preload = "metadata";
+      media.preload = "none";
       media.controls = true;
     } else {
       media.alt = slide.name;

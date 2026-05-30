@@ -295,13 +295,24 @@ def write_upload_media(upload, media_path):
                     pass
 
 
-def slide_from_entry(client, entry):
+def media_version(media_root, name):
+    try:
+        return str((media_root / name).stat().st_mtime_ns)
+    except OSError:
+        return ""
+
+
+def slide_from_entry(client, entry, media_root):
     name = entry.get("name") or entry.get("file") or ""
     slide_type = media_type_for_name(name)
     duration = int(entry.get("time") or entry.get("duration") or entry.get("durationMs") or 10000)
+    version = media_version(media_root, name)
+    src = f"/api/clients/{quote(client, safe='')}/media/{quote(name, safe='')}"
+    if version:
+        src = f"{src}?v={version}"
     return {
         "name": name,
-        "src": f"/api/clients/{quote(client, safe='')}/media/{quote(name, safe='')}",
+        "src": src,
         "type": slide_type,
         "durationMs": None if slide_type == "video" else duration,
         "maxDurationMs": duration if slide_type == "video" and duration else None,
@@ -372,6 +383,7 @@ def parse_media_yml(client, media_yml):
     current = None
     current_slide = None
     key_pattern = re.compile(r"^[A-Za-z0-9_-]+:\s*$")
+    media_root = media_yml.parent.parent / "media"
 
     for raw_line in media_yml.read_text(encoding="utf-8").splitlines():
         line = raw_line.rstrip()
@@ -407,7 +419,7 @@ def parse_media_yml(client, media_yml):
             {
                 "name": location["name"],
                 "slides": [
-                    slide_from_entry(client, slide)
+                    slide_from_entry(client, slide, media_root)
                     for slide in location["slides"]
                     if slide.get("name") or slide.get("file")
                 ],

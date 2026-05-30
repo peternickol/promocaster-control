@@ -18,7 +18,6 @@
   let data = { locations: [] };
   let selectedLocation = "";
   let selectedSlideIndex = 0;
-  const videoBlobUrls = new Map();
 
   function refreshIcons() {
     window.lucide?.createIcons({
@@ -135,14 +134,14 @@
       media.playsInline = true;
       media.controls = previewMode;
       media.loop = previewMode;
-      media.preload = previewMode ? "auto" : "metadata";
+      media.preload = previewMode ? "auto" : "none";
       media.setAttribute("muted", "");
       media.setAttribute("playsinline", "");
       if (previewMode) {
         media.autoplay = true;
         media.setAttribute("autoplay", "");
       }
-      attachVideoSource(media, slide, previewMode);
+      media.src = slide.src;
     } else {
       media.src = slide.src;
       media.alt = slide.name;
@@ -151,45 +150,6 @@
     }
 
     return media;
-  }
-
-  async function attachVideoSource(video, slide, shouldPlay) {
-    try {
-      const src = await videoBlobUrl(slide);
-      if (!video.isConnected) return;
-      video.src = src;
-      video.load();
-      if (shouldPlay) {
-        video.play().catch(() => {});
-      }
-    } catch {
-      if (!video.isConnected) return;
-      video.src = slide.src;
-      video.load();
-      if (shouldPlay) {
-        video.play().catch(() => {});
-      }
-    }
-  }
-
-  async function videoBlobUrl(slide) {
-    if (videoBlobUrls.has(slide.src)) {
-      return videoBlobUrls.get(slide.src);
-    }
-
-    let response = await fetch(slide.src, { cache: "reload" });
-    if (response.status === 304) {
-      response = await fetch(`${slide.src}?video-cache-bust=${Date.now()}`, { cache: "no-store" });
-    }
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const blob = await response.blob();
-    const blobUrl = URL.createObjectURL(blob);
-    videoBlobUrls.set(slide.src, blobUrl);
-    return blobUrl;
   }
 
   function renderPreview(location) {
@@ -263,10 +223,10 @@
         card.classList.add("has-error");
       };
 
-      checkFile(slide.src).then((exists) => {
-        if (exists) markOk();
-        else markError();
-      });
+      media.addEventListener("load", () => markOk());
+      media.addEventListener("loadedmetadata", () => markOk());
+      media.addEventListener("error", () => markError());
+      markOk("ready");
 
       slideGrid.append(card);
     });
@@ -326,20 +286,6 @@
     selectedLocation = hashLocation || selectedLocation || data.activeLocation || data.locations[0]?.name || "";
     if (!getLocation(selectedLocation)) selectedLocation = data.locations[0]?.name || "";
     render();
-  }
-
-  async function checkFile(src) {
-    try {
-      const response = await fetch(src, { method: "HEAD", cache: "no-store" });
-      return response.ok;
-    } catch {
-      try {
-        const response = await fetch(src, { method: "GET", cache: "no-store" });
-        return response.ok;
-      } catch {
-        return false;
-      }
-    }
   }
 
   document.body.addEventListener("htmx:afterRequest", (event) => {

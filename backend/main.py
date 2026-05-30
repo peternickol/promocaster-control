@@ -319,6 +319,7 @@ def get_media(client: str, requested_name: str, request: Request):
     length = max(end - start + 1, 0)
     headers = {
         "Accept-Ranges": "bytes",
+        "Cache-Control": "public, max-age=31536000, immutable" if request.query_params.get("v") else "no-cache",
         "Content-Length": str(length),
     }
     if status_code == 206:

@@ -149,8 +149,13 @@ html[data-sidenav-size="condensed"] .app-menu .sub-menu {
 }
 
 .promocaster-theme .app-menu .menu-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     color: rgba(255, 255, 255, 0.72);
     border-radius: 8px;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .promocaster-theme .app-menu .menu-link:hover,
@@ -161,11 +166,33 @@ html[data-sidenav-size="condensed"] .app-menu .sub-menu {
 }
 
 .promocaster-theme .app-menu .menu-icon {
+    flex: 0 0 auto;
     color: #60a5fa;
 }
 
 .promocaster-theme .app-menu .sub-menu .menu-link {
     color: rgba(255, 255, 255, 0.66);
+}
+
+.promocaster-theme .app-menu .menu-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.promocaster-theme .app-menu .menu-arrow,
+.promocaster-theme .app-menu .badge {
+    flex: 0 0 auto;
+}
+
+.promocaster-theme .app-menu .deck-slide-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    padding-inline: 7px;
 }
 
 .promocaster-theme .card {

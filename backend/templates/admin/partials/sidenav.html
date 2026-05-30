@@ -56,8 +56,7 @@
 <li class="menu-item hs-accordion{% if client.id == selected_client_id %} active{% endif %}">
 <a aria-controls="promocaster-client-{{ client.id }}" aria-expanded="{{ 'true' if client.id == selected_client_id else 'false' }}" class="hs-accordion-toggle menu-link{% if client.id == selected_client_id %} bg-light/60{% endif %}" href="{{ client.href }}">
 <span class="menu-icon"><i class="iconify tabler--building-store"></i></span>
-<span class="menu-text">{{ client.name }}</span>
-<span class="badge badge-label bg-default-200 text-default-600 ms-auto">Client</span>
+<span class="menu-text" title="{{ client.name }}">{{ client.name }}</span>
 {% if client.locations %}
 <span class="menu-arrow"></span>
 {% endif %}
@@ -68,8 +67,8 @@
 <li class="menu-item">
 <a class="menu-link{% if client.id == selected_client_id and location.name == selected_location_name %} active{% endif %}" href="{{ location.href }}">
 <span class="menu-icon"><i class="iconify tabler--map-pin"></i></span>
-<span class="menu-text">{{ location.name }}</span>
-<span class="badge badge-label bg-primary/15 text-primary ms-auto">{{ location.slide_count }}</span>
+<span class="menu-text" title="{{ location.name }}">{{ location.name }}</span>
+<span class="badge badge-label bg-primary/15 text-primary ms-auto deck-slide-count" title="{{ location.slide_count }} slides">{{ location.slide_count }}</span>
 </a>
 </li>
 {% endfor %}

@@ -1,48 +1,48 @@
 :root {
   color-scheme: light;
-  --bg: #f6f7f9;
+  --bg: #f4f7fb;
   --panel: #fff;
-  --panel-alt: #f1f4f8;
-  --text: #111827;
-  --muted: #657085;
-  --muted-strong: #5d667a;
-  --border: #d9dee7;
-  --border-soft: #e4e7ee;
-  --accent: #155eef;
-  --accent-soft: #eef4ff;
-  --accent-border: #b7c7ee;
-  --success: #087443;
-  --success-soft: #eaf8f1;
+  --panel-alt: #f8fafc;
+  --text: #0f172a;
+  --muted: #64748b;
+  --muted-strong: #475569;
+  --border: #dbe3ef;
+  --border-soft: #e8edf5;
+  --accent: #1677ff;
+  --accent-soft: rgba(22, 119, 255, 0.1);
+  --accent-border: rgba(22, 119, 255, 0.28);
+  --success: #10b981;
+  --success-soft: rgba(16, 185, 129, 0.12);
   --warning: #b54708;
   --warning-soft: #fff4e5;
   --preview-bg: #05070d;
   --badge-bg: rgba(17, 24, 39, 0.78);
-  --shadow: 0 12px 34px rgba(16, 24, 40, 0.08);
-  --shadow-soft: 0 4px 14px rgba(16, 24, 40, 0.06);
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 16px 34px rgba(15, 23, 42, 0.08);
+  --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.06), 0 10px 24px rgba(15, 23, 42, 0.04);
   --ok: #067647;
   --error: #d92d20;
   --bs-body-bg: var(--bg);
   --bs-body-color: var(--text);
   --bs-border-color: var(--border);
   --bs-primary: var(--accent);
-  --bs-primary-rgb: 21, 94, 239;
+  --bs-primary-rgb: 22, 119, 255;
   color: var(--text);
   background: var(--bg);
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #111318;
-  --panel: #1a1d24;
-  --panel-alt: #232733;
-  --text: #f4f7fb;
-  --muted: #a9b2c3;
-  --muted-strong: #c0c7d4;
-  --border: #343a46;
-  --border-soft: #2b303b;
-  --accent: #8bb7ff;
-  --accent-soft: #172846;
-  --accent-border: #3c5f99;
+  --bg: #020617;
+  --panel: #111827;
+  --panel-alt: #1e293b;
+  --text: #e5edf8;
+  --muted: #94a3b8;
+  --muted-strong: #cbd5e1;
+  --border: #273449;
+  --border-soft: #1e293b;
+  --accent: #60a5fa;
+  --accent-soft: rgba(22, 119, 255, 0.16);
+  --accent-border: rgba(96, 165, 250, 0.38);
   --success: #32d583;
   --success-soft: #123225;
   --warning: #fdb022;
@@ -63,7 +63,10 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background:
+    linear-gradient(180deg, rgba(22, 119, 255, 0.08), rgba(22, 119, 255, 0) 260px),
+    var(--bg);
+  color: var(--text);
   font-size: 14px;
 }
 
@@ -105,7 +108,7 @@ button:not(.btn):hover {
   height: 100vh;
   overflow: auto;
   border-right: 1px solid var(--border);
-  background: var(--panel);
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
   box-shadow: var(--shadow-soft);
 }
 
@@ -115,6 +118,39 @@ button:not(.btn):hover {
   gap: 18px;
   padding: 20px 18px 18px;
   border-bottom: 1px solid var(--border-soft);
+}
+
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.brand-mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 0 8px 18px rgba(22, 119, 255, 0.18);
+}
+
+.brand-mark img {
+  display: block;
+  width: 42px;
+  height: 42px;
+}
+
+.brand-mark-dark,
+:root[data-theme="dark"] .brand-mark-light {
+  display: none;
+}
+
+:root[data-theme="dark"] .brand-mark-dark {
+  display: block;
 }
 
 .panel-header h1 {
@@ -141,6 +177,7 @@ button:not(.btn):hover {
   font-size: 22px;
   font-weight: 750;
   letter-spacing: 0;
+  color: var(--text);
 }
 
 .app-kicker {
@@ -166,7 +203,7 @@ button:not(.btn):hover {
   min-width: 0;
   padding: 3px;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 8px;
   background: color-mix(in srgb, var(--panel-alt) 78%, transparent);
 }
 
@@ -177,7 +214,7 @@ button:not(.btn):hover {
   justify-content: center;
   gap: 6px;
   padding: 6px 9px;
-  border-radius: 999px;
+  border-radius: 6px;
   color: var(--muted-strong);
   font-size: 12px;
   font-weight: 700;
@@ -186,9 +223,9 @@ button:not(.btn):hover {
 }
 
 .tool-nav a.is-active {
-  background: var(--panel);
-  color: var(--text);
-  box-shadow: 0 1px 5px rgba(17, 24, 39, 0.16);
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent-border);
 }
 
 .tool-nav .lucide {
@@ -283,7 +320,7 @@ button:not(.btn):hover {
   min-height: 39px;
   padding: 9px 12px;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: 8px;
   border-color: transparent;
   background: transparent;
   color: var(--text);
@@ -298,7 +335,7 @@ button:not(.btn):hover {
 }
 
 .location-button.is-active {
-  box-shadow: inset 3px 0 0 var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent), 0 8px 18px rgba(22, 119, 255, 0.08);
 }
 
 .location-button span:first-child {
@@ -316,4 +353,196 @@ button:not(.btn):hover {
   font-size: 12px;
   font-weight: 700;
   text-align: center;
+}
+
+.promocaster-control-page {
+  min-height: 100vh;
+}
+
+.promocaster-control-page .page-content main {
+  min-height: calc(100vh - var(--topbar-height, 70px));
+}
+
+.promocaster-control-page .container-fluid {
+  padding-bottom: 24px;
+}
+
+.control-workspace {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.control-main {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+
+.location-card {
+  position: sticky;
+  top: calc(var(--topbar-height, 70px) + 16px);
+}
+
+.location-card .card-header,
+.deck-card .card-header,
+.preview-panel .card-header,
+.slide-library-card .card-header {
+  align-items: center;
+  gap: 12px;
+}
+
+.location-list {
+  padding: 12px;
+}
+
+.location-button.btn {
+  justify-content: stretch;
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-body-color, var(--text));
+  font-weight: 650;
+}
+
+.location-button.btn:hover,
+.location-button.btn.is-active {
+  border-color: rgba(22, 119, 255, 0.22);
+  background: rgba(22, 119, 255, 0.1);
+  color: var(--color-primary, var(--accent));
+}
+
+.control-kicker {
+  margin: 0 0 4px;
+  color: var(--color-primary, var(--accent));
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.deck-actions,
+.viewer-actions,
+.preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.control-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel-alt) 78%, transparent);
+}
+
+.control-mode-toggle a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 31px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: var(--muted-strong);
+  font-size: 12px;
+  font-weight: 750;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.control-mode-toggle a:hover,
+.control-mode-toggle a.is-active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent-border);
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.icon-button .lucide {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 1180px) {
+  .control-workspace {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .control-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .location-card {
+    position: static;
+  }
+}
+
+.promocaster-login {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+  background:
+    linear-gradient(180deg, rgba(22, 119, 255, 0.1), rgba(22, 119, 255, 0) 320px),
+    var(--color-body-bg, var(--bg));
+}
+
+.login-panel {
+  width: min(100%, 420px);
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.login-brand h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.login-mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(22, 119, 255, 0.2);
+}
+
+.login-mark img {
+  display: block;
+  width: 48px;
+  height: 48px;
+}
+
+.login-mark-dark,
+html[data-theme="dark"] .login-mark-light {
+  display: none;
+}
+
+html[data-theme="dark"] .login-mark-dark {
+  display: block;
+}
+
+.login-form {
+  display: grid;
+  gap: 16px;
 }

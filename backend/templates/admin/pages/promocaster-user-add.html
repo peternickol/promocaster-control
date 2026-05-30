@@ -1,0 +1,104 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Add Promocaster User{% endblock title %}
+
+{% block content %}
+<div class="wrapper promocaster-theme">
+{% set subtitle='Promocaster' %}
+{% set title='Add User' %}
+{% set breadcrumbs=[
+    {'label': 'Promocaster Control', 'href': './'},
+    {'label': 'Admin', 'href': 'promocaster-dashboard'},
+    {'label': 'Users', 'href': '/user'}
+] %}
+{% include 'partials/topbar.html' %}
+{% include 'partials/sidenav.html' %}
+<div class="page-content">
+<main>
+{% include 'partials/page-title.html' %}
+<div class="container-fluid">
+<div class="grid grid-cols-1 gap-base xl:grid-cols-[1fr_360px]">
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">User Details</h4>
+</div>
+<div class="card-body grid gap-5">
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+<label class="grid gap-1">
+<span class="text-sm font-semibold">Display Name</span>
+<input class="form-input" type="text" placeholder="Jane Smith">
+</label>
+<label class="grid gap-1">
+<span class="text-sm font-semibold">Username</span>
+<input class="form-input" type="text" placeholder="jane">
+</label>
+</div>
+<label class="grid gap-1">
+<span class="text-sm font-semibold">Email</span>
+<input class="form-input" type="email" placeholder="jane@example.com">
+</label>
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+<label class="grid gap-1">
+<span class="text-sm font-semibold">Role</span>
+<select class="form-select">
+<option>Admin</option>
+<option selected>Editor</option>
+<option>Viewer</option>
+</select>
+</label>
+<label class="grid gap-1">
+<span class="text-sm font-semibold">Status</span>
+<select class="form-select">
+<option selected>Active</option>
+<option>Disabled</option>
+</select>
+</label>
+</div>
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+<label class="grid gap-1">
+<span class="text-sm font-semibold">Initial Password</span>
+<input class="form-input" type="password">
+</label>
+<label class="grid gap-1">
+<span class="text-sm font-semibold">Confirm Password</span>
+<input class="form-input" type="password">
+</label>
+</div>
+<div class="flex flex-wrap gap-2">
+<a class="btn bg-light hover:text-primary" href="/user">Cancel</a>
+<button class="btn bg-primary text-white hover:bg-primary-hover" type="button">Create User</button>
+</div>
+</div>
+</div>
+<div class="grid gap-base">
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">Client Access</h4>
+</div>
+<div class="card-body grid gap-3">
+<label class="flex items-center gap-2">
+<input class="form-checkbox" type="checkbox" checked>
+<span>PHGI</span>
+</label>
+<a class="btn bg-light hover:text-primary justify-start" href="/access"><i class="iconify tabler--shield-lock"></i>Manage Access Rules</a>
+</div>
+</div>
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">Role Guide</h4>
+</div>
+<div class="card-body grid gap-3 text-sm text-default-500">
+<p><span class="font-semibold text-body-color">Admin:</span> manage clients, users, access, and slides.</p>
+<p><span class="font-semibold text-body-color">Editor:</span> update assigned client slides.</p>
+<p><span class="font-semibold text-body-color">Viewer:</span> view assigned client slides.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+{% include 'partials/footer.html' %}
+</div>
+</div>
+{% include 'partials/footer-scripts.html' %}
+{% endblock content %}

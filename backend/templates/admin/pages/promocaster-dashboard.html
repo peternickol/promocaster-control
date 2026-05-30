@@ -1,0 +1,88 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Promocaster Dashboard{% endblock title %}
+
+{% block content %}
+<div class="wrapper promocaster-theme">
+{% set subtitle='Promocaster' %}
+{% set title='Dashboard' %}
+{% set breadcrumbs=[
+    {'label': 'Promocaster Control', 'href': '/dashboard'}
+] %}
+{% include 'partials/topbar.html' %}
+{% include 'partials/sidenav.html' %}
+<div class="page-content">
+<main>
+{% include 'partials/page-title.html' %}
+<div class="container-fluid">
+<div class="grid grid-cols-1 gap-base md:grid-cols-3">
+<div class="card">
+<div class="card-body">
+<div class="mb-4 flex items-center justify-between">
+<h3 class="text-2xl">1</h3>
+<span class="size-10 flex items-center justify-center rounded-full bg-primary/15 text-primary"><i class="iconify tabler--briefcase text-xl"></i></span>
+</div>
+<p class="font-semibold">Clients</p>
+<p class="text-sm text-default-400">Client slide libraries managed by Promocaster.</p>
+</div>
+</div>
+<div class="card">
+<div class="card-body">
+<div class="mb-4 flex items-center justify-between">
+<h3 class="text-2xl">1</h3>
+<span class="size-10 flex items-center justify-center rounded-full bg-info/15 text-info"><i class="iconify tabler--refresh text-xl"></i></span>
+</div>
+<p class="font-semibold">Repositories In Sync</p>
+<p class="text-sm text-default-400">1 of 1 client repositories are current and ready for slide updates.</p>
+</div>
+</div>
+<div class="card">
+<div class="card-body">
+<div class="mb-4 flex items-center justify-between">
+<h3 class="text-2xl">3</h3>
+<span class="size-10 flex items-center justify-center rounded-full bg-success/15 text-success"><i class="iconify tabler--users text-xl"></i></span>
+</div>
+<p class="font-semibold">Users</p>
+<p class="text-sm text-default-400">People with access to one or more client slide decks.</p>
+</div>
+</div>
+</div>
+<div class="mt-base grid grid-cols-1 gap-base xl:grid-cols-2">
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">Client Access</h4>
+</div>
+<div class="table-wrapper">
+<table class="table-custom table">
+<thead class="thead-sm">
+<tr><th>Client</th><th>Assigned Users</th><th>Repo Sync</th><th class="text-end">Action</th></tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="font-semibold">PHGI</span></td>
+<td>Adam Mercer, Matt Rivera</td>
+<td><span class="badge badge-label bg-success/15 text-success">In Sync</span></td>
+<td class="text-end"><a class="btn btn-sm bg-light hover:text-primary" href="/client-sync"><i class="iconify tabler--refresh"></i>Resync</a></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">Core Tools</h4>
+</div>
+<div class="card-body grid gap-3">
+<a class="btn bg-primary text-white hover:bg-primary-hover justify-start" href="/deck?mode=viewer"><i class="iconify tabler--eye"></i>View Slides</a>
+<a class="btn bg-success text-white hover:bg-success-hover justify-start" href="/deck?mode=editor"><i class="iconify tabler--edit"></i>Edit Slides</a>
+<a class="btn bg-light hover:text-primary justify-start" href="/access"><i class="iconify tabler--shield-lock"></i>Assign Client Access</a>
+</div>
+</div>
+</div>
+</div>
+</main>
+{% include 'partials/footer.html' %}
+</div>
+</div>
+{% include 'partials/footer-scripts.html' %}
+{% endblock content %}

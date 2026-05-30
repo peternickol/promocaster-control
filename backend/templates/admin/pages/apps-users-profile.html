@@ -1,0 +1,121 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Profile{% endblock title %}
+
+{% block styles %}
+{% endblock styles %}
+
+{% block content %}
+<div class="wrapper">
+        {% set subtitle='Account' %}
+{% set title='Profile' %}
+{% include 'partials/topbar.html' %}
+
+        {% include 'partials/sidenav.html' %}
+
+        <!-- Start Page Content here -->
+<div class="page-content">
+<main>
+
+                {% set subtitle='Account' %}
+{% set title='Profile' %}
+{% include 'partials/page-title.html' %}
+
+                <div class="container-fluid">
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-base">
+<div class="xl:col-span-2">
+<form class="card">
+<div class="card-header">
+<div>
+<h4 class="card-title">Account Details</h4>
+<p class="text-sm text-default-400 mt-1">Manage the sign-in details for this admin account.</p>
+</div>
+</div>
+<div class="card-body space-y-7">
+<section>
+<h5 class="mb-4 flex items-center gap-2 text-sm font-semibold uppercase text-default-500">
+<i class="iconify tabler--user-circle text-base"></i>
+                                    Identity
+                                </h5>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-base">
+<div>
+<label class="form-label" for="username">Username</label>
+<input autocomplete="username" class="form-input" id="username" name="username" placeholder="admin" type="text" value="{{ admin_user }}"/>
+</div>
+<div>
+<label class="form-label" for="email">Email</label>
+<input autocomplete="email" class="form-input" id="email" name="email" placeholder="admin@example.com" type="email"/>
+</div>
+</div>
+</section>
+<section>
+<h5 class="mb-4 flex items-center gap-2 text-sm font-semibold uppercase text-default-500">
+<i class="iconify tabler--lock text-base"></i>
+                                    Change Password
+                                </h5>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-base">
+<div class="md:col-span-2">
+<label class="form-label" for="current-password">Current Password</label>
+<input autocomplete="current-password" class="form-input" id="current-password" name="current_password" type="password"/>
+</div>
+<div>
+<label class="form-label" for="new-password">New Password</label>
+<input autocomplete="new-password" class="form-input" id="new-password" name="new_password" type="password"/>
+</div>
+<div>
+<label class="form-label" for="confirm-password">Confirm Password</label>
+<input autocomplete="new-password" class="form-input" id="confirm-password" name="confirm_password" type="password"/>
+</div>
+</div>
+</section>
+</div>
+<div class="card-footer flex flex-wrap items-center justify-end gap-2">
+<button class="btn border-default-300 text-default-700 hover:bg-default-100" type="reset">Reset</button>
+<button class="btn bg-primary text-white hover:bg-primary-hover" type="submit">
+<i class="iconify tabler--device-floppy text-base"></i>
+                                Save Changes
+                            </button>
+</div>
+</form>
+</div>
+<div>
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">Account</h4>
+</div>
+<div class="card-body space-y-4">
+<div class="flex items-center justify-between gap-4">
+<div>
+<p class="text-sm text-default-400">Role</p>
+<h5>{{ admin_role }}</h5>
+</div>
+<span class="badge bg-primary/15 text-primary">Active</span>
+</div>
+<div class="border-t border-default-200 pt-4">
+<p class="text-sm text-default-400">Last sign in</p>
+<h5>Not recorded</h5>
+</div>
+<div class="border-t border-default-200 pt-4 opacity-60">
+<p class="text-sm text-default-400">Two-factor authentication</p>
+<div class="mt-2 flex items-center justify-between gap-3">
+<span class="badge bg-default-200 text-default-500">Not supported yet</span>
+<button class="btn btn-sm border-default-300 text-default-400 cursor-not-allowed" disabled type="button">Enable</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+            {% include 'partials/footer.html' %}
+        </div>
+<!-- End Page content -->
+</div>
+    {% include 'partials/footer-scripts.html' %}
+
+{% endblock content %}
+
+{% block scripts %}
+{% endblock scripts %}

@@ -1,0 +1,1 @@
+document.addEventListener("DOMContentLoaded",()=>{var e=document.querySelectorAll('[data-plugins="sortable"]');e&&0<e.length&&e.forEach(e=>{new Sortable(e,{animation:150,group:"shared",ghostClass:"sortable-item-ghost",forceFallback:!0,emptyInsertThreshold:100,chosenClass:"sortable-item-active"})})});

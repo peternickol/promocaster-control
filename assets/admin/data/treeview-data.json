@@ -1,0 +1,116 @@
+[
+    {
+        "id": "node_1",
+        "icon": "treeview-folder-filled",
+        "text": "Projects",
+        "children": [
+            {
+                "id": "node_4",
+                "icon": "treeview-file text-primary text-base",
+                "text": "Project Proposal",
+                "children": false
+            },
+            {
+                "id": "node_5",
+                "icon": "treeview-file text-primary text-base",
+                "text": "Requirements Doc",
+                "children": false
+            },
+            {
+                "id": "node_6",
+                "icon": "treeview-folder-filled",
+                "text": "Designs",
+                "children": [
+                    {
+                        "id": "node_13",
+                        "icon": "treeview-icon-database text-warning text-base",
+                        "text": "Wireframes",
+                        "children": false
+                    },
+                    {
+                        "id": "node_15",
+                        "icon": "treeview-icon-database text-warning text-base",
+                        "text": "Mockups",
+                        "children": false
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "node_2",
+        "icon": "treeview-folder-filled",
+        "text": "Reports",
+        "children": [
+            {
+                "id": "node_7",
+                "icon": "treeview-file text-danger text-base",
+                "text": "Q1 Report",
+                "children": false
+            },
+            {
+                "id": "node_8",
+                "icon": "treeview-file text-danger text-base",
+                "text": "Q2 Report",
+                "children": false
+            },
+            {
+                "id": "node_9",
+                "icon": "treeview-folder-filled",
+                "text": "Annual Reports",
+                "children": [
+                    {
+                        "id": "node_16",
+                        "icon": "treeview-file text-info text-base",
+                        "text": "2023 Summary",
+                        "children": false
+                    },
+                    {
+                        "id": "node_17",
+                        "icon": "treeview-file text-info text-base",
+                        "text": "2024 Summary",
+                        "children": false
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "node_3",
+        "icon": "treeview-folder-filled",
+        "text": "Documents",
+        "children": [
+            {
+                "id": "node_10",
+                "icon": "treeview-file text-secondary text-base",
+                "text": "Resume",
+                "children": false
+            },
+            {
+                "id": "node_11",
+                "icon": "treeview-file text-secondary text-base",
+                "text": "Cover Letter",
+                "children": false
+            },
+            {
+                "id": "node_12",
+                "icon": "treeview-folder-filled",
+                "text": "Certificates",
+                "children": [
+                    {
+                        "id": "node_18",
+                        "icon": "treeview-file text-warning text-base",
+                        "text": "Completion Cert",
+                        "children": false
+                    },
+                    {
+                        "id": "node_19",
+                        "icon": "treeview-file text-warning text-base",
+                        "text": "Achievement Cert",
+                        "children": false
+                    }
+                ]
+            }
+        ]
+    }
+]

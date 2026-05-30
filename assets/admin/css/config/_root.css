@@ -1,0 +1,152 @@
+@theme {
+    --font-body: "Nunito", sans-serif;
+    --font-secondary: "Google Sans", sans-serif;
+
+    --text-body: 0.875rem;
+    --color-body-bg: #f6f7fb;
+    --color-body-color: #4c4c5c;
+
+    --color-card: var(--color-white);
+
+    --color-primary: #236dc9;
+
+    --color-secondary: #7b70ef;
+
+    --color-success: #02bc9c;
+    --color-primary-hover: #1e5dab;
+
+    --color-info: #5bc3e1;
+    --color-warning: #f9bf59;
+    --color-danger: #f7577e;
+    --color-purple: #7b70ef;
+    --color-light: #eef2f7;
+    --color-dark: #313a46;
+
+    --color-secondary-hover: #695fcb;
+    --color-success-hover: #02a085;
+    --color-info-hover: #4da6bf;
+    --color-warning-hover: #d4a24c;
+    --color-danger-hover: #d24a6b;
+    --color-purple-hover: #695fcb;
+    --color-light-hover: #8a969c;
+    --color-dark-hover: #343a40;
+
+    --color-default-50: var(--color-slate-50);
+    --color-default-100: #f6f7fb;
+    --color-default-200: #eef2f7;
+    --color-default-300: #e7e9eb;
+    --color-default-400: #9ba6b7;
+    --color-default-500: #a1a9b1;
+    --color-default-600: #8a969c;
+    --color-default-700: #6c757d;
+    --color-default-800: #343a40;
+    --color-default-900: #313a46;
+    --color-default-950: var(--color-slate-950);
+
+    --text-2xs: 11px;
+    --text-md: 15px;
+    --text-xs: 0.8125rem;
+
+    --text-2xs--line-height: 1.5;
+    --text-xs--line-height: 1.5;
+    --text-md--line-height: 1.5;
+    --text-sm--line-height: 1.5;
+    --text-base--line-height: 1.5;
+    --text-lg--line-height: 1.5;
+    --text-xl--line-height: 1.5;
+    --text-2xl--line-height: 1.5;
+    --text-3xl--line-height: 1.5;
+    --text-4xl--line-height: 1.5;
+    --text-5xl--line-height: 1.5;
+
+    --tw-shadow: var(--shadow);
+
+    --shadow: 0px 1px 4px 0px rgba(130, 143, 163, 0.15);
+    --shadow-lg: 0 0.25rem 1rem rgba(76, 76, 92, 0.2);
+    --shadow-sm: 0 0.0625rem 0.125rem rgba(76, 76, 92, 0.15);
+    --inset-shadow: inset 0 1px 2px rgba(76, 76, 92, 0.075);
+
+    --spacing-base: 20px;
+
+    --radius: 4px;
+
+    --topbar-height: 65px;
+
+    --logo-lg-height: 22px;
+    --logo-sm-height: 26px;
+
+    --sidenav-width: 245px;
+    --sidenav-width-md: 200px;
+    --sidenav-width-sm: 75px;
+
+    --sidenav-link-padding-x: 12px;
+    --sidenav-link-padding-y: 8px;
+    --sidenav-item-icon-size: 18px;
+    --sidenav-item-font-size: 14px;
+
+    --sidenav-item-icon-size: 1.125rem;
+    --sidenav-item-gap: 12px;
+    --sidenav-item-padding-x: 10px;
+    --sidenav-item-padding-y: 10px;
+    --sidenav-item-font-size: 0.875rem;
+    --sidenav-item-font-weight: 500;
+    --sidenav-sub-item-font-size: 0.8125rem;
+    --sidenav-sub-item-font-weight: 400;
+    --sidenav-sub-item-gap: 4px;
+    --sidenav-sub-item-padding-x: 10px;
+    --sidenav-sub-item-padding-y: 7px;
+}
+
+:root {
+    color-scheme: light;
+
+    --color-chart-primary: #236dc9;
+    --color-chart-secondary: #7b70ef;
+    --color-chart-alpha: #02bc9c;
+    --color-chart-beta: #f7577e;
+    --color-chart-gamma: #f9bf59;
+    --color-chart-delta: #5bc3e1;
+    --color-chart-zeta: #db9052;
+    --color-chart-gray: #edeff3;
+    --color-chart-dark: #1a57a1;
+    --color-chart-border-color: #ecf4fc;
+    --color-chart-title-color: #bbcae1;
+}
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+[data-theme="dark"] {
+    color-scheme: dark;
+
+    --color-body-bg: #17181e;
+    --color-body-color: #aab8c5;
+
+    --color-card: #1e1f27;
+
+    --color-light: #252630;
+    --color-light-hover: #8a969c;
+
+    --color-dark: #4b4d5c;
+    --color-dark-hover: #343a40;
+
+    --color-chart-border-color: #242c31;
+    --color-chart-gray: #40424f;
+
+    --shadow: 0px 0px 30px rgba(0, 0, 0, 0.3);
+
+    --color-default-50: #22232c;
+    --color-default-100: #272832;
+    --color-default-200: var(--color-zinc-800);
+    --color-default-300: #293036;
+    --color-default-400: #8391a2;
+    --color-default-500: #a1a9b1;
+    --color-default-600: var(--color-zinc-400);
+    --color-default-700: var(--color-zinc-300);
+    --color-default-800: var(--color-zinc-200);
+    --color-default-900: var(--color-zinc-100);
+    --color-default-950: var(--color-zinc-50);
+
+    .text-dark {
+        color: #dce0fb !important;
+    }
+}

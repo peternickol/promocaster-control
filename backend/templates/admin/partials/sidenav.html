@@ -1,0 +1,1062 @@
+<aside class="app-menu{% if sidebar_variant == "promocaster" %} promocaster-app-menu{% endif %}" id="app-menu">
+{% if sidebar_variant == "promocaster" %}
+<!-- Sidenav Menu Brand Logo -->
+<a class="logo-box" href="/deck">
+<span class="logo logo-light">
+<span class="logo-lg">
+<img alt="Promocaster" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-light.svg') }}"/>
+<span class="promocaster-logo-text">Promocaster</span>
+</span>
+</span>
+<span class="logo logo-dark">
+<span class="logo-lg">
+<img alt="Promocaster" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-dark.svg') }}"/>
+<span class="promocaster-logo-text">Promocaster</span>
+</span>
+</span>
+</a>
+<div class="relative min-h-0 grow">
+<div class="size-full" data-simplebar="">
+<div id="sidenav-menu">
+<ul class="side-nav hs-accordion-group px-2.5 pb-16.5">
+{% if is_admin %}
+<li class="menu-title">
+<span>Admin</span>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="/dashboard">
+<span class="menu-icon"><i class="iconify tabler--dashboard"></i></span>
+<span class="menu-text">Dashboard</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="/clients">
+<span class="menu-icon"><i class="iconify tabler--briefcase"></i></span>
+<span class="menu-text">Clients</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="/user">
+<span class="menu-icon"><i class="iconify tabler--users"></i></span>
+<span class="menu-text">Users</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="/access">
+<span class="menu-icon"><i class="iconify tabler--shield-lock"></i></span>
+<span class="menu-text">Access</span>
+</a>
+</li>
+{% endif %}
+{% if deck_clients %}
+<li class="menu-title">
+<span>Decks</span>
+</li>
+{% for client in deck_clients %}
+<li class="menu-item hs-accordion{% if client.id == selected_client_id %} active{% endif %}">
+<a aria-controls="promocaster-client-{{ client.id }}" aria-expanded="{{ 'true' if client.id == selected_client_id else 'false' }}" class="hs-accordion-toggle menu-link{% if client.id == selected_client_id %} bg-light/60{% endif %}" href="{{ client.href }}">
+<span class="menu-icon"><i class="iconify tabler--building-store"></i></span>
+<span class="menu-text">{{ client.name }}</span>
+<span class="badge badge-label bg-default-200 text-default-600 ms-auto">Client</span>
+{% if client.locations %}
+<span class="menu-arrow"></span>
+{% endif %}
+</a>
+{% if client.locations %}
+<ul class="sub-menu hs-accordion-content hs-accordion-group{% if client.id != selected_client_id %} hidden{% endif %}">
+{% for location in client.locations %}
+<li class="menu-item">
+<a class="menu-link{% if client.id == selected_client_id and location.name == selected_location_name %} active{% endif %}" href="{{ location.href }}">
+<span class="menu-icon"><i class="iconify tabler--map-pin"></i></span>
+<span class="menu-text">{{ location.name }}</span>
+<span class="badge badge-label bg-primary/15 text-primary ms-auto">{{ location.slide_count }}</span>
+</a>
+</li>
+{% endfor %}
+</ul>
+{% endif %}
+</li>
+{% endfor %}
+{% endif %}
+</ul>
+</div>
+</div>
+</div>
+{% else %}
+<!-- Sidenav Menu Brand Logo -->
+<a class="logo-box" href="/">
+<!-- Light Brand Logo -->
+<span class="logo logo-light">
+<span class="logo-lg">
+<img alt="logo" src="{{ url_for('admin_assets', path='images/logo.png') }}"/>
+</span>
+<span class="logo-sm">
+<img alt="small logo" src="{{ url_for('admin_assets', path='images/logo-sm.png') }}"/>
+</span>
+</span>
+<!-- Dark Brand Logo -->
+<span class="logo logo-dark">
+<span class="logo-lg">
+<img alt="dark logo" src="{{ url_for('admin_assets', path='images/logo-black.png') }}"/>
+</span>
+<span class="logo-sm">
+<img alt="small logo" src="{{ url_for('admin_assets', path='images/logo-sm.png') }}"/>
+</span>
+</span>
+</a>
+<!-- Sidenav Menu Toggle Button -->
+<div class="h-topbar justify absolute end-5 top-0 flex items-center">
+<button id="button-hover-toggle">
+<span class="btn-on-hover-icon"></span>
+</button>
+</div>
+<!-- Sidenav Menu Item Link -->
+<div class="relative min-h-0 grow">
+<div class="size-full" data-simplebar="">
+<div id="sidenav-menu">
+<ul class="side-nav hs-accordion-group px-2.5 pb-16.5">
+<li class="menu-title" data-lang="main">
+<span>Main</span>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="dashboards" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-icon"><i class="iconify tabler--dashboard"></i></span>
+<span class="menu-text" data-lang="dashboards">Dashboards</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="/">
+<span class="menu-text" data-lang="dashboard-ecommerce">Ecommerce</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="dashboard-analytics">
+<span class="menu-text" data-lang="dashboard-analytics">Analytics</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="dashboard-courses">
+<span class="menu-text" data-lang="dashboard-courses">Courses</span>
+</a>
+</li>
+</ul>
+</li>
+<li class="menu-title" data-lang="apps">
+<span>Apps</span>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="ecommerce" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-icon"><i class="iconify tabler--basket"></i></span>
+<span class="menu-text" data-lang="ecommerce">Ecommerce</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item hs-accordion">
+<a aria-controls="products" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-text" data-lang="products">Products</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-products">
+<span class="menu-text" data-lang="apps-ecommerce-products">Products</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-products-grid">
+<span class="menu-text" data-lang="apps-ecommerce-products-grid">Products Grid</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-product-details">
+<span class="menu-text" data-lang="apps-ecommerce-product-details">Product Details</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-product-add">
+<span class="menu-text" data-lang="apps-ecommerce-product-add">Add Product</span>
+</a>
+</li>
+</ul>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-categories">
+<span class="menu-text" data-lang="apps-ecommerce-categories">Categories</span>
+</a>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="orders" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-text" data-lang="orders">Orders</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-orders">
+<span class="menu-text" data-lang="apps-ecommerce-orders">Orders</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-order-details">
+<span class="menu-text" data-lang="apps-ecommerce-order-details">Order Details</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-order-add">
+<span class="menu-text" data-lang="apps-ecommerce-order-add">Add/Edit Order</span>
+</a>
+</li>
+</ul>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-customers">
+<span class="menu-text" data-lang="apps-ecommerce-customers">Customers</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-cart">
+<span class="menu-text" data-lang="apps-ecommerce-cart">Cart</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-checkout">
+<span class="menu-text" data-lang="apps-ecommerce-checkout">Checkout</span>
+</a>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="sellers" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-text" data-lang="sellers">Sellers</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-sellers">
+<span class="menu-text" data-lang="apps-ecommerce-sellers">Sellers</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-seller-details">
+<span class="menu-text" data-lang="apps-ecommerce-seller-details">Sellers Details</span>
+</a>
+</li>
+</ul>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-refunds">
+<span class="menu-text" data-lang="apps-ecommerce-refunds">Refunds</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-reviews">
+<span class="menu-text" data-lang="apps-ecommerce-reviews">Reviews</span>
+</a>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="inventory" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-text" data-lang="inventory">Inventory</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-warehouse">
+<span class="menu-text" data-lang="apps-ecommerce-warehouse">Warehouse</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-product-stocks">
+<span class="menu-text" data-lang="apps-ecommerce-product-stocks">Product Stocks</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-purchased-orders">
+<span class="menu-text" data-lang="apps-ecommerce-purchased-orders">Purchased Orders</span>
+</a>
+</li>
+</ul>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="reports" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-text" data-lang="reports">Reports</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-product-views">
+<span class="menu-text" data-lang="apps-ecommerce-product-views">Product Views</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-sales">
+<span class="menu-text" data-lang="apps-ecommerce-sales">Sales</span>
+</a>
+</li>
+</ul>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-attributes">
+<span class="menu-text" data-lang="apps-ecommerce-attributes">Attributes</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-ecommerce-settings">
+<span class="menu-text" data-lang="apps-ecommerce-settings">Settings</span>
+</a>
+</li>
+</ul>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="courses" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-icon"><i class="iconify tabler--briefcase"></i></span>
+<span class="menu-text" data-lang="courses">Courses</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="apps-courses-grid">
+<span class="menu-text" data-lang="apps-courses-grid">My Courses</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-courses-list">
+<span class="menu-text" data-lang="apps-courses-list">Course List</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-courses-details">
+<span class="menu-text" data-lang="apps-courses-details">View Course</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-courses-board">
+<span class="menu-text" data-lang="apps-courses-board">Course Board</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-courses-students">
+<span class="menu-text" data-lang="apps-courses-students">Student Board</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-courses-activity">
+<span class="menu-text" data-lang="apps-courses-activity">Course Activity</span>
+</a>
+</li>
+</ul>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-orders">
+<span class="menu-icon"><i class="iconify tabler--shopping-cart"></i></span>
+<span class="menu-text">Orders</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-users-profile">
+<span class="menu-icon"><i class="iconify tabler--user-cog"></i></span>
+<span class="menu-text">Profile</span>
+</a>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="users" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-icon"><i class="iconify tabler--users"></i></span>
+<span class="menu-text" data-lang="users">Users</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="apps-users-roles">
+<span class="menu-text" data-lang="apps-users-roles">Roles</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-users-role-details">
+<span class="menu-text" data-lang="apps-users-role-details">Role Details</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-users-permissions">
+<span class="menu-text" data-lang="apps-users-permissions">Permissions</span>
+</a>
+</li>
+</ul>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="promo" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-icon"><i class="iconify tabler--discount"></i></span>
+<span class="menu-text" data-lang="promo">Promo</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="apps-promo-coupons">
+<span class="menu-text" data-lang="apps-promo-coupons">Coupons</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-promo-gift-cards">
+<span class="menu-text" data-lang="apps-promo-gift-cards">Gift Cards</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="apps-promo-discounts">
+<span class="menu-text" data-lang="apps-promo-discounts">Discounts</span>
+</a>
+</li>
+</ul>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="plugins" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-icon"><i class="iconify tabler--cpu"></i></span>
+<span class="menu-text" data-lang="plugins">Plugins</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="plugins-sortable">
+<span class="menu-text" data-lang="plugins-sortable">Sortable List</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="plugins-pdf-viewer">
+<span class="menu-text" data-lang="plugins-pdf-viewer">PDF Viewer</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="plugins-sweet-alerts">
+<span class="menu-text" data-lang="plugins-sweet-alerts">Sweet Alerts</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="plugins-idle-timer">
+<span class="menu-text" data-lang="plugins-idle-timer">Idle Timer</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="plugins-pass-meter">
+<span class="menu-text" data-lang="plugins-pass-meter">Password Meter</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="plugins-clipboard">
+<span class="menu-text" data-lang="plugins-clipboard">Clipboard</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="plugins-tree-view">
+<span class="menu-text" data-lang="plugins-tree-view">Tree View</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="plugins-masonry">
+<span class="menu-text" data-lang="plugins-masonry">Masonry</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="plugins-tour">
+<span class="menu-text" data-lang="plugins-tour">Tour</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="plugins-animation">
+<span class="menu-text" data-lang="plugins-animation">Animation</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="plugins-video-player">
+<span class="menu-text" data-lang="plugins-video-player">Video Player</span>
+</a>
+</li>
+</ul>
+</li>
+{% if show_components %}
+<li class="menu-title" data-lang="components">
+<span>Components</span>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="base-ui" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-icon"><i class="iconify tabler--components"></i></span>
+<span class="menu-text" data-lang="base-ui">Base UI</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="ui-accordions">
+<span class="menu-text" data-lang="ui-accordions">Accordions</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-alerts">
+<span class="menu-text" data-lang="ui-alerts">Alerts</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-buttons">
+<span class="menu-text" data-lang="ui-buttons">Buttons</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-badges">
+<span class="menu-text" data-lang="ui-badges">Badges</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-colors">
+<span class="menu-text" data-lang="ui-colors">Colors</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-breadcrumb">
+<span class="menu-text" data-lang="ui-breadcrumb">Breadcrumb</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-cards">
+<span class="menu-text" data-lang="ui-cards">Cards</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-carousel">
+<span class="menu-text" data-lang="ui-carousel">Carousel</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-collapse">
+<span class="menu-text" data-lang="ui-collapse">Collapse</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-images">
+<span class="menu-text" data-lang="ui-images">Images</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-dropdowns">
+<span class="menu-text" data-lang="ui-dropdowns">Dropdowns</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-videos">
+<span class="menu-text" data-lang="ui-videos">Videos</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-links">
+<span class="menu-text" data-lang="ui-links">Links</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-list-group">
+<span class="menu-text" data-lang="ui-list-group">List Group</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-modals">
+<span class="menu-text" data-lang="ui-modals">Modals</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-notifications">
+<span class="menu-text" data-lang="ui-notifications">Notifications</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-offcanvas">
+<span class="menu-text" data-lang="ui-offcanvas">Offcanvas</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-placeholders">
+<span class="menu-text" data-lang="ui-placeholders">Placeholders</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-pagination">
+<span class="menu-text" data-lang="ui-pagination">Pagination</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-popovers">
+<span class="menu-text" data-lang="ui-popovers">Popovers</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-progress">
+<span class="menu-text" data-lang="ui-progress">Progress</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-scrollspy">
+<span class="menu-text" data-lang="ui-scrollspy">Scrollspy</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-spinners">
+<span class="menu-text" data-lang="ui-spinners">Spinners</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-tabs">
+<span class="menu-text" data-lang="ui-tabs">Tabs</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-tooltips">
+<span class="menu-text" data-lang="ui-tooltips">Tooltips</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-typography">
+<span class="menu-text" data-lang="ui-typography">Typography</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="ui-utilities">
+<span class="menu-text" data-lang="ui-utilities">Utilities</span>
+</a>
+</li>
+</ul>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="widgets" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-icon"><i class="iconify tabler--category"></i></span>
+<span class="menu-text" data-lang="widgets">Widgets</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="widgets-charts">
+<span class="menu-text" data-lang="widgets-charts">Charts</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="widgets-mixed">
+<span class="menu-text" data-lang="widgets-mixed">Mixed</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="widgets-social">
+<span class="menu-text" data-lang="widgets-social">Social</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="widgets-statistics">
+<span class="menu-text" data-lang="widgets-statistics">Statistics</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="widgets-weather">
+<span class="menu-text" data-lang="widgets-weather">Weather</span>
+</a>
+</li>
+</ul>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="charts" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-icon"><i class="iconify tabler--chart-donut"></i></span>
+<span class="menu-text" data-lang="charts">Charts</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item hs-accordion">
+<a aria-controls="apex-charts" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-text" data-lang="apex-charts">Apex Charts</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-area">
+<span class="menu-text" data-lang="charts-apex-area">Area</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-bar">
+<span class="menu-text" data-lang="charts-apex-bar">Bar</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-bubble">
+<span class="menu-text" data-lang="charts-apex-bubble">Bubble</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-candlestick">
+<span class="menu-text" data-lang="charts-apex-candlestick">Candlestick</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-column">
+<span class="menu-text" data-lang="charts-apex-column">Column</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-heatmap">
+<span class="menu-text" data-lang="charts-apex-heatmap">Heatmap</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-line">
+<span class="menu-text" data-lang="charts-apex-line">Line</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-mixed">
+<span class="menu-text" data-lang="charts-apex-mixed">Mixed</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-timeline">
+<span class="menu-text" data-lang="charts-apex-timeline">Timeline</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-boxplot">
+<span class="menu-text" data-lang="charts-apex-boxplot">Boxplot</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-treemap">
+<span class="menu-text" data-lang="charts-apex-treemap">Treemap</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-pie">
+<span class="menu-text" data-lang="charts-apex-pie">Pie</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-radar">
+<span class="menu-text" data-lang="charts-apex-radar">Radar</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-radialbar">
+<span class="menu-text" data-lang="charts-apex-radialbar">RadialBar</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-scatter">
+<span class="menu-text" data-lang="charts-apex-scatter">Scatter</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-polar-area">
+<span class="menu-text" data-lang="charts-apex-polar-area">Polar Area</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-sparklines">
+<span class="menu-text" data-lang="charts-apex-sparklines">Sparklines</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-range">
+<span class="menu-text" data-lang="charts-apex-range">Range</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-funnel">
+<span class="menu-text" data-lang="charts-apex-funnel">Funnel</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-apex-slope">
+<span class="menu-text" data-lang="charts-apex-slope">Slope</span>
+</a>
+</li>
+</ul>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="echarts" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-text" data-lang="echarts">Echarts</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="charts-echart-line">
+<span class="menu-text" data-lang="charts-echart-line">Line</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-echart-bar">
+<span class="menu-text" data-lang="charts-echart-bar">Bar</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-echart-pie">
+<span class="menu-text" data-lang="charts-echart-pie">Pie</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-echart-scatter">
+<span class="menu-text" data-lang="charts-echart-scatter">Scatter</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-echart-gauge">
+<span class="menu-text" data-lang="charts-echart-gauge">Gauge</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-echart-candlestick">
+<span class="menu-text" data-lang="charts-echart-candlestick">Candlestick</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-echart-area">
+<span class="menu-text" data-lang="charts-echart-area">Area</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-echart-radar">
+<span class="menu-text" data-lang="charts-echart-radar">Radar</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-echart-heatmap">
+<span class="menu-text" data-lang="charts-echart-heatmap">Heatmap</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-echart-other">
+<span class="menu-text" data-lang="charts-echart-other">Other</span>
+</a>
+</li>
+</ul>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="chartjs" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-text" data-lang="chartjs">Chart Js</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="charts-chartjs-area">
+<span class="menu-text" data-lang="charts-chartjs-area">Area</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-chartjs-bar">
+<span class="menu-text" data-lang="charts-chartjs-bar">Bar</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-chartjs-line">
+<span class="menu-text" data-lang="charts-chartjs-line">Line</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="charts-chartjs-other">
+<span class="menu-text" data-lang="charts-chartjs-other">Other</span>
+</a>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="forms" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-icon"><i class="iconify tabler--clipboard-list"></i></span>
+<span class="menu-text" data-lang="forms">Forms</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="form-elements">
+<span class="menu-text" data-lang="form-elements">Basic Elements</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="form-validation">
+<span class="menu-text" data-lang="form-validation">Validation</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="form-wizard">
+<span class="menu-text" data-lang="form-wizard">Wizard</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="form-select">
+<span class="menu-text" data-lang="form-select">Select</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="form-pickers">
+<span class="menu-text" data-lang="form-pickers">Pickers</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="form-fileuploads">
+<span class="menu-text" data-lang="form-fileuploads">File Uploads</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="form-text-editors">
+<span class="menu-text" data-lang="form-text-editors">Text Editors</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="form-range-slider">
+<span class="menu-text" data-lang="form-range-slider">Range Slider</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="form-cropper">
+<span class="menu-text" data-lang="form-cropper">Image Cropper</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="form-layout">
+<span class="menu-text" data-lang="form-layout">Layouts</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="form-other-plugin">
+<span class="menu-text" data-lang="form-other-plugin">Other Plugins</span>
+</a>
+</li>
+</ul>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="tables" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-icon"><i class="iconify tabler--table-column"></i></span>
+<span class="menu-text" data-lang="tables">Tables</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="tables-static">
+<span class="menu-text" data-lang="tables-static">Static Tables</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="tables-custom">
+<span class="menu-text" data-lang="tables-custom">Custom Tables</span>
+</a>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="datatables" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-text" data-lang="datatables">DataTables</span>
+<span class="badge bg-success text-white">15</span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="tables-datatables-basic">
+<span class="menu-text" data-lang="tables-datatables-basic">Basic</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="tables-datatables-export-data">
+<span class="menu-text" data-lang="tables-datatables-export-data">Export Data</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="tables-datatables-select">
+<span class="menu-text" data-lang="tables-datatables-select">Select</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="tables-datatables-ajax">
+<span class="menu-text" data-lang="tables-datatables-ajax">Ajax</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="tables-datatables-javascript">
+<span class="menu-text" data-lang="tables-datatables-javascript">Javascript Source</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="tables-datatables-rendering">
+<span class="menu-text" data-lang="tables-datatables-rendering">Data Rendering</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="tables-datatables-scroll">
+<span class="menu-text" data-lang="tables-datatables-scroll">Scroll</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="tables-datatables-fixed-columns">
+<span class="menu-text" data-lang="tables-datatables-fixed-columns">Fixed Columns</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="tables-datatables-fixed-header">
+<span class="menu-text" data-lang="tables-datatables-fixed-header">Fixed Header</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="tables-datatables-columns">
+<span class="menu-text" data-lang="tables-datatables-columns">Show &amp; Hide Column</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="tables-datatables-child-rows">
+<span class="menu-text" data-lang="tables-datatables-child-rows">Child Rows</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="tables-datatables-column-searching">
+<span class="menu-text" data-lang="tables-datatables-column-searching">Column Searching</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="tables-datatables-range-search">
+<span class="menu-text" data-lang="tables-datatables-range-search">Range Search</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="tables-datatables-rows-add">
+<span class="menu-text" data-lang="tables-datatables-rows-add">Add Rows</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="tables-datatables-checkbox-select">
+<span class="menu-text" data-lang="tables-datatables-checkbox-select">Checkbox Select</span>
+</a>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="menu-item hs-accordion">
+<a aria-controls="icons" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
+<span class="menu-icon"><i class="iconify tabler--icons"></i></span>
+<span class="menu-text" data-lang="icons">Icons</span>
+<span class="menu-arrow"></span>
+</a>
+<ul class="sub-menu hs-accordion-content hs-accordion-group hidden">
+<li class="menu-item">
+<a class="menu-link" href="icons-tabler">
+<span class="menu-text" data-lang="icons-tabler">Tabler</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="icons-lucide">
+<span class="menu-text" data-lang="icons-lucide">Lucide</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="icons-remix">
+<span class="menu-text" data-lang="icons-remix">Remix</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="icons-solar-duotone">
+<span class="menu-text" data-lang="icons-solar-duotone">Solar Duotone</span>
+</a>
+</li>
+<li class="menu-item">
+<a class="menu-link" href="icons-flags">
+<span class="menu-text" data-lang="icons-flags">Flags</span>
+</a>
+</li>
+</ul>
+</li>
+{% endif %}
+</ul>
+</div>
+</div>
+</div>
+{% endif %}
+</aside>
+<!-- End Sidebar -->

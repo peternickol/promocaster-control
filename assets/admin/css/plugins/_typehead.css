@@ -1,0 +1,55 @@
+/* _typehead.css */
+
+.twitter-typeahead {
+    display: inherit !important;
+}
+
+.tt-query,
+.tt-hint {
+    outline: none;
+}
+
+.tt-query {
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+}
+
+.tt-hint {
+    @apply text-body-color !bg-card;
+}
+
+.tt-menu {
+    width: 100%;
+    padding: 8px 0;
+    max-height: 200px;
+    overflow-y: auto;
+    @apply border-default-300 bg-card border shadow;
+}
+
+.tt-suggestion {
+    padding: 3px 20px;
+    line-height: 24px;
+
+    &:hover,
+    &.tt-cursor {
+        cursor: pointer;
+        color: white;
+        background-color: var(--color-primary);
+    }
+
+    p {
+        margin: 0;
+    }
+}
+
+.tt-highlight {
+    @apply font-body;
+}
+
+.typeahead-empty-message {
+    padding: 5px 10px;
+    @apply text-danger;
+}
+
+.league-name {
+    padding: 3px 20px;
+}

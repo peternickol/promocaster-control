@@ -1,0 +1,113 @@
+/* _daterangepicker.css */
+
+.daterangepicker {
+    @apply bg-card font-body border-default-300 border shadow;
+
+    .calendar-table {
+        border: none;
+        background-color: transparent;
+
+        td,
+        th {
+            color: var(--color-body-color);
+            text-transform: uppercase;
+        }
+
+        .next,
+        .prev {
+            span {
+                border-color: var(--color-body-color);
+            }
+        }
+    }
+
+    .ranges {
+        li {
+            &:hover {
+                background-color: var(--color-default-100);
+            }
+
+            &.active {
+                background-color: var(--color-primary);
+            }
+        }
+    }
+
+    td {
+        &.in-range {
+            background: var(--color-default-300);
+            color: var(--color-body-color);
+        }
+
+        &.off,
+        &.off.end-date,
+        &.off.in-range,
+        &.off.start-date {
+            background-color: var(--color-card);
+            color: var(--color-body-color);
+            opacity: 0.5;
+        }
+
+        &.active,
+        &.active:hover {
+            background-color: var(--color-primary);
+            color: white;
+        }
+    }
+
+    td.available:hover,
+    th.available:hover,
+    td.active,
+    td.active:hover {
+        background-color: var(--color-primary);
+        color: white;
+
+        span {
+            border-color: white;
+        }
+    }
+
+    &:after {
+        border-bottom: 6px solid var(--color-card);
+    }
+
+    &:before {
+        border-bottom: 7px solid var(--color-default-300);
+    }
+
+    .drp-buttons {
+        border-top: 1px solid var(--color-default-300);
+
+        .btn {
+            font-weight: 500;
+        }
+    }
+
+    .monthselect,
+    .yearselect {
+        border: 1px solid var(--color-default-300);
+        border-radius: 4px;
+        padding: 2px 8px;
+        background-color: var(--color-card);
+    }
+
+    select {
+        &.ampmselect,
+        &.hourselect,
+        &.minuteselect,
+        &.secondselect {
+            background: var(--color-default-100);
+            border: 1px solid var(--color-default-300);
+            color: var(--color-body-color);
+            padding: 3px 10px;
+            width: auto;
+            border-radius: 4px;
+        }
+    }
+
+    &.show-ranges {
+        .drp-calendar.left {
+            @apply !border-s-default-200 !border-s;
+        }
+    }
+}

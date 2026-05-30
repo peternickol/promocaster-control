@@ -1,0 +1,99 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Edit Promocaster Client{% endblock title %}
+
+{% block content %}
+<div class="wrapper promocaster-theme">
+{% set subtitle='Promocaster' %}
+{% set title='Edit Client' %}
+{% set breadcrumbs=[
+    {'label': 'Promocaster Control', 'href': './'},
+    {'label': 'Admin', 'href': 'promocaster-dashboard'},
+    {'label': 'Clients', 'href': '/clients'}
+] %}
+{% include 'partials/topbar.html' %}
+{% include 'partials/sidenav.html' %}
+<div class="page-content">
+<main>
+{% include 'partials/page-title.html' %}
+<div class="container-fluid">
+<div class="grid grid-cols-1 gap-base xl:grid-cols-[1fr_360px]">
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">Client Details</h4>
+</div>
+<div class="card-body grid gap-5">
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+<label class="grid gap-1">
+<span class="text-sm font-semibold">Client Name</span>
+<input class="form-input" type="text" value="PHGI">
+</label>
+<label class="grid gap-1">
+<span class="text-sm font-semibold">Client Slug</span>
+<input class="form-input" type="text" value="phgi">
+</label>
+</div>
+<label class="grid gap-1">
+<span class="text-sm font-semibold">Git Repository</span>
+<input class="form-input" type="text" value="git@github.com:peternickol/promocaster.phgi.git">
+</label>
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+<label class="grid gap-1">
+<span class="text-sm font-semibold">Branch</span>
+<input class="form-input" type="text" value="master">
+</label>
+<label class="grid gap-1">
+<span class="text-sm font-semibold">Client Status</span>
+<select class="form-select">
+<option selected>Active</option>
+<option>Paused</option>
+</select>
+</label>
+</div>
+<div class="flex flex-wrap gap-2">
+<a class="btn bg-light hover:text-primary" href="/clients">Cancel</a>
+<button class="btn bg-primary text-white hover:bg-primary-hover" type="button">Save Client</button>
+</div>
+</div>
+</div>
+<div class="grid gap-base">
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">Repo Sync</h4>
+</div>
+<div class="card-body grid gap-3">
+<div>
+<span class="badge badge-label bg-success/15 text-success">In Sync</span>
+<p class="mt-2 text-sm text-default-400">Checkout is present and current with origin/master.</p>
+</div>
+<a class="btn bg-primary text-white hover:bg-primary-hover justify-start" href="/client-sync"><i class="iconify tabler--refresh"></i>Resync Repository</a>
+<p class="text-xs text-default-400">This will refresh the local checkout used by the editor and viewer.</p>
+</div>
+</div>
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">Assigned Users</h4>
+</div>
+<div class="card-body grid gap-3">
+<label class="flex items-center gap-2">
+<input class="form-checkbox" type="checkbox" checked>
+<span>Adam Mercer</span>
+</label>
+<label class="flex items-center gap-2">
+<input class="form-checkbox" type="checkbox" checked>
+<span>Matt Rivera</span>
+</label>
+<hr class="border-default-300">
+<p class="text-xs text-default-400">Admins are not assigned per client; they have implicit access to every client.</p>
+<a class="btn bg-light hover:text-primary justify-start" href="/access"><i class="iconify tabler--shield-lock"></i>Manage Access Rules</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+{% include 'partials/footer.html' %}
+</div>
+</div>
+{% include 'partials/footer-scripts.html' %}
+{% endblock content %}

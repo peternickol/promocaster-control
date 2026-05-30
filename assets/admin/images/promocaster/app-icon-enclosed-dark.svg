@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+    
+    
+    <rect x="32" y="32" width="448" height="448" rx="96" fill="#0F172A"/>
+    
+    <g transform="translate(18,18) scale(0.92)">
+      <text x="76" y="376"
+            font-family="Inter, Arial, sans-serif"
+            font-size="338"
+            font-weight="800"
+            fill="#1677FF">P</text>
+      <path d="M252 152 A102 102 0 0 1 252 356"
+            fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round"/>
+      <path d="M300 116 A146 146 0 0 1 300 392"
+            fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round"/>
+    </g>
+    
+    
+    </svg>

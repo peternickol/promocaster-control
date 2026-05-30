@@ -1,0 +1,56 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Promocaster Clients{% endblock title %}
+
+{% block content %}
+<div class="wrapper promocaster-theme">
+{% set subtitle='Promocaster' %}
+{% set title='Clients' %}
+{% set breadcrumbs=[
+    {'label': 'Promocaster Control', 'href': './'},
+    {'label': 'Admin', 'href': 'promocaster-dashboard'}
+] %}
+{% include 'partials/topbar.html' %}
+{% include 'partials/sidenav.html' %}
+<div class="page-content">
+<main>
+{% include 'partials/page-title.html' %}
+<div class="container-fluid">
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">Clients</h4>
+<a class="btn bg-primary text-white hover:bg-primary-hover ms-auto" href="/client"><i class="iconify tabler--plus"></i>Add Client</a>
+</div>
+<div class="table-wrapper">
+<table class="table-custom table table-hover">
+<thead class="thead-sm">
+<tr><th>Client</th><th>Repository</th><th>Branch</th><th>Users</th><th>Repo Sync</th><th class="text-end">Actions</th></tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="font-semibold">PHGI</span><p class="text-xs text-default-400">phgi</p></td>
+<td>promocaster.phgi.git</td>
+<td>master</td>
+<td>3 assigned</td>
+<td>
+<span class="badge badge-label bg-success/15 text-success">In Sync</span>
+<p class="text-xs text-default-400">Last checked 2 min ago</p>
+</td>
+<td class="text-end">
+<div class="flex justify-end gap-2">
+<a class="btn btn-sm bg-light hover:text-primary" href="/client-sync"><i class="iconify tabler--refresh"></i>Resync</a>
+<a class="btn btn-sm bg-light hover:text-primary" href="/client"><i class="iconify tabler--edit"></i>Edit</a>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+{% include 'partials/footer.html' %}
+</div>
+</div>
+{% include 'partials/footer-scripts.html' %}
+{% endblock content %}

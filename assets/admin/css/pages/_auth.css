@@ -1,0 +1,6 @@
+/* _auth.css */
+
+
+.auth-logo img {
+    @apply h-6;
+}

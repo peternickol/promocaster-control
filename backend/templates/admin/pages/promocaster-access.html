@@ -1,0 +1,71 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Promocaster Access{% endblock title %}
+
+{% block content %}
+<div class="wrapper promocaster-theme">
+{% set subtitle='Promocaster' %}
+{% set title='Access' %}
+{% set breadcrumbs=[
+    {'label': 'Promocaster Control', 'href': './'},
+    {'label': 'Admin', 'href': 'promocaster-dashboard'}
+] %}
+{% include 'partials/topbar.html' %}
+{% include 'partials/sidenav.html' %}
+<div class="page-content">
+<main>
+{% include 'partials/page-title.html' %}
+<div class="container-fluid">
+<div class="grid grid-cols-1 gap-base xl:grid-cols-2">
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">Assign Clients</h4>
+</div>
+<div class="card-body grid gap-4">
+<label class="grid gap-1">
+<span class="text-sm font-semibold">User</span>
+<select class="form-select">
+<option>Adam Mercer</option>
+<option>Matt Rivera</option>
+</select>
+</label>
+<label class="grid gap-1">
+<span class="text-sm font-semibold">Client</span>
+<select class="form-select">
+<option>PHGI</option>
+</select>
+</label>
+<button class="btn bg-primary text-white hover:bg-primary-hover w-fit" type="button">Save Access</button>
+</div>
+</div>
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">Current Assignments</h4>
+</div>
+<div class="table-wrapper">
+<table class="table-custom table">
+<thead class="thead-sm"><tr><th>User</th><th>Client</th><th>Role</th></tr></thead>
+<tbody>
+<tr><td>Adam Mercer</td><td>PHGI</td><td>Editor</td></tr>
+<tr><td>Matt Rivera</td><td>PHGI</td><td>Viewer</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="card xl:col-span-2">
+<div class="card-body flex items-start gap-3">
+<span class="size-10 flex items-center justify-center rounded-full bg-primary/15 text-primary"><i class="iconify tabler--shield-check text-xl"></i></span>
+<div>
+<p class="font-semibold">Admins have implicit access to every client.</p>
+<p class="text-sm text-default-400">Peter Lawson is not assigned here because the Admin role grants full Promocaster access by default.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+{% include 'partials/footer.html' %}
+</div>
+</div>
+{% include 'partials/footer-scripts.html' %}
+{% endblock content %}

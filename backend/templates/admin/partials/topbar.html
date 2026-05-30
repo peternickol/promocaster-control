@@ -1,0 +1,259 @@
+<header class="app-header{% if sidebar_variant == "promocaster" %} promocaster-app-header{% endif %}">
+<div class="container-fluid flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="logo-topbar">
+<!-- Sidenav Menu Brand Logo -->
+<a class="logo-box" href="/deck">
+<!-- Light Brand Logo -->
+<div class="logo-light">
+{% if sidebar_variant == "promocaster" %}
+<img alt="Promocaster" class="logo-lg h-6" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-dark.svg') }}"/>
+<img alt="Promocaster" class="logo-sm h-6" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-dark.svg') }}"/>
+{% else %}
+<img alt="Light logo" class="logo-lg h-6" src="{{ url_for('admin_assets', path='images/logo.png') }}"/>
+<img alt="Small logo" class="logo-sm h-6" src="{{ url_for('admin_assets', path='images/logo-sm.png') }}"/>
+{% endif %}
+</div>
+<!-- Dark Brand Logo -->
+<div class="logo-dark">
+{% if sidebar_variant == "promocaster" %}
+<img alt="Promocaster" class="logo-lg h-6" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-light.svg') }}"/>
+<img alt="Promocaster" class="logo-sm h-6" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-light.svg') }}"/>
+{% else %}
+<img alt="Dark logo" class="logo-lg h-6" src="{{ url_for('admin_assets', path='images/logo-black.png') }}"/>
+<img alt="Small logo" class="logo-sm h-6" src="{{ url_for('admin_assets', path='images/logo-sm.png') }}"/>
+{% endif %}
+</div>
+</a>
+</div>
+<!-- Sidenav Menu Toggle Button -->
+<button class="sidenav-toggle-button btn btn-icon" id="button-toggle-menu">
+<i class="iconify tabler--menu-4 text-xl"></i>
+</button>
+</div>
+<div class="flex items-center gap-2.5 ms-auto">
+<!-- Topnav Menu Toggle Button for Horizontal -->
+<div class="topnav-toggle-button">
+<button aria-controls="topnav-menu" aria-expanded="false" aria-label="Toggle navigation" class="hs-collapse-toggle btn topnav-toggle-button" data-hs-collapse="#topnav-menu" id="topnav-menu-collapse" type="button">
+<i class="iconify tabler--menu-4 text-xl"></i>
+</button>
+</div>
+{% if sidebar_variant != "promocaster" %}
+<div class="md:inline-flex hidden" id="megamenu-columns">
+<div class="topbar-item hs-dropdown relative inline-flex">
+<button aria-expanded="false" aria-haspopup="menu" aria-label="Dropdown" class="topbar-link hs-dropdown-toggle btn px-2.5! font-medium" type="button">Mega Menu <i class="iconify tabler--chevron-down"></i></button>
+<div aria-labelledby="dropdown-menu" aria-orientation="vertical" class="hs-dropdown-menu p-0 md:min-w-3xl" role="menu">
+<div data-simplebar="" style="max-height: 380px">
+<div class="grid md:grid-cols-3">
+<div class="p-3">
+<h5 class="py-2 px-3.5 font-semibold mb-2 text-xs">Dashboard &amp; Analytics</h5>
+<ul class="list-unstyled megamenu-list">
+<li>
+<a class="dropdown-item" href="javascript:void(0);">
+<i class="iconify tabler--chevron-right align-middle text-default-400"></i>
+                                                Sales Dashboard
+                                            </a>
+</li>
+<li>
+<a class="dropdown-item" href="javascript:void(0);">
+<i class="iconify tabler--chevron-right align-middle text-default-400"></i>
+                                                Marketing Dashboard
+                                            </a>
+</li>
+<li>
+<a class="dropdown-item" href="javascript:void(0);">
+<i class="iconify tabler--chevron-right align-middle text-default-400"></i>
+                                                Operations Overview
+                                            </a>
+</li>
+<li>
+<a class="dropdown-item" href="javascript:void(0);">
+<i class="iconify tabler--chevron-right align-middle text-default-400"></i>
+                                                User Analytics
+                                            </a>
+</li>
+<li>
+<a class="dropdown-item" href="javascript:void(0);">
+<i class="iconify tabler--chevron-right align-middle text-default-400"></i>
+                                                Traffic Insights
+                                            </a>
+</li>
+</ul>
+</div>
+<div class="p-3">
+<h5 class="py-2 px-3.5 font-semibold mb-2 text-xs">Course Management</h5>
+<ul class="list-unstyled megamenu-list">
+<li>
+<a class="dropdown-item" href="javascript:void(0);">
+<i class="iconify tabler--minus align-middle text-default-400"></i>
+                                                Kanban Workflow
+                                            </a>
+</li>
+<li>
+<a class="dropdown-item" href="javascript:void(0);">
+<i class="iconify tabler--minus align-middle text-default-400"></i>
+                                                Course Timeline
+                                            </a>
+</li>
+<li>
+<a class="dropdown-item" href="javascript:void(0);">
+<i class="iconify tabler--minus align-middle text-default-400"></i>
+                                                Lesson Management
+                                            </a>
+</li>
+<li>
+<a class="dropdown-item" href="javascript:void(0);">
+<i class="iconify tabler--minus align-middle text-default-400"></i>
+                                                Team Members
+                                            </a>
+</li>
+<li>
+<a class="dropdown-item" href="javascript:void(0);">
+<i class="iconify tabler--minus align-middle text-default-400"></i>
+                                                Assignments
+                                            </a>
+</li>
+</ul>
+</div>
+<div class="p-3 bg-light/50">
+<h5 class="py-2 px-3.5 font-semibold mb-2 text-xs">User Management</h5>
+<ul class="list-unstyled megamenu-list">
+<li>
+<a class="dropdown-item" href="/profile">
+<i class="iconify tabler--chevron-right align-middle text-default-400"></i>
+                                                User Profiles
+                                            </a>
+</li>
+<li>
+<a class="dropdown-item" href="/access">
+<i class="iconify tabler--chevron-right align-middle text-default-400"></i>
+                                                Access Control
+                                            </a>
+</li>
+<a class="dropdown-item" href="/user">
+<i class="iconify tabler--chevron-right align-middle text-default-400"></i>
+                                                User Groups
+                                            </a>
+</li>
+</ul>
+</div>
+</div>
+<!-- end row-->
+</div>
+</div>
+</div>
+</div>
+{% endif %}
+<div class="sm:inline-flex hidden" id="theme-toggle">
+<button aria-label="Toggle color mode" class="topbar-link rounded-full" id="light-dark-mode" type="button">
+<i class="iconify tabler--sun topbar-link-icon hidden" id="theme-icon-light"></i>
+<i class="iconify tabler--moon topbar-link-icon hidden" id="theme-icon-dark"></i>
+</button>
+</div>
+{% if sidebar_variant != "promocaster" %}
+<div class="topbar-item hs-dropdown relative inline-flex [--auto-close:inside] [--placement:bottom-right]" id="notification-dropdown-people">
+<button aria-expanded="false" aria-haspopup="menu" aria-label="Dropdown" class="topbar-link hs-dropdown-toggle relative flex items-center" type="button">
+<i class="iconify tabler--bell topbar-link-icon"></i>
+<span class="badge bg-danger absolute -end-px -top-[13px] size-4 rounded-full leading-0 text-white">5</span>
+</button>
+<div aria-labelledby="dropdown-menu" aria-orientation="vertical" class="hs-dropdown-menu min-w-80 p-0 space-y-0" role="menu">
+<div class="border-default-300 border-b px-3 py-2">
+<div class="flex items-center justify-between">
+<h6 class="text-base font-semibold">Notifications</h6>
+<a class="badge badge-label bg-success/15 text-success" href="#!">07 Notification</a>
+</div>
+</div>
+<div data-simplebar="" style="max-height: 300px">
+<div class="dropdown-item gap-6 px-4.5 py-3 text-wrap" id="message-1">
+<span class="shrink-0 relative">
+<img alt="User Avatar" class="size-9 rounded-full" src="{{ url_for('admin_assets', path='images/users/user-4.jpg') }}"/>
+<span class="absolute -top-3 -end-2 border-2 border-card bg-success text-white flex size-5.5 items-center justify-center rounded-full">
+<i class="iconify tabler--bell text-2xs align-middle"></i>
+<span class="sr-only">unread notification</span>
+</span>
+</span>
+<span class="grow text-default-400">
+<span class="font-medium text-body-color">Emily Johnson</span>
+                                commented on a task in
+                                <span class="font-medium text-body-color">Design Sprint</span>
+<br/>
+<span class="text-xs">12 minutes ago</span>
+</span>
+</div>
+<div class="dropdown-item gap-6 px-4.5 py-3 text-wrap" id="message-2">
+<span class="shrink-0 relative">
+<img alt="User Avatar" class="size-9 rounded-full" src="{{ url_for('admin_assets', path='images/users/user-5.jpg') }}"/>
+<span class="absolute -top-3 -end-2 border-2 border-card bg-info text-white flex size-5.5 items-center justify-center rounded-full">
+<i class="iconify tabler--cloud-upload text-2xs align-middle"></i>
+<span class="sr-only">upload notification</span>
+</span>
+</span>
+<span class="grow text-default-400">
+<span class="font-medium text-body-color">Michael Lee</span>
+                                uploaded files to
+                                <span class="font-medium text-body-color">Marketing Assets</span>
+<br/>
+<span class="text-xs">25 minutes ago</span>
+</span>
+</div>
+<div class="dropdown-item gap-6 px-4.5 py-3 text-wrap" id="message-6">
+<span class="shrink-0 relative">
+<span class="size-9 rounded-full bg-light flex items-center justify-center">
+<i class="iconify tabler--database text-lg"></i>
+</span>
+<span class="absolute -top-3 -end-2 border-2 border-card bg-danger text-white flex size-5.5 items-center justify-center rounded-full">
+<i class="iconify tabler--alert-circle text-2xs align-middle"></i>
+<span class="sr-only">server alert</span>
+</span>
+</span>
+<span class="grow text-default-400">
+<span class="font-medium text-body-color">Server #3</span>
+                                CPU usage exceeded 90%
+                                <br/>
+<span class="text-xs">Just now</span>
+</span>
+</div>
+</div>
+<a class="dropdown-item text-reset border-light justify-center border-t py-3 font-bold underline underline-offset-2" href="javascript:void(0);">Read All Messages</a>
+</div>
+</div>
+{% endif %}
+<div class="md:inline-flex hidden" id="fullscreen-toggler">
+<div class="topbar-item">
+<button aria-label="Full Screen" class="topbar-link btn group size-8 rounded-full" data-toggle="fullscreen">
+<i class="iconify tabler--maximize topbar-link-icon group-[.fullscreen-active]:hidden"></i>
+<i class="iconify tabler--minimize hidden topbar-link-icon group-[.fullscreen-active]:inline-block"></i>
+</button>
+</div>
+</div>
+<div class="topbar-item hs-dropdown before:bg-default-700/35 relative inline-flex before:h-4.5 before:w-px before:content-['']" id="user-dropdown-detailed">
+<button aria-expanded="false" aria-haspopup="menu" aria-label="Dropdown" class="hs-dropdown-toggle topbar-link ms-2.5 cursor-pointer items-center px-3! flex">
+<span class="size-8 rounded-full bg-default-100 text-default-600 lg:me-3 flex items-center justify-center">
+<i class="iconify tabler--user text-lg"></i>
+</span>
+<div class="hidden lg:flex items-center gap-1.5">
+<span class="flex flex-col items-start">
+<h5 class="pro-username">{{ admin_user }}</h5>
+<span class="text-xs/none mb-0.5">{{ admin_role }}</span>
+</span>
+<i class="iconify tabler--chevron-down align-middle"></i>
+</div>
+</button>
+<div aria-labelledby="hs-dropdown-with-icons" aria-orientation="vertical" class="hs-dropdown-menu min-w-48" role="menu">
+<!-- My Profile -->
+<a class="dropdown-item" href="/profile">
+<i class="iconify tabler--user-circle text-base align-middle"></i>
+<span class="align-middle">Profile</span>
+</a>
+{% if sidebar_variant != "promocaster" %}
+<a class="dropdown-item" href="javascript:void(0);">
+<i class="iconify tabler--bell-ringing text-base align-middle"></i>
+<span class="align-middle">Notifications</span>
+</a>
+{% endif %}
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Topbar End -->

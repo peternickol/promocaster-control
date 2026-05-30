@@ -1,0 +1,249 @@
+html[data-skin="neon"] {
+    --font-body: "Outfit", sans-serif;
+    --font-secondary: "Outfit", sans-serif;
+
+    --text-body: 14px;
+    --color-body-bg: #f6f6f6;
+
+    --color-card: #ffffff;
+
+    --color-primary: #d65db1;
+    --color-primary-hover: #a14685;
+
+    --color-secondary: #845ec2;
+    --color-secondary-hover: #634792;
+
+    --color-success: #00c9a7;
+    --color-success-hover: #00977d;
+
+    --color-info: #48c3d7;
+    --color-info-hover: #3692a1;
+
+    --color-warning: #ffc75f;
+    --color-warning-hover: #bf9547;
+
+    --color-danger: #ff6f91;
+    --color-danger-hover: #bf536d;
+
+    --shadow: 0 1px 2px rgba(57, 62, 80, 0.1);
+
+    --color-default-300: #edf2f9;
+
+    --spacing-base: 8px;
+
+    --text-sm: 14px;
+
+    --radius: 12px;
+
+    --font-weight-medium: 500;
+    --font-weight-semibold: 500;
+    --font-weight-bold: 600;
+
+    /* Menu items */
+    --sidenav-item-icon-size: 1rem;
+    --sidenav-item-gap: 10px;
+    --sidenav-item-padding-x: 12px;
+    --sidenav-item-padding-y: 8px;
+    --sidenav-item-font-size: 0.875rem;
+    --sidenav-item-font-weight: 400;
+
+    /* Sub Menu Items */
+    --sidenav-sub-item-font-size: 0.875rem;
+    --sidenav-sub-item-font-weight: 400;
+    --sidenav-sub-item-gap: 4px;
+    --sidenav-sub-item-padding-x: 10px;
+    --sidenav-sub-item-padding-y: 7px;
+
+    /* Light left-sidebar */
+    &[data-menu-color="light"] {
+        --sidenav-bg: white;
+        --sidenav-border-color: #edf2f9;
+        --sidenav-item-color: var(--color-default-700);
+        --sidenav-item-hover-color: #312a2f;
+        --sidenav-item-hover-bg: #f6f6f6;
+        --sidenav-item-active-color: #312a2f;
+        --sidenav-item-active-bg: #f6f6f6;
+    }
+
+    /* Gray left-sidebar */
+    &[data-menu-color="gray"] {
+        --sidenav-bg: #f6f7fb;
+        --sidenav-border-color: #e7e9eb;
+        --sidenav-item-color: var(--color-default-700);
+        --sidenav-item-hover-color: #d65db1;
+        --sidenav-item-hover-bg: #eaecf3;
+        --sidenav-item-active-color: #212b29;
+        --sidenav-item-active-bg: #eaecf3;
+    }
+
+    /* Dark Left Sidebar */
+    &[data-menu-color="dark"] {
+        --sidenav-bg: #222b40;
+        --sidenav-border-color: #222b40;
+        --sidenav-item-color: #8495ab;
+        --sidenav-item-hover-color: #bccee4;
+        --sidenav-item-hover-bg: #30394d;
+        --sidenav-item-active-color: #ced6df;
+        --sidenav-item-active-bg: #222b40;
+    }
+
+    /* Gradient Menu */
+    &[data-menu-color="gradient"] {
+        --sidenav-bg: linear-gradient(to right, #141e30, #243b55);
+        --sidenav-border-color: null;
+        --sidenav-item-color: #799cb7;
+        --sidenav-item-hover-color: #bccee4;
+        --sidenav-item-hover-bg: rgba(219, 236, 255, 0.05);
+        --sidenav-item-active-color: #cfdff1;
+        --sidenav-item-active-bg: rgba(219, 236, 255, 0.05);
+    }
+
+    /* Image Menu */
+    &[data-menu-color="image"] {
+        --sidenav-bg: linear-gradient(to bottom right, rgba(16, 16, 30, 0.85), #183c52), url("/static/images/sidenav-bg.jpg") center/cover no-repeat;
+        --sidenav-border-color: null;
+        --sidenav-item-color: #799cb7;
+        --sidenav-item-hover-color: #bccee4;
+        --sidenav-item-hover-bg: #2f3742;
+        --sidenav-item-active-color: #cfdff1;
+        --sidenav-item-active-bg: rgba(219, 236, 255, 0.05);
+    }
+
+    /* Dark Mode */
+    &[data-theme="dark"][data-menu-color="dark"],
+    &[data-theme="dark"][data-menu-color="gray"],
+    &[data-theme="dark"][data-menu-color="light"] {
+        --sidenav-bg: #1e1f27;
+        --sidenav-border-color: #2c2d38;
+        --sidenav-item-color: #8495ab;
+        --sidenav-item-hover-color: #bccee4;
+        --sidenav-item-hover-bg: #2f3742;
+        --sidenav-item-active-color: #ced6df;
+        --sidenav-item-active-bg: #22232c;
+    }
+
+    /* Light Topbar */
+    &[data-topbar-color="light"] {
+        --topbar-bg: #ffffff;
+        --topbar-item-color: var(--color-default-700);
+        --topbar-item-hover-color: #d65db1;
+        --topbar-search-bg: transparent;
+        --topbar-search-border: #e7e9eb;
+    }
+
+    /* Gray Topbar */
+    &[data-topbar-color="gray"] {
+        --topbar-bg: #f6f7fb;
+        --topbar-item-color: var(--color-default-700);
+        --topbar-item-hover-color: #d65db1;
+        --topbar-search-bg: #eceef5;
+        --topbar-search-border: #eceef5;
+    }
+
+    /* Dark Topbar */
+    &[data-topbar-color="dark"] {
+        --topbar-bg: #222b40;
+        --topbar-item-color: #adb5bf;
+        --topbar-item-hover-color: #e0eeff;
+        --topbar-search-bg: #1b2c42;
+        --topbar-search-border: #1b2c42;
+    }
+
+    /* Topbar (Dark Mode) */
+    &[data-theme="dark"][data-topbar-color="dark"],
+    &[data-theme="dark"][data-topbar-color="light"],
+    &[data-theme="dark"][data-topbar-color="gray"] {
+        --topbar-bg: #252630;
+        --topbar-item-color: #adb5bf;
+        --topbar-item-hover-color: #e0eeff;
+        --topbar-search-bg: #2d2e3c;
+        --topbar-search-border: #2d2e3c;
+    }
+
+    /* Chart Colors */
+    --color-chart-primary: #d65db1;
+    --color-chart-secondary: #845ec2;
+    --color-chart-alpha: #00c9a7;
+    --color-chart-beta: #ff6f91;
+    --color-chart-gamma: #ffc75f;
+    --color-chart-delta: #48c3d7;
+    --color-chart-zeta: #6070cc;
+    --color-chart-gray: #edeff3;
+    --color-chart-dark: #396699;
+    --color-chart-border-color: #ecf4fc;
+    --color-chart-title-color: #bbcae1;
+}
+
+html[data-theme="dark"][data-skin="neon"] {
+    --color-body-bg: #17181e;
+
+    --color-card: #1b1c22;
+
+    --color-light: #252630;
+
+    --shadow: 0px 0px 30px rgba(0, 0, 0, 0.3);
+
+    --color-default-100: #252630;
+    --color-default-300: #293036;
+
+    --color-chart-gray: #40424f;
+    --color-chart-border-color: #242c31;
+
+    .card,
+    .hs-dropdown-menu {
+        border: 1px solid var(--color-default-300) !important;
+    }
+
+    .hs-dropdown-menu {
+        background-color: #1b1c22;
+    }
+}
+
+/* neon Theme */
+html[data-skin="neon"] {
+    .page-content main {
+        @apply px-3.5;
+    }
+
+    .app-header {
+        .topbar-item {
+            .topbar-link:has(.topbar-link-icon) {
+                height: 32px;
+                width: 32px;
+                border: 1px solid var(--topbar-search-border);
+                border-radius: 5px;
+
+                .topbar-link-icon {
+                    font-size: 18px;
+                }
+            }
+
+            .badge {
+                @apply !-top-2 !pt-1;
+            }
+        }
+    }
+
+    .footer {
+        @apply px-4;
+        background-color: transparent;
+        border: none;
+    }
+
+    .card {
+        box-shadow: none;
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+    }
+
+    .hs-dropdown-menu {
+        background-color: white;
+    }
+
+    .btn {
+        font-weight: normal;
+    }
+}

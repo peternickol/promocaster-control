@@ -1,0 +1,100 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Promocaster Users{% endblock title %}
+
+{% block content %}
+<div class="wrapper promocaster-theme">
+{% set subtitle='Promocaster' %}
+{% set title='Users' %}
+{% set breadcrumbs=[
+    {'label': 'Promocaster Control', 'href': './'},
+    {'label': 'Admin', 'href': 'promocaster-dashboard'}
+] %}
+{% include 'partials/topbar.html' %}
+{% include 'partials/sidenav.html' %}
+<div class="page-content">
+<main>
+{% include 'partials/page-title.html' %}
+<div class="container-fluid">
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">Users</h4>
+<a class="btn bg-primary text-white hover:bg-primary-hover ms-auto" href="/user/new"><i class="iconify tabler--user-plus"></i>Add User</a>
+</div>
+<div class="card-body border-b border-default-200">
+<div class="flex flex-wrap items-center gap-3">
+<div class="input-icon-group">
+<i class="iconify tabler--search input-icon"></i>
+<input class="form-input" placeholder="Search users" type="search">
+</div>
+<select class="form-select w-auto">
+<option>All roles</option>
+<option>Admin</option>
+<option>Editor</option>
+<option>Viewer</option>
+</select>
+<select class="form-select w-auto">
+<option>All clients</option>
+<option>PHGI</option>
+</select>
+</div>
+</div>
+<div class="table-wrapper">
+<table class="table-custom table table-hover">
+<thead class="thead-sm">
+<tr><th>User</th><th>Role</th><th>Access</th><th>Status</th><th class="text-end">Actions</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<div>
+<p class="font-semibold">Peter Lawson</p>
+<p class="text-xs text-default-400">peter@promocaster.local</p>
+</div>
+</td>
+<td><span class="badge badge-label bg-primary/15 text-primary">Admin</span></td>
+<td><span class="badge badge-label bg-primary/15 text-primary">Implicit full access</span></td>
+<td><span class="badge badge-label bg-success/15 text-success">Active</span></td>
+<td class="text-end">
+<a class="btn btn-sm bg-light hover:text-primary" href="/user/edit"><i class="iconify tabler--edit"></i>Edit</a>
+</td>
+</tr>
+<tr>
+<td>
+<div>
+<p class="font-semibold">Adam Mercer</p>
+<p class="text-xs text-default-400">adam@promocaster.local</p>
+</div>
+</td>
+<td><span class="badge badge-label bg-success/15 text-success">Editor</span></td>
+<td>PHGI</td>
+<td><span class="badge badge-label bg-success/15 text-success">Active</span></td>
+<td class="text-end">
+<a class="btn btn-sm bg-light hover:text-primary" href="/user/edit"><i class="iconify tabler--edit"></i>Edit</a>
+</td>
+</tr>
+<tr>
+<td>
+<div>
+<p class="font-semibold">Matt Rivera</p>
+<p class="text-xs text-default-400">matt@promocaster.local</p>
+</div>
+</td>
+<td><span class="badge badge-label bg-info/15 text-info">Viewer</span></td>
+<td>PHGI</td>
+<td><span class="badge badge-label bg-success/15 text-success">Active</span></td>
+<td class="text-end">
+<a class="btn btn-sm bg-light hover:text-primary" href="/user/edit"><i class="iconify tabler--edit"></i>Edit</a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+{% include 'partials/footer.html' %}
+</div>
+</div>
+{% include 'partials/footer-scripts.html' %}
+{% endblock content %}

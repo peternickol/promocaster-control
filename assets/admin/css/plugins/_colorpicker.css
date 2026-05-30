@@ -1,0 +1,75 @@
+/* _colorpicker.css */
+
+.pcr-app {
+    background: var(--color-card);
+    border-radius: 4px;
+    border: 1px solid var(--color-default-300);
+    @apply shadow;
+
+    .pcr-interaction {
+        .pcr-type.active {
+            background: var(--color-primary);
+        }
+
+        .pcr-result {
+            background-color: var(--color-card);
+            color: var(--color-body-color);
+            border: 1px solid var(--color-default-300);
+            border-radius: 0.25rem;
+        }
+
+        input {
+            background-color: var(--color-light);
+            border-radius: 0.25rem !important;
+
+            &:focus {
+                box-shadow: none;
+                background-color: var(--color-card);
+                @apply border-primary/15;
+            }
+        }
+
+        .pcr-save {
+            background: var(--color-success) !important;
+        }
+
+        .pcr-clear,
+        .pcr-cancel {
+            background: var(--color-danger) !important;
+        }
+    }
+}
+
+.pickr {
+    .pcr-button {
+        height: 36px;
+        width: 150px;
+        border-radius: 0.25rem;
+
+        &::after,
+        &::before {
+            border-radius: 0.25rem;
+        }
+    }
+}
+
+.pcr-app[data-theme="classic"] {
+    .pcr-selection {
+        .pcr-color-preview {
+            margin-inline-end: 0.75em;
+            margin-inline-start: 0;
+        }
+
+        .pcr-color-chooser,
+        .pcr-color-opacity {
+            margin-inline-start: 0.75em;
+            margin-inline-end: 0;
+        }
+    }
+}
+
+.pcr-app[data-theme="monolith"] {
+    .pcr-result {
+        min-width: 100%;
+    }
+}

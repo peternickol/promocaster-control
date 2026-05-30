@@ -1,0 +1,66 @@
+/*  */
+
+@layer base {
+    html {
+        @apply relative scroll-smooth;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        line-height: 1.5 !important;
+        @apply font-secondary font-medium;
+    }
+
+    body {
+        overflow-x: hidden;
+        -webkit-tap-highlight-color: transparent;
+        @apply font-body text-body bg-body-bg text-body-color size-full leading-normal font-normal antialiased;
+    }
+
+    small {
+        font-size: 0.85em;
+    }
+
+    label {
+        @apply block font-semibold;
+    }
+
+    b,
+    strong {
+        @apply font-semibold;
+    }
+
+    button:not(:disabled),
+    [role="button"]:not(:disabled) {
+        cursor: pointer;
+    }
+
+    code {
+        @apply text-rose-400;
+    }
+
+    svg.lucide {
+        width: 1em;
+        height: 1em;
+    }
+}
+
+@utility shadow {
+    box-shadow: var(--shadow);
+}
+
+@utility shadow-sm {
+    box-shadow: var(--shadow-sm);
+}
+
+.container {
+    @apply mx-auto max-w-330 px-3;
+}
+
+.container-fluid {
+    @apply w-full max-w-full mx-auto;
+}

@@ -12,10 +12,11 @@
   const auditStatus = document.getElementById("audit-status");
   const prevSlide = document.getElementById("prev-slide");
   const nextSlide = document.getElementById("next-slide");
-  const themeToggle = document.getElementById("theme-toggle");
+  const themeToggles = Array.from(document.querySelectorAll("#theme-toggle, [data-control-theme-toggle]"));
   const themeStorageKey = "promocaster-admin-theme";
   const legacyThemeStorageKeys = ["promocaster-viewer-theme", "promocaster-editor-theme"];
-  const controlClient = document.body.dataset.client || "phgi";
+  const controlClient = document.body.dataset.client || "";
+  const initialLocation = document.body.dataset.location || "";
 
   let data = { locations: [] };
   let selectedLocation = "";
@@ -47,7 +48,9 @@
     const nextTheme = theme === "dark" ? "dark" : "light";
     document.documentElement.dataset.theme = nextTheme;
     document.documentElement.dataset.bsTheme = nextTheme;
-    if (themeToggle) themeToggle.setAttribute("aria-label", `Switch to ${nextTheme === "dark" ? "light" : "dark"} mode`);
+    themeToggles.forEach((toggle) => {
+      toggle.setAttribute("aria-label", `Switch to ${nextTheme === "dark" ? "light" : "dark"} mode`);
+    });
     if (persist) window.localStorage.setItem(themeStorageKey, nextTheme);
   }
 
@@ -320,7 +323,11 @@
   function selectLocation(name) {
     selectedLocation = name;
     selectedSlideIndex = 0;
-    window.location.hash = encodeURIComponent(name);
+    window.history.pushState(
+      { location: name },
+      "",
+      `/deck/${encodeURIComponent(controlClient)}/${encodeURIComponent(name)}?mode=viewer`,
+    );
     render();
   }
 
@@ -340,7 +347,7 @@
     if (!Array.isArray(nextData?.locations)) return;
     setClientName(nextData);
     data = nextData;
-    const hashLocation = decodeURIComponent(window.location.hash.replace(/^#/, ""));
+    const hashLocation = initialLocation || decodeURIComponent(window.location.hash.replace(/^#/, ""));
     selectedLocation = hashLocation || selectedLocation || data.activeLocation || data.locations[0]?.name || "";
     if (!getLocation(selectedLocation)) selectedLocation = data.locations[0]?.name || "";
     render();
@@ -367,6 +374,10 @@
   });
 
   async function loadRemoteDecks() {
+    if (!controlClient) {
+      setAuditStatus("No client selected");
+      return;
+    }
     setAuditStatus("Loading repo data");
     try {
       const response = await fetch(`/api/clients/${encodeURIComponent(controlClient)}/decks`, { cache: "no-store" });
@@ -380,10 +391,10 @@
     }
   }
 
-  themeToggle.addEventListener("click", () => {
+  themeToggles.forEach((toggle) => toggle.addEventListener("click", () => {
     const currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
     setTheme(currentTheme === "dark" ? "light" : "dark");
-  });
+  }));
 
   prevSlide.addEventListener("click", () => moveSlide(-1));
   nextSlide.addEventListener("click", () => moveSlide(1));
@@ -391,6 +402,7 @@
     const hashLocation = decodeURIComponent(window.location.hash.replace(/^#/, ""));
     if (hashLocation && hashLocation !== selectedLocation) selectLocation(hashLocation);
   });
+  window.addEventListener("popstate", () => loadRemoteDecks());
 
   setTheme(preferredTheme(), false);
   const embeddedData = parseJson(initialData?.textContent || "{}") || {};

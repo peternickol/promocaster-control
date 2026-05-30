@@ -1,0 +1,56 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Promocaster Viewer{% endblock title %}
+
+{% block content %}
+<div class="wrapper promocaster-theme">
+{% set subtitle='Promocaster' %}
+{% set title='Viewer' %}
+{% set breadcrumbs=[
+    {'label': 'Promocaster Control', 'href': './'},
+    {'label': 'Client Slides', 'href': '/deck?mode=viewer'},
+    {'label': 'PHGI', 'href': '/deck?mode=viewer#phgi'}
+] %}
+{% include 'partials/topbar.html' %}
+{% include 'partials/sidenav.html' %}
+<div class="page-content">
+<main>
+{% include 'partials/page-title.html' %}
+<div class="container-fluid">
+<div class="mb-base flex flex-wrap items-center justify-between gap-3">
+<div>
+<p class="text-sm text-default-400">PHGI</p>
+<h5 class="font-semibold">Lobby Display</h5>
+</div>
+<div class="grid grid-cols-2 gap-1 rounded-md bg-light p-1">
+<a class="btn btn-sm justify-center bg-primary text-white hover:bg-primary-hover" href="/deck?mode=viewer#lobby-display">
+<i class="iconify tabler--eye"></i>Viewer
+</a>
+<a class="btn btn-sm justify-center hover:text-primary" href="/deck?mode=editor#lobby-display">
+<i class="iconify tabler--edit"></i>Editor
+</a>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-base">
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">Slide Preview</h4>
+<span class="badge badge-label bg-success/15 text-success ms-auto">PHGI</span>
+</div>
+<div class="card-body">
+<div class="grid min-h-96 place-items-center rounded-md border border-dashed border-default-300 bg-light/30">
+<div class="text-center">
+<i class="iconify tabler--photo text-5xl text-default-400"></i>
+<p class="mt-3 font-semibold">Viewer preview surface</p>
+<p class="text-sm text-default-400">Slide data and media preview will wire into the Promocaster API here.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+{% include 'partials/footer.html' %}
+</div>
+</div>
+{% include 'partials/footer-scripts.html' %}
+{% endblock content %}

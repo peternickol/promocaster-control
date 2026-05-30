@@ -1,0 +1,301 @@
+html[data-skin="mono"] {
+    --font-body: "Montserrat", sans-serif;
+    --font-secondary: "Montserrat", sans-serif;
+
+    --text-body: 13px;
+    --color-body-bg: #f2f7ff;
+
+    --color-card: #f4f9ff;
+
+    --color-primary: #395d94;
+    --color-primary-hover: #2b466f;
+
+    --color-secondary: #b56576;
+    --color-secondary-hover: #884c59;
+
+    --color-success: #71b47c;
+    --color-success-hover: #55875d;
+
+    --color-info: #76c2c3;
+    --color-info-hover: #599292;
+
+    --color-warning: #d9b96a;
+    --color-warning-hover: #a38b50;
+
+    --color-danger: #d64646;
+    --color-danger-hover: #a13535;
+
+    --color-light: #d5dfef;
+    --color-light-hover: #a0a7b3;
+
+    --shadow: 1px 0.1rem 0.5rem 0 rgba(148, 172, 209, 0.2);
+
+    --color-default-100: #dee9f9;
+
+    --color-default-300: #d5dfef;
+
+    --color-default-400: #7e7591;
+
+    --text-sm: 13px;
+
+    --radius: 8px;
+
+    --spacing-base: 0.75rem;
+
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* Menu items */
+    --sidenav-item-icon-size: 1.125rem;
+    --sidenav-item-gap: 12px;
+    --sidenav-item-padding-x: 10px;
+    --sidenav-item-padding-y: 10px;
+    --sidenav-item-font-size: 0.8125rem;
+    --sidenav-item-font-weight: 500;
+
+    /* Sub Menu Items */
+    --sidenav-sub-item-font-size: 0.8125rem;
+    --sidenav-sub-item-font-weight: 500;
+    --sidenav-sub-item-gap: 4px;
+    --sidenav-sub-item-padding-x: 10px;
+    --sidenav-sub-item-padding-y: 7px;
+
+    /* Background Light left-sidebar */
+    &[data-menu-color="light"] {
+        --sidenav-bg: #ffffff;
+        --sidenav-border-color: #ffffff;
+        --sidenav-item-color: var(--color-default-700);
+        --sidenav-item-hover-color: #395d94;
+        --sidenav-item-hover-bg: #f2f7ff;
+        --sidenav-item-active-color: #395d94;
+        --sidenav-item-active-bg: #f2f7ff;
+    }
+
+    /* Background Gray left-sidebar */
+    &[data-menu-color="gray"] {
+        --sidenav-bg: #ebf2fa;
+        --sidenav-border-color: #ebf2fa;
+        --sidenav-item-color: var(--color-default-700);
+        --sidenav-item-hover-color: #395d94;
+        --sidenav-item-hover-bg: #e0e7f1;
+        --sidenav-item-active-color: #212b29;
+        --sidenav-item-active-bg: #e0e7f1;
+    }
+
+    /* Dark Left Sidebar */
+    &[data-menu-color="dark"] {
+        --sidenav-bg: #383131;
+        --sidenav-border-color: #383131;
+        --sidenav-item-color: #9f9f9f;
+        --sidenav-item-hover-color: #d5d5d5;
+        --sidenav-item-hover-bg: #312a2a;
+        --sidenav-item-active-color: #d5d5d5;
+        --sidenav-item-active-bg: #312a2a;
+    }
+
+    /* Gradient Menu */
+    &[data-menu-color="gradient"] {
+        --sidenav-bg: linear-gradient(135deg, #39568a, #262549);
+        --sidenav-border-color: null;
+        --sidenav-item-color: #799cb7;
+        --sidenav-item-hover-color: #bccee4;
+        --sidenav-item-hover-bg: rgba(255, 255, 255, 0.05);
+        --sidenav-item-active-color: #cfdff1;
+        --sidenav-item-active-bg: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Image Menu */
+    &[data-menu-color="image"] {
+        --sidenav-bg: linear-gradient(to bottom right, rgba(16, 16, 30, 0.85), #183c52), url("/static/images/sidenav-bg.jpg") center/cover no-repeat;
+        --sidenav-border-color: null;
+        --sidenav-item-color: #799cb7;
+        --sidenav-item-hover-color: #bccee4;
+        --sidenav-item-hover-bg: rgba(255, 255, 255, 0.05);
+        --sidenav-item-active-color: #cfdff1;
+        --sidenav-item-active-bg: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Dark Mode */
+    &[data-theme="dark"][data-menu-color="dark"],
+    &[data-theme="dark"][data-menu-color="gray"],
+    &[data-theme="dark"][data-menu-color="light"] {
+        --sidenav-bg: #1e1f27;
+        --sidenav-border-color: #2c2d38;
+        --sidenav-item-color: #8495ab;
+        --sidenav-item-hover-color: #bccee4;
+        --sidenav-item-hover-bg: #2f3742;
+        --sidenav-item-active-color: #ced6df;
+        --sidenav-item-active-bg: #22232c;
+    }
+
+    /* Light Topbar */
+    &[data-topbar-color="light"] {
+        --topbar-bg: #fefbff;
+        --topbar-item-color: var(--color-default-700);
+        --topbar-item-hover-color: #395d94;
+        --topbar-search-bg: #f2f7ff;
+        --topbar-search-border: #eaeef5;
+    }
+
+    /* Gray Topbar */
+    &[data-topbar-color="gray"] {
+        --topbar-bg: #f2f7ff;
+        --topbar-item-color: var(--color-default-700);
+        --topbar-item-hover-color: #395d94;
+        --topbar-search-bg: #e8eef7;
+        --topbar-search-border: #e8eef7;
+    }
+
+    /* Dark Topbar */
+    &[data-topbar-color="dark"] {
+        --topbar-bg: #395d94;
+        --topbar-item-color: #bcc8dd;
+        --topbar-item-hover-color: #e0eeff;
+        --topbar-search-bg: #44679d;
+        --topbar-search-border: #44679d;
+    }
+
+    /* Gradient Topbar */
+    &[data-topbar-color="gradient"] {
+        --topbar-bg: linear-gradient(to bottom, #395d94, #3a3052);
+        --topbar-item-color: rgba(255, 255, 255, 0.7);
+        --topbar-item-hover-color: #ffffff;
+        --topbar-search-bg: rgba(255, 255, 255, 0.1);
+        --topbar-search-border: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Topbar (Dark Mode) */
+    &[data-theme="dark"][data-topbar-color="dark"],
+    &[data-theme="dark"][data-topbar-color="light"],
+    &[data-theme="dark"][data-topbar-color="gray"] {
+        --topbar-bg: #252630;
+        --topbar-item-color: #adb5bf;
+        --topbar-item-hover-color: #e0eeff;
+        --topbar-search-bg: #2d2e3c;
+        --topbar-search-border: #2d2e3c;
+    }
+
+    /* Chart Colors */
+    --color-chart-primary: #395d94;
+    --color-chart-secondary: #d9b96a;
+    --color-chart-alpha: #71b47c;
+    --color-chart-beta: #d64646;
+    --color-chart-gamma: #b56576;
+    --color-chart-delta: #76c2c3;
+    --color-chart-zeta: #6b3f69;
+    --color-chart-gray: #d5dfef;
+    --color-chart-dark: #396699;
+    --color-chart-border-color: #ecf4fc;
+    --color-chart-title-color: #bbcae1;
+}
+
+html[data-theme="dark"][data-skin="mono"] {
+    --color-body-bg: #17181e;
+
+    --color-card: #1b1c22;
+
+    --color-light: #252630;
+
+    --shadow: 0px 0px 30px rgba(0, 0, 0, 0.3);
+
+    --color-default-100: #252630;
+    --color-default-300: #293036;
+
+    --color-chart-gray: #40424f;
+    --color-chart-border-color: #242c31;
+
+    .card,
+    .hs-dropdown-menu {
+        border: 1px solid var(--color-default-300) !important;
+    }
+
+    .hs-dropdown-menu {
+        background-color: #1b1c22;
+    }
+
+    .card {
+        border-radius: 12px;
+        border: 1px solid #293036;
+        box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.3);
+        background-image: linear-gradient(90deg, rgba(57, 93, 148, 0.05), rgba(44, 138, 40, 0)) !important;
+
+        .card-title {
+            font-weight: 600;
+        }
+    }
+}
+
+/* mono Theme */
+html[data-skin="mono"] {
+    .page-title-head,
+    .container-fluid {
+        max-width: 1448px;
+        @apply mx-auto;
+    }
+
+    .pro-username {
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .page-content main {
+        @apply px-4;
+    }
+
+    .app-header {
+        .topbar-item {
+            .topbar-link:has(.topbar-link-icon) {
+                height: 32px;
+                width: 32px;
+                background-color: var(--topbar-search-bg);
+                border-radius: 50rem;
+
+                .topbar-link-icon {
+                    font-size: 18px;
+                }
+            }
+
+            .badge {
+                @apply !-top-2 !pt-1;
+            }
+        }
+
+        .container-fluid {
+            padding: 0 !important;
+        }
+    }
+
+    .card {
+        border-radius: 12px;
+        border: 1px solid #dee9f9;
+        box-shadow: 1px 0.1rem 0.5rem 0 rgba(148, 172, 209, 0.2);
+        background-image: linear-gradient(90deg, rgba(57, 93, 148, 0.05), rgba(44, 138, 40, 0));
+
+        .card-title {
+            font-weight: 600;
+        }
+    }
+
+    .pro-username {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .side-nav > .menu-item > .menu-link.active {
+        border-radius: 50px;
+    }
+
+    .footer {
+        background-color: transparent;
+        border: none;
+    }
+
+    .btn[class*="size-"] {
+        @apply py-[0.4532rem] px-4;
+    }
+
+    .btn-sm[class*="size-"] {
+        @apply py-[0.3125rem] px-2.5;
+    }
+}

@@ -1,0 +1,137 @@
+/**
+* Template Name: Paces - Admin & Dashboard Template
+* By (Author): Coderthemes
+* Module/App (File Name): App CSS File
+* Version: 1.2.0
+*/
+
+@import "./config/_font.css";
+
+
+@layer base {
+@import "@simonwep/pickr/dist/themes/classic.min.css";
+@import "@simonwep/pickr/dist/themes/monolith.min.css";
+@import "@simonwep/pickr/dist/themes/nano.min.css";
+@import "@sjmc11/tourguidejs/dist/css/tour.min.css";
+@import "animate.css/animate.min.css";
+@import "choices.js/public/assets/styles/choices.min.css";
+@import "cropperjs/dist/cropper.min.css";
+@import "datatables.net-dt/css/dataTables.dataTables.css";
+@import "datatables.net-fixedcolumns-dt/css/fixedColumns.dataTables.css";
+@import "datatables.net-fixedheader-dt/css/fixedHeader.dataTables.css";
+@import "datatables.net-responsive-dt/css/responsive.dataTables.css";
+@import "datatables.net-select-dt/css/select.dataTables.css";
+@import "daterangepicker/daterangepicker.css";
+@import "dropzone/dist/dropzone.css";
+@import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css";
+@import "filepond/dist/filepond.min.css";
+@import "flatpickr/dist/flatpickr.min.css";
+@import "glightbox/dist/css/glightbox.min.css";
+@import "jstree/dist/themes/default/style.min.css";
+@import "nouislider/dist/nouislider.min.css";
+@import "plyr/dist/plyr.css";
+@import "quill/dist/quill.bubble.css";
+@import "quill/dist/quill.core.css";
+@import "quill/dist/quill.snow.css";
+@import "select2/dist/css/select2.min.css";
+}
+
+
+/* ========= Tailwind CSS ========= */
+@import "tailwindcss";
+
+/* ========= Tailwind Plugin ========= */
+@plugin "@tailwindcss/typography";
+@plugin "@tailwindcss/forms";
+
+
+/* ========= Preline UI ========= */
+@source "preline/dist/*.js";
+@import "preline/variants.css";
+
+
+/* ========= Themes Config ========= */
+@import "./config/_root.css";
+@import "./config/_theme-default.css";
+@import "./config/_theme-minimal.css";
+@import "./config/_theme-modern.css";
+@import "./config/_theme-material.css";
+@import "./config/_theme-saas.css";
+@import "./config/_theme-flat.css";
+@import "./config/_theme-galaxy.css";
+@import "./config/_theme-luxe.css";
+@import "./config/_theme-retro.css";
+@import "./config/_theme-neon.css";
+@import "./config/_theme-pixel.css";
+@import "./config/_theme-soft.css";
+@import "./config/_theme-mono.css";
+@import "./config/_theme-zen.css";
+@import "./config/_theme-silver.css";
+@import "./config/_theme-prism.css";
+@import "./config/_theme-nova.css";
+@import "./config/_theme-elegant.css";
+@import "./config/_theme-vivid.css";
+@import "./config/_theme-matrix.css";
+@import "./config/_theme-neo.css";
+@import "./config/_theme-xenon.css";
+@import "./config/_theme-crystal.css";
+@import "./config/_theme-aurora.css";
+@import "./config/_theme-orbit.css";
+
+
+@plugin "@iconify/tailwind4" {
+  prefixes: tabler, lucide, solar, ri, bx, bxs, bxl, solar;
+}
+
+/* ========= Custom CSS ========= */
+
+@import "./structure/_layout.css";
+@import "./structure/_sidenav.css";
+@import "./structure/_horizontal.css";
+@import "./structure/_topbar.css";
+@import "./structure/_footer.css";
+
+/* Custom Components */
+@import "./custom/_reboot.css";
+@import "./custom/_helper.css";
+@import "./custom/_buttons.css";
+@import "./custom/_badge.css";
+@import "./custom/_card.css";
+@import "./custom/_dropdown.css";
+@import "./custom/_forms.css";
+@import "./custom/_print.css";
+@import "./custom/_table.css";
+@import "./custom/_pagination.css";
+@import "./custom/_progress.css";
+@import "./custom/_modal.css";
+
+@import "./plugins/_simplebar.css";
+@import "./plugins/_flatpickr.css";
+@import "./plugins/_prismjs.css";
+
+@import "./pages/_email.css";
+@import "./pages/_kanban.css";
+@import "./pages/_error.css";
+@import "./pages/_auth.css";
+@import "./pages/_widgets.css";
+
+@import "./plugins/_apexcharts.css";
+@import "./plugins/_calendar.css";
+@import "./plugins/_choice.css";
+@import "./plugins/_colorpicker.css";
+@import "./plugins/_cropper.css";
+@import "./plugins/_datatables.css";
+@import "./plugins/_daterangepicker.css";
+@import "./plugins/_dropzone.css";
+@import "./plugins/_filepond.css";
+@import "./plugins/_flatpickr.css";
+@import "./plugins/_jvectormap.css";
+@import "./plugins/_noui-rangeslider.css";
+@import "./plugins/_pass-bar.css";
+@import "./plugins/_quill-editor.css";
+@import "./plugins/_select2.css";
+@import "./plugins/_sortablejs.css";
+@import "./plugins/_sweetalert2.css";
+@import "./plugins/_tour.css";
+@import "./plugins/_treeview.css";
+@import "./plugins/_typehead.css";

@@ -1,0 +1,17 @@
+/* _kanban,css */
+
+/* Sortable Plguins overwrite */
+.sortable-fallback {
+    opacity: 1 !important;
+
+    .card {
+        transform: rotate(10deg);
+        opacity: 1 !important;
+    }
+}
+
+.sortable-item-ghost {
+    .card {
+        @apply !bg-warning/10;
+    }
+}

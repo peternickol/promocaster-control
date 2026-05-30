@@ -1,0 +1,192 @@
+/* _flatpickr.css */
+
+.flatpickr-input[readonly] {
+    cursor: pointer;
+}
+
+.flatpickr-calendar {
+    @apply bg-card border-default-300 text-body border shadow;
+
+    &.arrowTop {
+        &:before {
+            @apply border-b-card;
+        }
+
+        &:after {
+            @apply border-b-card;
+        }
+    }
+
+    &.arrowBottom {
+        &:before,
+        &:after {
+            @apply border-t-card;
+        }
+    }
+
+    &.open {
+        z-index: 1200;
+    }
+
+    &.inline {
+        @apply block;
+    }
+}
+
+.flatpickr-current-month {
+    font-size: 100%;
+}
+
+.flatpickr-day {
+    &.selected,
+    &.startRange,
+    &.endRange,
+    &.selected.inRange,
+    &.startRange.inRange,
+    &.endRange.inRange,
+    &.selected:focus,
+    &.startRange:focus,
+    &.endRange:focus,
+    &.selected:hover,
+    &.startRange:hover,
+    &.endRange:hover,
+    &.selected.prevMonthDay,
+    &.startRange.prevMonthDay,
+    &.endRange.prevMonthDay,
+    &.selected.nextMonthDay,
+    &.startRange.nextMonthDay,
+    &.endRange.nextMonthDay {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        color: white;
+    }
+
+    &.selected.startRange + .endRange:not(:nth-child(7n + 1)),
+    &.startRange.startRange + .endRange:not(:nth-child(7n + 1)),
+    &.endRange.startRange + .endRange:not(:nth-child(7n + 1)) {
+        box-shadow: -10px 0 0 var(--color-primary);
+    }
+}
+
+.flatpickr-time {
+    input:hover,
+    .flatpickr-am-pm:hover,
+    input:focus,
+    .flatpickr-am-pm:focus {
+        @apply bg-card text-default-700;
+    }
+}
+
+.flatpickr-months {
+    .flatpickr-month {
+        height: 40px;
+    }
+
+    .flatpickr-prev-month,
+    .flatpickr-next-month,
+    .flatpickr-month {
+        color: var(--color-body-color);
+        fill: var(--color-default-500);
+        line-height: 16px;
+    }
+}
+
+.flatpickr-weekdays {
+    @apply bg-default-100;
+}
+
+span.flatpickr-weekday,
+.flatpickr-day,
+.flatpickr-current-month input.cur-year[disabled],
+.flatpickr-current-month input.cur-year[disabled]:hover,
+.flatpickr-time input,
+.flatpickr-time .flatpickr-time-separator,
+.flatpickr-time .flatpickr-am-pm {
+    @apply text-default-600 fill-default-600 font-semibold;
+}
+
+.flatpickr-current-month input.cur-year {
+    @apply font-semibold;
+}
+
+.flatpickr-day {
+    &.disabled,
+    &.disabled:hover,
+    &.prevMonthDay,
+    &.nextMonthDay,
+    &.notAllowed,
+    &.notAllowed.prevMonthDay,
+    &.notAllowed.nextMonthDay {
+        @apply text-default-400;
+    }
+
+    &.inRange,
+    &.prevMonthDay.inRange,
+    &.nextMonthDay.inRange,
+    &.today.inRange,
+    &.prevMonthDay.today.inRange,
+    &.nextMonthDay.today.inRange,
+    &:hover,
+    &.prevMonthDay:hover,
+    &.nextMonthDay:hover,
+    &:focus,
+    &.prevMonthDay:focus,
+    &.nextMonthDay:focus {
+        @apply bg-default-100 border-default-100;
+    }
+}
+
+.flatpickr-calendar.showTimeInput.hasTime .flatpickr-time {
+    @apply border-default-300 border-t;
+}
+
+.numInputWrapper:hover,
+.flatpickr-current-month .flatpickr-monthDropdown-months:hover {
+    background-color: transparent;
+    @apply text-default-600;
+}
+
+.flatpickr-current-month .numInputWrapper {
+    width: 8ch;
+    display: inline-block;
+    margin-inline-start: 10px;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month .numInputWrapper {
+    @apply border-default-300 border;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-weight: normal;
+}
+
+.flatpickr-day.inRange {
+    box-shadow:
+        -5px 0 0 var(--color-default-100),
+        5px 0 0 var(--color-default-100);
+}
+
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.flatpickr-disabled:hover {
+    @apply text-default-400;
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+.flatpickr-calendar.hasTime .flatpickr-time {
+    @apply border-default-300 border-t;
+}
+
+.flatpickr-weekwrapper .flatpickr-weeks {
+    box-shadow: none;
+}
+
+.flatpickr-weekwrapper span.flatpickr-day,
+.flatpickr-weekwrapper span.flatpickr-day:hover {
+    @apply text-default-400;
+}
+
+[data-inline-date="true"],
+[data-time-inline] {
+    display: none;
+}

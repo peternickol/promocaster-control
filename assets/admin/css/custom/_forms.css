@@ -1,0 +1,374 @@
+/* _forms.css */
+
+.form-input {
+    @apply text-body-color placeholder:text-default-400 block h-9.25 w-full rounded border py-0 text-sm outline-0 transition-all;
+    @apply hover:border-default-500! focus:border-default-500! focus-visible:border-default-500 focus:outline-0 focus-visible:ring-0 focus-visible:outline-none;
+    @apply aria-invalid:border-danger/60 aria-invalid:ring-danger/10;
+    transition-property: color, box-shadow;
+}
+
+.is-invalid {
+    @apply border-danger! focus:border-danger! focus:ring-danger/20!;
+}
+
+.is-valid {
+    @apply border-success! focus:border-success! focus:ring-success/20!;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    @apply disabled:bg-default-100 disabled:cursor-not-allowed disabled:opacity-70;
+    @apply [[readonly]]:text-body-color [[readonly]]:cursor-not-allowed;
+}
+
+.form-label {
+    @apply text-body-color font-semibold block mb-2;
+}
+
+.form-input:not([class*="bg-"]),
+.form-textarea:not([class*="bg-"]),
+.form-select:not([class*="bg-"]) {
+    @apply bg-card;
+}
+
+.form-input:not([class*="border-"]),
+.form-textarea:not([class*="border-"]),
+.form-select:not([class*="border-"]) {
+    @apply border-default-300;
+}
+
+.form-input-sm {
+    @apply !h-7.5 !text-xs;
+}
+
+.form-input-lg {
+    @apply !h-11.75 !text-base;
+}
+
+.form-select-sm {
+    @apply !h-7.5 !text-xs;
+}
+
+.form-select-lg {
+    @apply !h-11.75 !text-base;
+}
+
+.form-textarea {
+    @apply px-3 py-2 text-body-color placeholder:text-default-400 block w-full rounded border text-sm h-auto! outline-0 transition-all;
+    @apply hover:border-default-500 focus:border-default-500 focus-visible:border-default-500 focus:outline-0 focus-visible:ring-0 focus-visible:outline-none;
+    transition-property: color, box-shadow;
+}
+
+.form-select {
+    @apply bg-card border-default-300 text-body-color placeholder:text-body-color block h-9.25 w-full rounded border py-0 text-sm outline-0 transition-all;
+    @apply hover:border-default-500 focus:border-default-500 focus-visible:border-default-500 focus:outline-0 focus-visible:ring-0 focus-visible:outline-none;
+    @apply disabled:cursor-not-allowed disabled:opacity-70;
+    @apply [[readonly]]:text-body-color [[readonly]]:cursor-not-allowed;
+    @apply aria-invalid:border-danger/60 aria-invalid:ring-danger/10;
+    @apply !pe-[2.31rem];
+    transition-property: color, box-shadow;
+
+    &[multiple] {
+        @apply h-auto! py-2;
+        padding-inline-end: 0 !important;
+        background-image: none;
+    }
+}
+
+select[multiple] option {
+    padding: 4px 6px;
+}
+
+.form-radio,
+.form-checkbox {
+    @apply size-4.5 rounded appearance-none bg-center bg-no-repeat;
+    @apply shrink-0 border border-default-300 bg-transparent ring-offset-white focus-visible:outline-none;
+    @apply focus-visible:ring-2 focus-visible:ring-inherit focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-90;
+    @apply aria-invalid:border-danger/60 aria-invalid:ring-danger/10;
+    @apply cursor-pointer checked:border-inherit focus:ring-0 focus:ring-offset-0;
+    @apply checked:bg-primary! checked:border-transparent!;
+}
+
+.form-checkbox-light {
+    @apply bg-light/90! border-light/90!;
+    box-shadow: inset 0 1px 2px rgba(var(--color-dark), 0.05);
+}
+
+.form-checkbox {
+    @apply rounded-sm;
+}
+
+.form-radio:not([class*="size-"]),
+.form-checkbox:not([class*="size-"]) {
+    @apply text-lg;
+}
+
+.form-checkbox[class*="rounded-full"] {
+    @apply rounded-full;
+}
+
+.form-checkbox-sm {
+    @apply text-lg;
+}
+
+.form-radio-sm {
+    @apply text-lg;
+}
+
+.form-radio-lg {
+    @apply size-5.5;
+}
+
+.form-switch {
+    @apply bg-default-200 border! border-default-300 relative inline-flex shrink-0 cursor-pointer appearance-none checked:bg-none;
+    @apply focus-visible:ring-default-300 focus-visible:ring-offset-card focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+    @apply aria-invalid:border-danger/60 aria-invalid:ring-danger/10 aria-invalid:border;
+    @apply cursor-pointer border-0 focus:ring-0 focus:ring-offset-0;
+
+    &:before {
+        @apply pointer-events-none absolute start-0 top-1/2 block translate-x-1 -translate-y-1/2 rounded-full bg-dark/30 shadow-xs ring-0 transition-transform content-[""];
+    }
+
+    &:checked,
+    &[aria-checked="true"] {
+        @apply bg-primary! border-primary!;
+
+        &:before {
+            @apply bg-white;
+        }
+    }
+}
+
+.form-switch {
+    @apply h-5 w-7.5 rounded-full;
+
+    &:before {
+        @apply size-3;
+    }
+
+    &:checked,
+    &[aria-checked="true"] {
+        &:before {
+            @apply translate-x-3.5;
+        }
+    }
+}
+
+.form-switch-sm {
+    @apply h-4.5 w-6.5 rounded-full;
+
+    &:before {
+        @apply size-2.5;
+    }
+
+    &:checked,
+    &[aria-checked="true"] {
+        &:before {
+            @apply translate-x-3;
+        }
+    }
+}
+
+.form-switch-lg {
+    @apply h-5.5 w-8.5 rounded-full;
+
+    &:before {
+        @apply size-3.5;
+    }
+
+    &:checked,
+    &[aria-checked="true"] {
+        &:before {
+            @apply translate-x-4;
+        }
+    }
+}
+
+[dir="rtl"] .form-switch {
+    &:before {
+        @apply -translate-x-1;
+    }
+
+    &:checked,
+    &[aria-checked="true"] {
+        &:before {
+            @apply -translate-x-3.5;
+        }
+    }
+
+    &.form-switch-sm {
+        &:checked,
+        &[aria-checked="true"] {
+            &:before {
+                @apply -translate-x-3;
+            }
+        }
+    }
+
+    &.form-switch-lg {
+        &:checked,
+        &[aria-checked="true"] {
+            &:before {
+                @apply -translate-x-4;
+            }
+        }
+    }
+}
+
+/* card radio */
+.card-radio {
+    @apply relative;
+
+    label {
+        @apply cursor-pointer;
+    }
+
+    input:checked + .form-label {
+        @apply relative;
+
+        &::after {
+            content: "";
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='black' d='M12.01 2.011a3.2 3.2 0 0 1 2.113.797l.154.145l.698.698a1.2 1.2 0 0 0 .71.341L15.82 4h1a3.2 3.2 0 0 1 3.195 3.018l.005.182v1c0 .27.092.533.258.743l.09.1l.697.698a3.2 3.2 0 0 1 .147 4.382l-.145.154l-.698.698a1.2 1.2 0 0 0-.341.71l-.008.135v1a3.2 3.2 0 0 1-3.018 3.195l-.182.005h-1a1.2 1.2 0 0 0-.743.258l-.1.09l-.698.697a3.2 3.2 0 0 1-4.382.147l-.154-.145l-.698-.698a1.2 1.2 0 0 0-.71-.341L8.2 20.02h-1a3.2 3.2 0 0 1-3.195-3.018L4 16.82v-1a1.2 1.2 0 0 0-.258-.743l-.09-.1l-.697-.698a3.2 3.2 0 0 1-.147-4.382l.145-.154l.698-.698a1.2 1.2 0 0 0 .341-.71L4 8.2v-1l.005-.182a3.2 3.2 0 0 1 3.013-3.013L7.2 4h1a1.2 1.2 0 0 0 .743-.258l.1-.09l.698-.697a3.2 3.2 0 0 1 2.269-.944m3.697 7.282a1 1 0 0 0-1.414 0L11 12.585l-1.293-1.292l-.094-.083a1 1 0 0 0-1.32 1.497l2 2l.094.083a1 1 0 0 0 1.32-.083l4-4l.083-.094a1 1 0 0 0-.083-1.32'/%3E%3C/svg%3E");
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            background-color: currentColor;
+            mask-repeat: no-repeat;
+            mask-size: 100% 100%;
+            @apply text-success absolute end-2 bottom-2 ms-auto size-6 transition-all;
+        }
+    }
+}
+
+input:checked + .form-label.btn {
+    @apply bg-primary/15 text-primary;
+}
+
+@layer base {
+    .input-group {
+        @apply relative flex flex-wrap items-stretch;
+    }
+}
+
+/* Input Group */
+.input-group {
+    > .form-input,
+    > .form-select,
+    > .form-textarea {
+        position: relative;
+        flex: 1 1 auto;
+        width: 1%;
+        min-width: 0;
+    }
+
+    .input-group-text {
+        @apply rounded bg-default-100 text-default-600 border border-default-300 px-3 flex items-center;
+    }
+
+    > :not(:last-child) {
+        @apply rounded-e-none border border-default-300;
+    }
+
+    > :not(:first-child) {
+        @apply rounded-s-none -ms-px;
+    }
+
+    > .btn {
+        position: relative;
+        z-index: 2;
+    }
+
+    .hs-dropdown {
+        border-width: 0;
+    }
+}
+
+/* Input Icon Group */
+@layer base {
+    .input-icon-group {
+        @apply relative flex items-stretch;
+    }
+}
+
+.input-icon-group {
+    > .form-input,
+    > .form-select {
+        @apply w-full;
+    }
+
+    > .input-icon:first-child {
+        @apply pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-lg text-default-400;
+    }
+
+    > .input-icon:first-child + .form-input,
+    > .input-icon:first-child + .form-select {
+        @apply !ps-10;
+    }
+
+    > .input-icon:last-child {
+        @apply pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-lg text-default-400;
+    }
+
+    > .form-input:not(:last-child),
+    > .form-select:not(:last-child) {
+        @apply pe-10;
+    }
+
+    > .form-select:not(:last-child) {
+        background-size: 4rem 1.5rem;
+    }
+}
+
+/* Touchspin */
+.input-group[data-touchspin] {
+    @apply inline-flex items-center p-1 rounded border border-default-300 gap-2.5;
+
+    > .btn {
+        @apply w-7 h-7 p-0 border-0 rounded inline-flex items-center justify-center cursor-pointer leading-none;
+
+        &:focus {
+            @apply outline-none shadow-none;
+        }
+    }
+
+    > .form-input {
+        @apply h-auto border-0 p-0 m-0 text-center text-sm bg-transparent shadow-none;
+
+        &:focus {
+            @apply outline-none shadow-none;
+        }
+    }
+
+    [data-icon] {
+        @apply inline-flex items-center justify-center text-xs;
+    }
+
+    &:has(.form-input:disabled) {
+        @apply pointer-events-none bg-light/15;
+    }
+
+    &:has(.form-input[readonly]) {
+        @apply pointer-events-none;
+    }
+}
+
+/* Form Range */
+.form-range {
+    @apply w-full cursor-pointer appearance-none bg-transparent focus:outline-hidden disabled:pointer-events-none disabled:opacity-50 [&::-webkit-slider-thumb]:w-2.5;
+    @apply [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:-mt-0.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:appearance-none;
+    @apply [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-[0_0_0_4px_var(--color-primary)] [&::-webkit-slider-thumb]:transition-all;
+    @apply [&::-moz-range-thumb]:h-2.5 [&::-moz-range-thumb]:w-2.5 [&::-webkit-slider-thumb]:duration-150 [&::-webkit-slider-thumb]:ease-in-out;
+    @apply [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-primary [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:border-8;
+    @apply [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:transition-all [&::-moz-range-thumb]:duration-150 [&::-moz-range-thumb]:ease-in-out;
+    @apply [&::-webkit-slider-runnable-track]:bg-default-100 [&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:w-full;
+    @apply [&::-moz-range-track]:bg-default-100 [&::-moz-range-track]:h-2 [&::-moz-range-track]:w-full [&::-moz-range-track]:rounded-full [&::-webkit-slider-runnable-track]:rounded-full;
+}
+
+/* File upload input */
+.form-input[type="file"] {
+    @apply p-0 text-sm cursor-pointer;
+    @apply file:h-full file:px-3 file:me-3 file:border-0 file:border-e file:border-default-300 file:bg-default-100 file:text-default-700 file:font-medium file:cursor-pointer;
+    @apply focus:ring-0 hover:border-default-500 focus:border-default-500 focus-visible:border-default-500 focus:outline-0 focus-visible:ring-0 focus-visible:outline-none hover:file:border-default-300;
+}

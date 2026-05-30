@@ -1,0 +1,61 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Promocaster Editor{% endblock title %}
+
+{% block content %}
+<div class="wrapper promocaster-theme">
+{% set subtitle='Promocaster' %}
+{% set title='Editor' %}
+{% set breadcrumbs=[
+    {'label': 'Promocaster Control', 'href': './'},
+    {'label': 'Client Slides', 'href': '/deck?mode=editor'},
+    {'label': 'PHGI', 'href': '/deck?mode=editor#phgi'}
+] %}
+{% include 'partials/topbar.html' %}
+{% include 'partials/sidenav.html' %}
+<div class="page-content">
+<main>
+{% include 'partials/page-title.html' %}
+<div class="container-fluid">
+<div class="mb-base flex flex-wrap items-center justify-between gap-3">
+<div>
+<p class="text-sm text-default-400">PHGI</p>
+<h5 class="font-semibold">Lobby Display</h5>
+</div>
+<div class="grid grid-cols-2 gap-1 rounded-md bg-light p-1">
+<a class="btn btn-sm justify-center hover:text-primary" href="/deck?mode=viewer#lobby-display">
+<i class="iconify tabler--eye"></i>Viewer
+</a>
+<a class="btn btn-sm justify-center bg-primary text-white hover:bg-primary-hover" href="/deck?mode=editor#lobby-display">
+<i class="iconify tabler--edit"></i>Editor
+</a>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-base">
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">Slides</h4>
+<button class="btn bg-success text-white hover:bg-success-hover ms-auto" type="button"><i class="iconify tabler--cloud-upload"></i>Save & Push</button>
+</div>
+<div class="card-body grid gap-4">
+<label class="grid min-h-36 cursor-pointer place-items-center rounded-md border border-dashed border-default-300 bg-light/30 p-6 text-center">
+<input class="hidden" type="file" accept="image/*,video/mp4" multiple>
+<span>
+<i class="iconify tabler--photo-plus text-4xl text-default-400"></i>
+<span class="mt-2 block font-semibold">Add image or MP4 files</span>
+<span class="text-sm text-default-400">Upload handling will reuse the Promocaster media validation path.</span>
+</span>
+</label>
+<div class="rounded-md border border-default-300 p-4">
+<p class="font-semibold">Slide deck editor surface</p>
+<p class="text-sm text-default-400">Ordering, dates, durations, and pending files will wire into the existing deck API here.</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+{% include 'partials/footer.html' %}
+</div>
+</div>
+{% include 'partials/footer-scripts.html' %}
+{% endblock content %}

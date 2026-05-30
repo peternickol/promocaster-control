@@ -1,0 +1,156 @@
+/* _topbar.css */
+
+.app-header {
+    @apply ms-(--sidenav-width) min-h-(--topbar-height) sticky start-0 end-0 top-0 z-40 flex items-center transition-all duration-300 shadow;
+    background: var(--topbar-bg);
+    transition-property: width, min-width, margin;
+
+    .topbar-item {
+        @apply flex h-14.5 items-center;
+    }
+
+    .topbar-link {
+        @apply flex items-center px-1.5;
+
+        z-index: 1;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--topbar-item-color);
+        position: relative;
+
+        &:hover,
+        &:active,
+        &:focus {
+            color: var(--topbar-item-hover-color);
+        }
+
+        .topbar-link-icon {
+            font-size: 22px;
+        }
+    }
+
+    .container-fluid {
+        @apply px-5;
+    }
+
+    .logo-topbar {
+        @apply hidden;
+    }
+
+    input::placeholder {
+        @apply !text-current;
+    }
+
+    .pro-username {
+        font-size: 13px;
+        line-height: 14px !important;
+    }
+
+    #button-toggle-menu {
+        background-color: var(--color-primary);
+        color: var(--color-white);
+        border-radius: 50%;
+    }
+}
+
+/* Theme Setting Btn */
+.btn-theme-setting {
+    position: relative;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset-inline-end: 4px;
+        top: 16px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background-color: var(--color-danger);
+        transform: translateY(-50%);
+        animation: blinkDot 1.2s infinite ease-in-out;
+        z-index: 5;
+    }
+}
+
+@keyframes blinkDot {
+    0% {
+        box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-danger) 60%, transparent);
+    }
+
+    70% {
+        box-shadow: 0 0 0 6px color-mix(in oklab, var(--color-danger) 0%, transparent);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-danger) 0%, transparent);
+    }
+}
+
+@media (max-width: 767.98px) {
+    .logo-topbar {
+        display: block;
+
+        .logo-lg {
+            display: none;
+        }
+
+        .logo-sm {
+            display: block;
+        }
+    }
+}
+
+html[data-sidenav-size="condensed"],
+html[data-sidenav-size="on-hover"] {
+    .page-content,
+    .app-header {
+        @apply ms-(--sidenav-width-sm);
+    }
+}
+
+html[data-sidenav-size="compact"] {
+    .page-content,
+    .app-header {
+        @apply ms-(--sidenav-width-md);
+    }
+}
+
+html[data-sidenav-size="offcanvas"],
+html[data-sidenav-size="hidden"] {
+    .page-content,
+    .app-header {
+        @apply ms-0;
+    }
+}
+
+/* Manage for light & dark logo */
+html[data-menu-color="light"][data-topbar-color="dark"],
+html[data-menu-color="light"][data-topbar-color="gradient"] {
+    .app-menu {
+        .logo-box {
+            background: var(--topbar-bg);
+            width: calc(100% + 1px);
+        }
+
+        .sidenav-user {
+            margin-top: 10px;
+        }
+
+        #button-hover-toggle {
+            color: white !important;
+        }
+    }
+}
+
+html[data-topbar-color="dark"],
+html[data-topbar-color="gradient"] {
+    .app-header {
+        #button-toggle-menu {
+            @apply border-transparent bg-white/10;
+        }
+    }
+}

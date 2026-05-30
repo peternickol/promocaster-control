@@ -1,0 +1,19 @@
+<!-- Page Title Start -->
+<div class="page-title-head">
+<h4 class="page-main-title">{{ title }}</h4>
+<div class="hidden items-center gap-1.25 text-sm md:flex">
+{% if breadcrumbs is defined %}
+{% for crumb in breadcrumbs %}
+<a class="text-sm" href="{{ crumb.href }}">{{ crumb.label }}</a>
+<i class="iconify tabler--chevron-right text-sm rtl:rotate-180"></i>
+{% endfor %}
+{% else %}
+<a class="text-sm" href="#">{{ admin_title }}</a>
+<i class="iconify tabler--chevron-right text-sm rtl:rotate-180"></i>
+<a class="text-sm" href="#">{{ subtitle }}</a>
+<i class="iconify tabler--chevron-right text-sm rtl:rotate-180"></i>
+{% endif %}
+<a aria-current="page" class="text-default-400 text-sm" href="#">{{ title }}</a>
+</div>
+</div>
+<!-- Page Title End -->

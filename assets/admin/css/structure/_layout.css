@@ -1,0 +1,180 @@
+/* _layout.css */
+
+.wrapper {
+    @apply size-full;
+}
+
+.page-content {
+    @apply ms-(--sidenav-width) flex min-h-[calc(100dvh-(var(--topbar-height)))] grow flex-col transition-all duration-300 ease-in-out;
+    transition-property: width, margin;
+
+    main {
+        @apply w-full grow px-5 pb-5;
+    }
+}
+
+/* Logo */
+.logo-box {
+    @apply px-6 sticky min-h-(--topbar-height) top-0 flex items-center justify-center backdrop-blur-xs;
+
+    .logo-lg {
+        img {
+            height: var(--logo-lg-height);
+        }
+    }
+
+    .logo-sm {
+        img {
+            height: var(--logo-sm-height);
+        }
+    }
+
+    .logo-sm {
+        display: none;
+    }
+
+    .logo-light {
+        display: none;
+    }
+}
+
+/* Page Main Title */
+.page-main-title {
+    @apply text-body-color text-base font-bold;
+}
+
+.page-title-head {
+    @apply h-15 w-full flex items-center flex-wrap gap-2 md:justify-between;
+}
+
+html[data-theme="dark"],
+html[data-menu-color="dark"],
+html[data-menu-color="image"],
+html[data-menu-color="gradient"],
+html[data-menu-color="light"][data-topbar-color="dark"],
+html[data-menu-color="light"][data-topbar-color="gradient"] {
+    .app-menu {
+        .logo-box {
+            .logo-light {
+                display: block;
+            }
+
+            .logo-dark {
+                display: none;
+            }
+        }
+    }
+}
+
+/* No Sidebar Ions */
+html.sidebar-no-icons {
+    .app-menu {
+        .menu-icon {
+            display: none;
+        }
+    }
+}
+
+/* Sidebar with Lines */
+html.sidebar-with-line {
+    .sub-menu {
+        position: relative;
+
+        &::before {
+            content: "";
+            /* width: calc(var(--sidenav-item-icon-size) + var(--sidenav-item-padding-x) + var(--sidenav-item-gap)); */
+            width: 1px;
+            top: 5px;
+            bottom: calc(var(--sidenav-item-padding-x) + 4px);
+            position: absolute;
+            inset-inline-start: calc(var(--sidenav-item-icon-size) - 1px);
+            border-left: 1px dashed var(--sidenav-item-color);
+            opacity: 0.5;
+        }
+
+        .sub-menu {
+            &::before {
+                inset-inline-start: calc(var(--sidenav-item-icon-size) - 1px + 14px);
+            }
+        }
+
+        .menu-link {
+            &::before {
+                content: "";
+                /* width: calc(var(--sidenav-item-icon-size) + var(--sidenav-item-padding-x) + var(--sidenav-item-gap)); */
+                width: var(--sidenav-item-padding-x);
+                height: 1px;
+                position: absolute;
+                inset-inline-start: calc(var(--sidenav-item-icon-size) * -0.8);
+                border-top: 1px dashed var(--sidenav-item-color);
+                opacity: 0.5;
+            }
+
+            &::after {
+                content: "";
+                height: 4px;
+                width: 4px;
+                background-color: var(--sidenav-item-color);
+                position: absolute;
+                inset-inline-start: 0;
+                border-radius: 50%;
+                opacity: 0.5;
+            }
+        }
+    }
+}
+
+/* Boxed Layout */
+html[data-layout-width="boxed"] {
+    body {
+        @apply bg-default-100;
+    }
+
+    .wrapper {
+        @apply w-full max-w-335 mx-auto shadow-lg bg-body-bg;
+    }
+
+    .app-header {
+        position: sticky;
+        margin-inline-end: -1px;
+    }
+}
+
+/* Scrollable Layout */
+html[data-layout-position="scrollable"] {
+    .page-content {
+        position: relative;
+        margin-top: 0;
+    }
+
+    .app-menu {
+        position: absolute !important;
+        height: 100%;
+        min-height: 100%;
+    }
+
+    .logo-box,
+    .app-header {
+        position: static;
+    }
+}
+
+/* Monochrome Mode */
+.monochrome:before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    backdrop-filter: grayscale(100%) opacity(0.92);
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    pointer-events: none;
+    z-index: 999999;
+}
+
+/* RTL Mode Only */
+html[dir="rtl"] {
+    .pagination svg {
+        transform: scaleX(-1) !important;
+    }
+}

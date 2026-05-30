@@ -1,0 +1,1 @@
+function previewImage(e){var t,e=e.target.files[0];let a=document.getElementById("preview");e&&a&&((t=new FileReader).onload=function(e){a.src=e.target.result},t.readAsDataURL(e))}window.previewImage=previewImage;

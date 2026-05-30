@@ -1,93 +1,114 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light dark">
   <title>Editor - Promocaster Control</title>
-  <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap.min.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('admin_assets', path='images/promocaster/favicon-16.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('admin_assets', path='images/promocaster/favicon-32.png') }}">
+  <link rel="icon" type="image/png" sizes="64x64" href="{{ url_for('admin_assets', path='images/promocaster/favicon-64.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('admin_assets', path='images/promocaster/apple-touch-icon.png') }}">
+  <link href="{{ url_for('admin_assets', path='css/app.min.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ url_for('admin_assets', path='css/admin-module.css') }}" rel="stylesheet" type="text/css">
   <link rel="stylesheet" href="/assets/css/control.css">
   <link rel="stylesheet" href="/assets/css/editor.css">
-  <script src="/assets/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
+  <script src="{{ url_for('admin_assets', path='js/config.js') }}"></script>
   <script src="/assets/vendor/lucide/lucide.min.js" defer></script>
   <script src="/assets/js/editor.js" defer></script>
 </head>
-<body data-client="phgi">
-  <div class="editor-shell">
-    <aside class="location-panel">
-      <header class="panel-header">
-        <div>
-          <p id="client-name" class="app-kicker">Promocaster</p>
-          <h1>Editor</h1>
-        </div>
-        <div class="header-actions">
-          <nav class="tool-nav" aria-label="Slide mode">
-            <a href="/viewer"><i data-lucide="scan-search" aria-hidden="true"></i><span>Viewer</span></a>
-            <a class="is-active" href="/editor"><i data-lucide="square-pen" aria-hidden="true"></i><span>Editor</span></a>
-          </nav>
-          <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch theme">
-            <span class="theme-toggle-track" aria-hidden="true">
-              <span class="theme-option">
-                <i data-lucide="sun" aria-hidden="true"></i>
-              </span>
-              <span class="theme-option">
-                <i data-lucide="moon" aria-hidden="true"></i>
-              </span>
-              <span class="theme-thumb"></span>
-            </span>
-          </button>
-        </div>
-      </header>
-      <div id="location-list" class="location-list" aria-label="Locations"></div>
-    </aside>
+<body data-client="{{ selected_client_id }}" data-location="{{ selected_location_name }}">
+  <div class="wrapper promocaster-theme promocaster-control-page">
+    {% set subtitle='Slides' %}
+    {% set title='Editor' %}
+    {% set breadcrumbs=[{'label': 'Promocaster Control', 'href': '/deck'}] %}
+    {% include 'admin/partials/topbar.html' %}
+    {% include 'admin/partials/sidenav.html' %}
+    <div class="page-content">
+      <main>
+        {% include 'admin/partials/page-title.html' %}
+        <div class="container-fluid">
+          <div class="control-workspace editor-workspace">
+            <aside class="card location-card">
+              <div class="card-header">
+                <div>
+                  <p id="client-name" class="control-kicker">Promocaster</p>
+                  <h2 class="card-title">Locations</h2>
+                </div>
+              </div>
+              <div id="location-list" class="location-list" aria-label="Locations"></div>
+            </aside>
 
-    <main class="deck-panel">
-      <header class="deck-header">
-        <div>
-          <p class="eyebrow">Deck</p>
-          <h2 id="location-title">Loading</h2>
-        </div>
-        <div class="deck-actions">
-          <button id="save-decks" class="btn btn-success btn-sm icon-button" type="button">
-            <i data-lucide="cloud-upload" aria-hidden="true"></i>
-            <span>Save & Push</span>
-          </button>
-        </div>
-      </header>
+            <section class="control-main">
+              <div class="card deck-card">
+                <div class="card-header deck-header">
+                  <div>
+                    <p class="control-kicker">Deck</p>
+                    <h2 id="location-title" class="card-title">Loading</h2>
+                  </div>
+                  <div class="deck-actions">
+                    <nav class="control-mode-toggle" aria-label="Slide mode">
+                      <a href="{{ viewer_href }}">
+                        <i class="iconify tabler--eye"></i>
+                        <span>Viewer</span>
+                      </a>
+                      <a class="is-active" href="{{ editor_href }}" aria-current="page">
+                        <i class="iconify tabler--edit"></i>
+                        <span>Editor</span>
+                      </a>
+                    </nav>
+                    <button class="btn btn-sm bg-light hover:text-primary icon-button" type="button" aria-label="Switch theme" data-control-theme-toggle>
+                      <i data-lucide="sun-moon" aria-hidden="true"></i>
+                      <span>Theme</span>
+                    </button>
+                    <button id="save-decks" class="btn btn-sm bg-success text-white hover:bg-success-hover icon-button" type="button">
+                      <i data-lucide="cloud-upload" aria-hidden="true"></i>
+                      <span>Save & Push</span>
+                    </button>
+                  </div>
+                </div>
 
-      <section class="add-panel">
-        <label class="upload-drop">
-          <input id="media-upload" type="file" accept="image/*,video/mp4" multiple>
-          <i data-lucide="image-plus" aria-hidden="true"></i>
-          <span>Add image or MP4 files</span>
-        </label>
-      </section>
+                <div class="card-body">
+                  <section class="add-panel">
+                    <label class="upload-drop">
+                      <input id="media-upload" type="file" accept="image/*,video/mp4" multiple>
+                      <i data-lucide="image-plus" aria-hidden="true"></i>
+                      <span>Add image or MP4 files</span>
+                    </label>
+                  </section>
 
-      <section class="editor-grid">
-        <div class="slides-panel">
-          <div class="section-header">
-            <h3><i data-lucide="gallery-horizontal-end" aria-hidden="true"></i>Slides</h3>
-            <span id="deck-summary">0 slides</span>
+                  <section class="editor-grid">
+                    <div class="slides-panel">
+                      <div class="section-header">
+                        <h3><i data-lucide="gallery-horizontal-end" aria-hidden="true"></i>Slides</h3>
+                        <span id="deck-summary">0 slides</span>
+                      </div>
+                      <div id="slide-list" class="slide-list"></div>
+                    </div>
+
+                    <aside class="publish-panel">
+                      <div class="section-header">
+                        <h3><i data-lucide="send" aria-hidden="true"></i>Publish</h3>
+                        <span id="save-status">Not saved</span>
+                      </div>
+
+                      <div class="section-header">
+                        <h3><i data-lucide="paperclip" aria-hidden="true"></i>Pending Files</h3>
+                        <span id="pending-count">0 files</span>
+                      </div>
+                      <div id="pending-files" class="pending-files"></div>
+                    </aside>
+                  </section>
+                </div>
+              </div>
+            </section>
           </div>
-          <div id="slide-list" class="slide-list"></div>
         </div>
-
-        <aside class="publish-panel">
-          <div class="section-header">
-            <h3><i data-lucide="send" aria-hidden="true"></i>Publish</h3>
-            <span id="save-status">Not saved</span>
-          </div>
-
-          <div class="section-header">
-            <h3><i data-lucide="paperclip" aria-hidden="true"></i>Pending Files</h3>
-            <span id="pending-count">0 files</span>
-          </div>
-          <div id="pending-files" class="pending-files"></div>
-        </aside>
-      </section>
-    </main>
+      </main>
+      {% include 'admin/partials/footer.html' %}
+    </div>
   </div>
-
+  {% include 'admin/partials/footer-scripts.html' %}
   <script id="all-decks" type="application/json">{"activeLocation":"","locations":[]}</script>
 </body>
 </html>

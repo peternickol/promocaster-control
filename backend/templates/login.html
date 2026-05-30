@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Sign In - Promocaster Control</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('admin_assets', path='images/promocaster/favicon-16.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('admin_assets', path='images/promocaster/favicon-32.png') }}">
+  <link rel="icon" type="image/png" sizes="64x64" href="{{ url_for('admin_assets', path='images/promocaster/favicon-64.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('admin_assets', path='images/promocaster/apple-touch-icon.png') }}">
+  <link href="{{ url_for('admin_assets', path='css/app.min.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ url_for('admin_assets', path='css/admin-module.css') }}" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/assets/css/control.css">
+  <script src="{{ url_for('admin_assets', path='js/config.js') }}"></script>
+</head>
+<body>
+  <main class="promocaster-login promocaster-theme">
+    <section class="login-panel card">
+      <div class="card-body">
+        <div class="login-brand">
+          <span class="login-mark">
+            <img class="login-mark-light" alt="Promocaster" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-dark.svg') }}">
+            <img class="login-mark-dark" alt="Promocaster" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-light.svg') }}">
+          </span>
+          <div>
+            <p class="control-kicker">Promocaster Control</p>
+            <h1>Sign in</h1>
+          </div>
+        </div>
+        <form class="login-form" action="/login" method="post">
+          <div>
+            <label class="form-label" for="username">Username</label>
+            <input class="form-input" id="username" name="username" autocomplete="username" required>
+          </div>
+          <div>
+            <label class="form-label" for="password">Password</label>
+            <input class="form-input" id="password" name="password" type="password" autocomplete="current-password" required>
+          </div>
+          <button class="btn bg-primary text-white hover:bg-primary-hover w-full" type="submit">Sign In</button>
+        </form>
+      </div>
+    </section>
+  </main>
+  {% include 'admin/partials/footer-scripts.html' %}
+</body>
+</html>

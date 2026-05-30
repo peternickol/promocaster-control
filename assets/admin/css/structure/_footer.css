@@ -1,0 +1,5 @@
+/* _footer.css */
+
+.footer {
+    @apply bg-card border-default-300 mt-auto flex items-center border-t py-3 px-5;
+}

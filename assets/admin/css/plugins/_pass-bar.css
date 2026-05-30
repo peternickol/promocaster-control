@@ -1,0 +1,57 @@
+/* _pass-bar.css */
+
+.password-bar {
+    display: flex;
+    gap: 12px;
+
+    .strong-bar {
+        flex: 1;
+        height: 6px;
+        border-radius: 10px;
+        background: var(--color-light);
+        transition: background 0.3s;
+
+        &.bar-active-1 {
+            background-color: var(--color-danger);
+        }
+
+        &.bar-active-2 {
+            background-color: var(--color-warning);
+        }
+
+        &.bar-active-3 {
+            background-color: var(--color-primary);
+        }
+
+        &.bar-active-4 {
+            background-color: var(--color-success);
+        }
+    }
+}
+
+/* Password Box */
+.password-box {
+    p {
+        padding-inline-start: 12px;
+
+        &.valid {
+            color: var(--color-success);
+
+            &::before {
+                position: relative;
+                inset-inline-start: -8px;
+                content: "✔️";
+            }
+        }
+
+        &.invalid {
+            color: var(--color-danger);
+
+            &::before {
+                position: relative;
+                inset-inline-start: -8px;
+                content: "✖";
+            }
+        }
+    }
+}

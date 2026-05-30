@@ -1,0 +1,69 @@
+/* _card.css */
+
+@layer components {
+    .card {
+        @apply bg-card relative flex h-fit flex-col rounded bg-clip-border break-words shadow;
+
+        .card-header {
+            @apply border-default-300 flex flex-wrap items-center justify-between gap-3 border-b border-dashed px-5 py-3.75;
+        }
+
+        .card-footer {
+            @apply border-t border-light flex flex-wrap items-center justify-between gap-3 px-5 py-3.75;
+        }
+
+        [data-action="card-toggle"] i{
+            @apply transition-transform duration-200;
+        }
+    }
+
+    .card-body {
+        @apply p-5 flex-auto transition-all duration-300;
+    }
+
+    .card-title {
+        @apply text-md text-body-color leading-normal font-medium;
+    }
+
+    .card-body.collapsing {
+        height: 0 !important;
+        @apply -my-5 opacity-0;
+    }
+
+    .card-collapse .card-header {
+        border-bottom: 0;
+    }
+
+    .card.card-collapsed {
+        overflow: hidden;
+
+        .card-header {
+          border-bottom: 0;
+        }
+
+        .card-body {
+          margin-bottom: -2.5rem;
+        }
+
+        .card-footer {
+          margin-top: -1.875rem;
+          margin-bottom: -1.875rem;
+        }
+
+        [data-action="card-toggle"] i{
+            @apply -rotate-180;
+        }
+    }
+
+    .card-overlay {
+      @apply bg-primary/15 absolute inset-0 hidden backdrop-blur-[2px] z-10 justify-center items-center rounded;
+    }
+
+    .nav-tabs {
+        @apply -my-3.75 -me-3 flex h-full flex-wrap items-center gap-x-2;
+
+        .nav-link {
+            @apply px-5 py-3.75 text-body-color font-medium -mb-1 border-b border-transparent;
+        }
+    }
+}

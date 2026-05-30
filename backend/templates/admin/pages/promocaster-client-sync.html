@@ -1,0 +1,77 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Resync Promocaster Client{% endblock title %}
+
+{% block content %}
+<div class="wrapper promocaster-theme">
+{% set subtitle='Promocaster' %}
+{% set title='Resync Client Repository' %}
+{% set breadcrumbs=[
+    {'label': 'Promocaster Control', 'href': './'},
+    {'label': 'Admin', 'href': 'promocaster-dashboard'},
+    {'label': 'Clients', 'href': '/clients'},
+    {'label': 'PHGI', 'href': '/client'}
+] %}
+{% include 'partials/topbar.html' %}
+{% include 'partials/sidenav.html' %}
+<div class="page-content">
+<main>
+{% include 'partials/page-title.html' %}
+<div class="container-fluid">
+<div class="grid grid-cols-1 gap-base xl:grid-cols-[1fr_360px]">
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">Repository Refresh</h4>
+</div>
+<div class="card-body grid gap-5">
+<div class="rounded-md border border-default-300 bg-light/30 p-4">
+<p class="font-semibold">PHGI</p>
+<p class="text-sm text-default-400">git@github.com:peternickol/promocaster.phgi.git</p>
+<p class="mt-1 text-sm text-default-400">Branch: master</p>
+</div>
+<div class="grid gap-3">
+<div class="flex items-start gap-3">
+<span class="size-9 flex shrink-0 items-center justify-center rounded-full bg-success/15 text-success"><i class="iconify tabler--git-branch"></i></span>
+<div>
+<p class="font-semibold">Current checkout detected</p>
+<p class="text-sm text-default-400">The local client repo exists and is ready to be compared with origin/master.</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<span class="size-9 flex shrink-0 items-center justify-center rounded-full bg-info/15 text-info"><i class="iconify tabler--refresh"></i></span>
+<div>
+<p class="font-semibold">Resync action</p>
+<p class="text-sm text-default-400">This should fetch the latest remote changes, update the checkout, and refresh slide data used by the editor and viewer.</p>
+</div>
+</div>
+</div>
+<div class="flex flex-wrap gap-2">
+<a class="btn bg-light hover:text-primary" href="/clients">Cancel</a>
+<button class="btn bg-primary text-white hover:bg-primary-hover" type="button"><i class="iconify tabler--refresh"></i>Run Resync</button>
+</div>
+</div>
+</div>
+<div class="card">
+<div class="card-header">
+<h4 class="card-title">Repo Sync</h4>
+</div>
+<div class="card-body grid gap-3">
+<div>
+<span class="badge badge-label bg-success/15 text-success">In Sync</span>
+<p class="mt-2 text-sm text-default-400">Last checked 2 min ago.</p>
+</div>
+<hr class="border-default-300">
+<div>
+<p class="text-sm font-semibold">Last result</p>
+<p class="text-sm text-default-400">No pending changes from origin/master.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+{% include 'partials/footer.html' %}
+</div>
+</div>
+{% include 'partials/footer-scripts.html' %}
+{% endblock content %}

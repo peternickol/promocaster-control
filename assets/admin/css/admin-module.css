@@ -1,0 +1,340 @@
+html[data-sidenav-size="condensed"] .app-menu {
+    width: var(--sidenav-width-sm);
+    min-width: var(--sidenav-width-sm);
+    height: unset;
+    max-height: unset;
+    position: absolute;
+}
+
+html[data-sidenav-size="condensed"] .app-header,
+html[data-sidenav-size="condensed"] .page-content {
+    margin-inline-start: var(--sidenav-width-sm);
+}
+
+html[data-sidenav-size="condensed"] .app-menu .logo-lg,
+html[data-sidenav-size="condensed"] .app-menu .sidenav-user,
+html[data-sidenav-size="condensed"] .app-menu .menu-title,
+html[data-sidenav-size="condensed"] .app-menu .menu-text,
+html[data-sidenav-size="condensed"] .app-menu .menu-arrow,
+html[data-sidenav-size="condensed"] .app-menu .badge {
+    display: none;
+}
+
+html[data-sidenav-size="condensed"] .promocaster-theme .app-menu .logo-lg {
+    display: flex;
+}
+
+html[data-sidenav-size="condensed"] .app-menu .logo-sm {
+    display: flex;
+}
+
+html[data-sidenav-size="condensed"] .promocaster-theme .app-menu .logo-sm {
+    display: none;
+}
+
+html[data-sidenav-size="condensed"] .app-menu .side-nav {
+    gap: 0;
+    padding: 0;
+}
+
+html[data-sidenav-size="condensed"] .app-menu .menu-item {
+    position: relative;
+}
+
+html[data-sidenav-size="condensed"] .app-menu .menu-link {
+    justify-content: center;
+    padding: calc(var(--sidenav-item-padding-y) * 1.75) var(--sidenav-item-padding-x);
+}
+
+html[data-sidenav-size="condensed"] .app-menu .menu-icon {
+    display: flex;
+    justify-content: center;
+    min-width: calc(var(--sidenav-width-sm) - var(--sidenav-item-padding-x) - var(--sidenav-item-padding-x));
+}
+
+html[data-sidenav-size="condensed"] .app-menu .sub-menu {
+    display: none !important;
+}
+
+.promocaster-theme {
+    --font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-secondary: "Space Grotesk", Inter, ui-sans-serif, system-ui, sans-serif;
+    --color-primary: #1677ff;
+    --color-primary-hover: #0f63d8;
+    --color-secondary: #0f172a;
+    --color-secondary-hover: #1e293b;
+    --color-success: #10b981;
+    --color-success-hover: #0d9668;
+    --color-info: #2563eb;
+    --color-default-50: #f8fafc;
+    --color-default-100: #f1f5f9;
+    --color-default-200: #e2e8f0;
+    --color-default-300: #cbd5e1;
+    --color-default-400: #64748b;
+    --color-default-500: #475569;
+    --color-default-600: #334155;
+    --color-default-700: #1e293b;
+    --color-default-800: #0f172a;
+    --color-default-900: #020617;
+    --color-card: #ffffff;
+    --color-light: #f8fafc;
+    --color-body-color: #0f172a;
+    --color-body-bg: #f4f7fb;
+    --logo-lg-height: 40px;
+    --logo-sm-height: 34px;
+    --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 10px 24px rgba(15, 23, 42, 0.04);
+}
+
+.promocaster-theme .page-content {
+    background:
+        linear-gradient(180deg, rgba(22, 119, 255, 0.08), rgba(22, 119, 255, 0) 260px),
+        var(--color-body-bg);
+}
+
+.promocaster-theme .app-header {
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+}
+
+.promocaster-theme .app-menu {
+    background: #0f172a;
+    border-inline-end: 0;
+}
+
+.promocaster-theme .app-menu .logo-box {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    justify-content: flex-start;
+    padding-inline: 16px;
+}
+
+.promocaster-theme .app-menu .logo-lg {
+    align-items: center;
+    gap: 10px;
+}
+
+.promocaster-theme .app-menu .logo-lg img {
+    height: 40px;
+    max-height: 40px;
+    max-width: 40px;
+    width: auto;
+}
+
+.promocaster-theme .promocaster-logo-text {
+    color: currentColor;
+    font-family: var(--font-secondary);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.promocaster-theme .app-menu .logo-sm img,
+.promocaster-theme .logo-topbar .logo-sm,
+.promocaster-theme .logo-topbar .logo-lg {
+    border-radius: 10px;
+}
+
+.promocaster-theme .logo-topbar .logo-lg {
+    height: 34px;
+    max-width: 34px;
+    width: auto;
+}
+
+.promocaster-theme .app-menu .menu-title {
+    color: rgba(255, 255, 255, 0.48);
+    font-family: var(--font-secondary);
+    font-size: 0.7rem;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.promocaster-theme .app-menu .menu-link {
+    color: rgba(255, 255, 255, 0.72);
+    border-radius: 8px;
+}
+
+.promocaster-theme .app-menu .menu-link:hover,
+.promocaster-theme .app-menu .menu-item.active > .menu-link,
+.promocaster-theme .app-menu .hs-accordion.active > .menu-link {
+    color: #ffffff;
+    background: rgba(22, 119, 255, 0.18);
+}
+
+.promocaster-theme .app-menu .menu-icon {
+    color: #60a5fa;
+}
+
+.promocaster-theme .app-menu .sub-menu .menu-link {
+    color: rgba(255, 255, 255, 0.66);
+}
+
+.promocaster-theme .card {
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+}
+
+.promocaster-theme .card-header {
+    border-bottom-color: rgba(148, 163, 184, 0.22);
+}
+
+.promocaster-theme .card-title,
+.promocaster-theme h1,
+.promocaster-theme h2,
+.promocaster-theme h3,
+.promocaster-theme h4 {
+    color: #0f172a;
+    font-family: var(--font-secondary);
+    letter-spacing: 0;
+}
+
+.promocaster-theme .badge.bg-primary\/15,
+.promocaster-theme .badge.bg-info\/15 {
+    background-color: rgba(22, 119, 255, 0.12);
+    color: #0f63d8;
+}
+
+.promocaster-theme .badge.bg-success\/15 {
+    background-color: rgba(16, 185, 129, 0.14);
+    color: #0b7a56;
+}
+
+.promocaster-theme .btn {
+    border-radius: 8px;
+}
+
+.promocaster-theme .btn.bg-primary,
+.promocaster-theme .btn.bg-success {
+    box-shadow: 0 8px 18px rgba(22, 119, 255, 0.18);
+}
+
+.promocaster-theme .btn.bg-success {
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.18);
+}
+
+.promocaster-theme .table thead,
+.promocaster-theme .thead-sm {
+    background: #f8fafc;
+}
+
+.promocaster-theme .form-input:focus,
+.promocaster-theme .form-select:focus {
+    border-color: #1677ff;
+    box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.12);
+}
+
+.promocaster-theme .page-title-box {
+    border-bottom-color: rgba(148, 163, 184, 0.18);
+}
+
+html[data-theme="light"] .promocaster-theme .app-menu {
+    background: #ffffff;
+    border-inline-end: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+html[data-theme="light"] .promocaster-theme .app-menu .logo-box {
+    border-bottom-color: rgba(148, 163, 184, 0.18);
+}
+
+html[data-theme="light"] .promocaster-theme .app-menu .logo-light {
+    display: none !important;
+}
+
+html[data-theme="light"] .promocaster-theme .app-menu .logo-dark {
+    display: flex !important;
+    align-items: center;
+}
+
+html[data-theme="light"] .promocaster-theme .app-menu .logo-dark .logo-lg {
+    display: flex !important;
+    align-items: center;
+}
+
+html[data-theme="light"] .promocaster-theme .app-menu .menu-title {
+    color: #64748b;
+}
+
+html[data-theme="light"] .promocaster-theme .app-menu .menu-link,
+html[data-theme="light"] .promocaster-theme .app-menu .sub-menu .menu-link {
+    color: #475569;
+}
+
+html[data-theme="light"] .promocaster-theme .app-menu .menu-link:hover,
+html[data-theme="light"] .promocaster-theme .app-menu .menu-item.active > .menu-link,
+html[data-theme="light"] .promocaster-theme .app-menu .hs-accordion.active > .menu-link {
+    color: #0f63d8;
+    background: rgba(22, 119, 255, 0.1);
+}
+
+html[data-theme="light"] .promocaster-theme .app-menu .menu-icon {
+    color: #1677ff;
+}
+
+html[data-theme="dark"] .promocaster-theme {
+    --color-card: #111827;
+    --color-light: #1e293b;
+    --color-body-color: #e5edf8;
+    --color-body-bg: #020617;
+    --color-default-100: #1e293b;
+    --color-default-200: #273449;
+    --color-default-300: #334155;
+    --color-default-400: #94a3b8;
+    --color-default-500: #cbd5e1;
+    --color-default-600: #dbe7f5;
+    --color-default-700: #e5edf8;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 16px 30px rgba(0, 0, 0, 0.22);
+}
+
+html[data-theme="dark"] .promocaster-theme .page-content {
+    background:
+        linear-gradient(180deg, rgba(22, 119, 255, 0.16), rgba(2, 6, 23, 0) 280px),
+        var(--color-body-bg);
+}
+
+html[data-theme="dark"] .promocaster-theme .app-header {
+    border-bottom-color: rgba(148, 163, 184, 0.18);
+    background: rgba(15, 23, 42, 0.92);
+}
+
+html[data-theme="dark"] .promocaster-theme .card {
+    border-color: rgba(148, 163, 184, 0.18);
+}
+
+html[data-theme="dark"] .promocaster-theme .card-title,
+html[data-theme="dark"] .promocaster-theme h1,
+html[data-theme="dark"] .promocaster-theme h2,
+html[data-theme="dark"] .promocaster-theme h3,
+html[data-theme="dark"] .promocaster-theme h4 {
+    color: #e5edf8;
+}
+
+html[data-theme="dark"] .promocaster-theme .table thead,
+html[data-theme="dark"] .promocaster-theme .thead-sm {
+    background: #1e293b;
+}
+
+html[data-theme="dark"] .promocaster-theme .app-menu .logo-light {
+    display: flex !important;
+    align-items: center;
+}
+
+html[data-theme="dark"] .promocaster-theme .app-menu .logo-light .logo-lg {
+    display: flex !important;
+    align-items: center;
+}
+
+html[data-theme="dark"] .promocaster-theme .app-menu .logo-dark {
+    display: none !important;
+}
+
+html[data-sidenav-size="condensed"] .promocaster-theme .promocaster-logo-text,
+html[data-sidenav-size="compact"] .promocaster-theme .promocaster-logo-text,
+html[data-sidenav-size="on-hover"] .promocaster-theme .app-menu:not(:hover) .promocaster-logo-text {
+    display: none !important;
+}
+
+html[data-sidenav-size="condensed"] .promocaster-theme .app-menu .logo-box,
+html[data-sidenav-size="compact"] .promocaster-theme .app-menu .logo-box,
+html[data-sidenav-size="on-hover"] .promocaster-theme .app-menu:not(:hover) .logo-box {
+    justify-content: center;
+}

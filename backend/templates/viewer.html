@@ -1,85 +1,105 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light dark">
   <title>Viewer - Promocaster Control</title>
-  <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap.min.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('admin_assets', path='images/promocaster/favicon-16.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('admin_assets', path='images/promocaster/favicon-32.png') }}">
+  <link rel="icon" type="image/png" sizes="64x64" href="{{ url_for('admin_assets', path='images/promocaster/favicon-64.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('admin_assets', path='images/promocaster/apple-touch-icon.png') }}">
+  <link href="{{ url_for('admin_assets', path='css/app.min.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ url_for('admin_assets', path='css/admin-module.css') }}" rel="stylesheet" type="text/css">
   <link rel="stylesheet" href="/assets/css/control.css">
   <link rel="stylesheet" href="/assets/css/viewer.css">
-  <script src="/assets/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
+  <script src="{{ url_for('admin_assets', path='js/config.js') }}"></script>
   <script src="/assets/vendor/lucide/lucide.min.js" defer></script>
   <script src="/assets/js/viewer.js" defer></script>
 </head>
-<body data-client="phgi">
-  <div class="viewer-shell">
-    <aside class="location-panel">
-      <header class="panel-header">
-        <div>
-          <p id="client-name" class="app-kicker">Promocaster</p>
-          <h1>Viewer</h1>
-        </div>
-        <div class="header-actions">
-          <nav class="tool-nav" aria-label="Slide mode">
-            <a class="is-active" href="/viewer"><i data-lucide="scan-search" aria-hidden="true"></i><span>Viewer</span></a>
-            <a href="/editor"><i data-lucide="square-pen" aria-hidden="true"></i><span>Editor</span></a>
-          </nav>
-          <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark mode">
-            <span class="theme-toggle-track" aria-hidden="true">
-              <span class="theme-option">
-                <i data-lucide="sun" aria-hidden="true"></i>
-              </span>
-              <span class="theme-option">
-                <i data-lucide="moon" aria-hidden="true"></i>
-              </span>
-              <span class="theme-thumb"></span>
-            </span>
-          </button>
-        </div>
-      </header>
-      <div id="location-list" class="location-list" aria-label="Locations"></div>
-    </aside>
+<body data-client="{{ selected_client_id }}" data-location="{{ selected_location_name }}">
+  <div class="wrapper promocaster-theme promocaster-control-page">
+    {% set subtitle='Slides' %}
+    {% set title='Viewer' %}
+    {% set breadcrumbs=[{'label': 'Promocaster Control', 'href': '/deck'}] %}
+    {% include 'admin/partials/topbar.html' %}
+    {% include 'admin/partials/sidenav.html' %}
+    <div class="page-content">
+      <main>
+        {% include 'admin/partials/page-title.html' %}
+        <div class="container-fluid">
+          <div class="control-workspace viewer-workspace">
+            <aside class="card location-card">
+              <div class="card-header">
+                <div>
+                  <p id="client-name" class="control-kicker">Promocaster</p>
+                  <h2 class="card-title">Locations</h2>
+                </div>
+              </div>
+              <div id="location-list" class="location-list" aria-label="Locations"></div>
+            </aside>
 
-    <main class="audit-panel">
-      <header class="audit-header">
-        <div>
-          <p class="eyebrow">Location</p>
-          <h2 id="location-title">Loading</h2>
-        </div>
-        <dl class="summary" id="summary"></dl>
-      </header>
+            <section class="control-main">
+              <div class="card preview-panel">
+                <div class="card-header audit-header">
+                  <div>
+                    <p class="control-kicker">Location</p>
+                    <h2 id="location-title" class="card-title">Loading</h2>
+                  </div>
+                  <div class="viewer-actions">
+                    <nav class="control-mode-toggle" aria-label="Slide mode">
+                      <a class="is-active" href="{{ viewer_href }}" aria-current="page">
+                        <i class="iconify tabler--eye"></i>
+                        <span>Viewer</span>
+                      </a>
+                      <a href="{{ editor_href }}">
+                        <i class="iconify tabler--edit"></i>
+                        <span>Editor</span>
+                      </a>
+                    </nav>
+                    <button class="btn btn-sm bg-light hover:text-primary icon-button" type="button" aria-label="Switch theme" data-control-theme-toggle>
+                      <i data-lucide="sun-moon" aria-hidden="true"></i>
+                      <span>Theme</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <dl class="summary" id="summary"></dl>
+                  <div id="preview" class="preview"></div>
+                  <div class="preview-meta">
+                    <div>
+                      <p class="control-kicker">Selected</p>
+                      <h3 id="preview-title">No slide selected</h3>
+                    </div>
+                    <div class="preview-actions">
+                      <button id="prev-slide" class="btn btn-outline-secondary btn-sm icon-button" type="button">
+                        <i data-lucide="chevron-left" aria-hidden="true"></i>
+                        <span>Previous</span>
+                      </button>
+                      <button id="next-slide" class="btn btn-primary btn-sm icon-button" type="button">
+                        <span>Next</span>
+                        <i data-lucide="chevron-right" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-      <section class="preview-panel" aria-label="Slide preview">
-        <div id="preview" class="preview"></div>
-        <div class="preview-meta">
-          <div>
-            <p class="eyebrow">Selected</p>
-            <h3 id="preview-title">No slide selected</h3>
+              <section class="card slide-library-card">
+                <div class="card-header slide-toolbar">
+                  <h3 class="card-title"><i data-lucide="gallery-horizontal-end" aria-hidden="true"></i>Slides</h3>
+                  <span id="audit-status">Waiting for deck data</span>
+                </div>
+                <div id="slide-grid" class="slide-grid"></div>
+              </section>
+            </section>
           </div>
-          <div class="preview-actions">
-            <button id="prev-slide" class="btn btn-outline-secondary btn-sm icon-button" type="button">
-              <i data-lucide="chevron-left" aria-hidden="true"></i>
-              <span>Previous</span>
-            </button>
-            <button id="next-slide" class="btn btn-primary btn-sm icon-button" type="button">
-              <span>Next</span>
-              <i data-lucide="chevron-right" aria-hidden="true"></i>
-            </button>
-          </div>
         </div>
-      </section>
-
-      <section>
-        <div class="slide-toolbar">
-          <h3><i data-lucide="gallery-horizontal-end" aria-hidden="true"></i>Slides</h3>
-          <span id="audit-status">Waiting for deck data</span>
-        </div>
-        <div id="slide-grid" class="slide-grid"></div>
-      </section>
-    </main>
+      </main>
+      {% include 'admin/partials/footer.html' %}
+    </div>
   </div>
-
+  {% include 'admin/partials/footer-scripts.html' %}
   <script id="all-decks" type="application/json">{"activeLocation":"","locations":[]}</script>
 </body>
 </html>

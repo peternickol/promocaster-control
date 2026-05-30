@@ -1,0 +1,320 @@
+<div class="topnav top-topbar-height border-default-300 fixed z-30 flex w-full items-center border-b bg-(--sidenav-bg)">
+<!-- Secondary Navbar -->
+<div class="container-fluid">
+<nav aria-labelledby="topnav-menu-collapse" class="hs-collapse hidden grow basis-full overflow-hidden transition-all duration-300 lg:block" id="topnav-menu">
+<ul class="navbar-nav flex">
+<li class="nav-item">
+<div class="hs-dropdown [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--adaptive:adaptive] md:[--is-collapse:false] md:[--strategy:fixed]">
+<button aria-expanded="false" aria-haspopup="menu" aria-label="Dropdown" class="hs-dropdown-toggle nav-link" id="topnav-main" type="button">
+<span class="menu-icon"><i class="iconify tabler--dashboard text-lg"></i></span>
+<span class="menu-text" data-lang="main">Main</span>
+<div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-main" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative top-full z-10 hidden w-full ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:start-0 before:-top-4 before:h-5 before:w-full after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:w-52 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:after:hidden dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-dashboards" type="button">
+<span data-lang="dashboards">Dashboards</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-dashboards" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="/"><span data-lang="dashboard-ecommerce">Ecommerce</span></a>
+<a class="dropdown-item" href="dashboard-analytics"><span data-lang="dashboard-analytics">Analytics</span></a>
+<a class="dropdown-item" href="dashboard-courses"><span data-lang="dashboard-courses">Courses</span></a>
+</div>
+</div>
+</div>
+</div>
+</li>
+<li class="nav-item">
+<div class="hs-dropdown [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--adaptive:adaptive] md:[--is-collapse:false] md:[--strategy:fixed]">
+<button aria-expanded="false" aria-haspopup="menu" aria-label="Dropdown" class="hs-dropdown-toggle nav-link" id="topnav-apps" type="button">
+<span class="menu-icon"><i class="iconify tabler--apps text-lg"></i></span>
+<span class="menu-text" data-lang="apps">Apps</span>
+<div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-apps" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative top-full z-10 hidden w-full ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:start-0 before:-top-4 before:h-5 before:w-full after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:w-52 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:after:hidden dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-ecommerce" type="button">
+<span data-lang="ecommerce">Ecommerce</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-ecommerce" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-products" type="button">
+<span data-lang="products">Products</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-products" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="apps-ecommerce-products"><span data-lang="apps-ecommerce-products">Products</span></a>
+<a class="dropdown-item" href="apps-ecommerce-products-grid"><span data-lang="apps-ecommerce-products-grid">Products Grid</span></a>
+<a class="dropdown-item" href="apps-ecommerce-product-details"><span data-lang="apps-ecommerce-product-details">Product Details</span></a>
+<a class="dropdown-item" href="apps-ecommerce-product-add"><span data-lang="apps-ecommerce-product-add">Add Product</span></a>
+</div>
+</div>
+<a class="dropdown-item" href="apps-ecommerce-categories"><span data-lang="apps-ecommerce-categories">Categories</span></a>
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-orders" type="button">
+<span data-lang="orders">Orders</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-orders" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="apps-ecommerce-orders"><span data-lang="apps-ecommerce-orders">Orders</span></a>
+<a class="dropdown-item" href="apps-ecommerce-order-details"><span data-lang="apps-ecommerce-order-details">Order Details</span></a>
+<a class="dropdown-item" href="apps-ecommerce-order-add"><span data-lang="apps-ecommerce-order-add">Add/Edit Order</span></a>
+</div>
+</div>
+<a class="dropdown-item" href="apps-ecommerce-customers"><span data-lang="apps-ecommerce-customers">Customers</span></a>
+<a class="dropdown-item" href="apps-ecommerce-cart"><span data-lang="apps-ecommerce-cart">Cart</span></a>
+<a class="dropdown-item" href="apps-ecommerce-checkout"><span data-lang="apps-ecommerce-checkout">Checkout</span></a>
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-sellers" type="button">
+<span data-lang="sellers">Sellers</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-sellers" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="apps-ecommerce-sellers"><span data-lang="apps-ecommerce-sellers">Sellers</span></a>
+<a class="dropdown-item" href="apps-ecommerce-seller-details"><span data-lang="apps-ecommerce-seller-details">Sellers Details</span></a>
+</div>
+</div>
+<a class="dropdown-item" href="apps-ecommerce-refunds"><span data-lang="apps-ecommerce-refunds">Refunds</span></a>
+<a class="dropdown-item" href="apps-ecommerce-reviews"><span data-lang="apps-ecommerce-reviews">Reviews</span></a>
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-inventory" type="button">
+<span data-lang="inventory">Inventory</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-inventory" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="apps-ecommerce-warehouse"><span data-lang="apps-ecommerce-warehouse">Warehouse</span></a>
+<a class="dropdown-item" href="apps-ecommerce-product-stocks"><span data-lang="apps-ecommerce-product-stocks">Product Stocks</span></a>
+<a class="dropdown-item" href="apps-ecommerce-purchased-orders"><span data-lang="apps-ecommerce-purchased-orders">Purchased Orders</span></a>
+</div>
+</div>
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-reports" type="button">
+<span data-lang="reports">Reports</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-reports" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="apps-ecommerce-product-views"><span data-lang="apps-ecommerce-product-views">Product Views</span></a>
+<a class="dropdown-item" href="apps-ecommerce-sales"><span data-lang="apps-ecommerce-sales">Sales</span></a>
+</div>
+</div>
+<a class="dropdown-item" href="apps-ecommerce-attributes"><span data-lang="apps-ecommerce-attributes">Attributes</span></a>
+<a class="dropdown-item" href="apps-ecommerce-settings"><span data-lang="apps-ecommerce-settings">Settings</span></a>
+</div>
+</div>
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-courses" type="button">
+<span data-lang="courses">Courses</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-courses" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="apps-courses-grid"><span data-lang="apps-courses-grid">My Courses</span></a>
+<a class="dropdown-item" href="apps-courses-list"><span data-lang="apps-courses-list">Course List</span></a>
+<a class="dropdown-item" href="apps-courses-details"><span data-lang="apps-courses-details">View Course</span></a>
+<a class="dropdown-item" href="apps-courses-board"><span data-lang="apps-courses-board">Course Board</span></a>
+<a class="dropdown-item" href="apps-courses-students"><span data-lang="apps-courses-students">Student Board</span></a>
+<a class="dropdown-item" href="apps-courses-activity"><span data-lang="apps-courses-activity">Course Activity</span></a>
+</div>
+</div>
+<a class="dropdown-item" href="apps-orders">Orders</a>
+<a class="dropdown-item" href="apps-users-profile">Profile</a>
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-users" type="button">
+<span data-lang="users">Users</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-users" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="apps-users-roles"><span data-lang="apps-users-roles">Roles</span></a>
+<a class="dropdown-item" href="apps-users-role-details"><span data-lang="apps-users-role-details">Role Details</span></a>
+<a class="dropdown-item" href="apps-users-permissions"><span data-lang="apps-users-permissions">Permissions</span></a>
+</div>
+</div>
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-promo" type="button">
+<span data-lang="promo">Promo</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-promo" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="apps-promo-coupons"><span data-lang="apps-promo-coupons">Coupons</span></a>
+<a class="dropdown-item" href="apps-promo-gift-cards"><span data-lang="apps-promo-gift-cards">Gift Cards</span></a>
+<a class="dropdown-item" href="apps-promo-discounts"><span data-lang="apps-promo-discounts">Discounts</span></a>
+</div>
+</div>
+</li>
+<li class="nav-item">
+<div class="hs-dropdown [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--adaptive:adaptive] md:[--is-collapse:false] md:[--strategy:fixed]">
+<button aria-expanded="false" aria-haspopup="menu" aria-label="Dropdown" class="hs-dropdown-toggle nav-link" id="topnav-components" type="button">
+<span class="menu-icon"><i class="iconify tabler--components text-lg"></i></span>
+<span class="menu-text" data-lang="components">Components</span>
+<div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-components" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative top-full z-10 hidden w-full ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:start-0 before:-top-4 before:h-5 before:w-full after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:w-52 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:after:hidden dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-base-ui" type="button">
+<span data-lang="base-ui">Base UI</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-base-ui" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="ui-accordions"><span data-lang="ui-accordions">Accordions</span></a>
+<a class="dropdown-item" href="ui-alerts"><span data-lang="ui-alerts">Alerts</span></a>
+<a class="dropdown-item" href="ui-buttons"><span data-lang="ui-buttons">Buttons</span></a>
+<a class="dropdown-item" href="ui-badges"><span data-lang="ui-badges">Badges</span></a>
+<a class="dropdown-item" href="ui-colors"><span data-lang="ui-colors">Colors</span></a>
+<a class="dropdown-item" href="ui-breadcrumb"><span data-lang="ui-breadcrumb">Breadcrumb</span></a>
+<a class="dropdown-item" href="ui-cards"><span data-lang="ui-cards">Cards</span></a>
+<a class="dropdown-item" href="ui-carousel"><span data-lang="ui-carousel">Carousel</span></a>
+<a class="dropdown-item" href="ui-collapse"><span data-lang="ui-collapse">Collapse</span></a>
+<a class="dropdown-item" href="ui-images"><span data-lang="ui-images">Images</span></a>
+<a class="dropdown-item" href="ui-dropdowns"><span data-lang="ui-dropdowns">Dropdowns</span></a>
+<a class="dropdown-item" href="ui-videos"><span data-lang="ui-videos">Videos</span></a>
+<a class="dropdown-item" href="ui-links"><span data-lang="ui-links">Links</span></a>
+<a class="dropdown-item" href="ui-list-group"><span data-lang="ui-list-group">List Group</span></a>
+<a class="dropdown-item" href="ui-modals"><span data-lang="ui-modals">Modals</span></a>
+<a class="dropdown-item" href="ui-notifications"><span data-lang="ui-notifications">Notifications</span></a>
+<a class="dropdown-item" href="ui-offcanvas"><span data-lang="ui-offcanvas">Offcanvas</span></a>
+<a class="dropdown-item" href="ui-placeholders"><span data-lang="ui-placeholders">Placeholders</span></a>
+<a class="dropdown-item" href="ui-pagination"><span data-lang="ui-pagination">Pagination</span></a>
+<a class="dropdown-item" href="ui-popovers"><span data-lang="ui-popovers">Popovers</span></a>
+<a class="dropdown-item" href="ui-progress"><span data-lang="ui-progress">Progress</span></a>
+<a class="dropdown-item" href="ui-scrollspy"><span data-lang="ui-scrollspy">Scrollspy</span></a>
+<a class="dropdown-item" href="ui-spinners"><span data-lang="ui-spinners">Spinners</span></a>
+<a class="dropdown-item" href="ui-tabs"><span data-lang="ui-tabs">Tabs</span></a>
+<a class="dropdown-item" href="ui-tooltips"><span data-lang="ui-tooltips">Tooltips</span></a>
+<a class="dropdown-item" href="ui-typography"><span data-lang="ui-typography">Typography</span></a>
+<a class="dropdown-item" href="ui-utilities"><span data-lang="ui-utilities">Utilities</span></a>
+</div>
+</div>
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-widgets" type="button">
+<span data-lang="widgets">Widgets</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-widgets" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="widgets-charts"><span data-lang="widgets-charts">Charts</span></a>
+<a class="dropdown-item" href="widgets-mixed"><span data-lang="widgets-mixed">Mixed</span></a>
+<a class="dropdown-item" href="widgets-social"><span data-lang="widgets-social">Social</span></a>
+<a class="dropdown-item" href="widgets-statistics"><span data-lang="widgets-statistics">Statistics</span></a>
+<a class="dropdown-item" href="widgets-weather"><span data-lang="widgets-weather">Weather</span></a>
+</div>
+</div>
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-charts" type="button">
+<span data-lang="charts">Charts</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-charts" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-apex-charts" type="button">
+<span data-lang="apex-charts">Apex Charts</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-apex-charts" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="charts-apex-area"><span data-lang="charts-apex-area">Area</span></a>
+<a class="dropdown-item" href="charts-apex-bar"><span data-lang="charts-apex-bar">Bar</span></a>
+<a class="dropdown-item" href="charts-apex-bubble"><span data-lang="charts-apex-bubble">Bubble</span></a>
+<a class="dropdown-item" href="charts-apex-candlestick"><span data-lang="charts-apex-candlestick">Candlestick</span></a>
+<a class="dropdown-item" href="charts-apex-column"><span data-lang="charts-apex-column">Column</span></a>
+<a class="dropdown-item" href="charts-apex-heatmap"><span data-lang="charts-apex-heatmap">Heatmap</span></a>
+<a class="dropdown-item" href="charts-apex-line"><span data-lang="charts-apex-line">Line</span></a>
+<a class="dropdown-item" href="charts-apex-mixed"><span data-lang="charts-apex-mixed">Mixed</span></a>
+<a class="dropdown-item" href="charts-apex-timeline"><span data-lang="charts-apex-timeline">Timeline</span></a>
+<a class="dropdown-item" href="charts-apex-boxplot"><span data-lang="charts-apex-boxplot">Boxplot</span></a>
+<a class="dropdown-item" href="charts-apex-treemap"><span data-lang="charts-apex-treemap">Treemap</span></a>
+<a class="dropdown-item" href="charts-apex-pie"><span data-lang="charts-apex-pie">Pie</span></a>
+<a class="dropdown-item" href="charts-apex-radar"><span data-lang="charts-apex-radar">Radar</span></a>
+<a class="dropdown-item" href="charts-apex-radialbar"><span data-lang="charts-apex-radialbar">RadialBar</span></a>
+<a class="dropdown-item" href="charts-apex-scatter"><span data-lang="charts-apex-scatter">Scatter</span></a>
+<a class="dropdown-item" href="charts-apex-polar-area"><span data-lang="charts-apex-polar-area">Polar Area</span></a>
+<a class="dropdown-item" href="charts-apex-sparklines"><span data-lang="charts-apex-sparklines">Sparklines</span></a>
+<a class="dropdown-item" href="charts-apex-range"><span data-lang="charts-apex-range">Range</span></a>
+<a class="dropdown-item" href="charts-apex-funnel"><span data-lang="charts-apex-funnel">Funnel</span></a>
+<a class="dropdown-item" href="charts-apex-slope"><span data-lang="charts-apex-slope">Slope</span></a>
+</div>
+</div>
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-echarts" type="button">
+<span data-lang="echarts">Echarts</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-echarts" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="charts-echart-line"><span data-lang="charts-echart-line">Line</span></a>
+<a class="dropdown-item" href="charts-echart-bar"><span data-lang="charts-echart-bar">Bar</span></a>
+<a class="dropdown-item" href="charts-echart-pie"><span data-lang="charts-echart-pie">Pie</span></a>
+<a class="dropdown-item" href="charts-echart-scatter"><span data-lang="charts-echart-scatter">Scatter</span></a>
+<a class="dropdown-item" href="charts-echart-gauge"><span data-lang="charts-echart-gauge">Gauge</span></a>
+<a class="dropdown-item" href="charts-echart-candlestick"><span data-lang="charts-echart-candlestick">Candlestick</span></a>
+<a class="dropdown-item" href="charts-echart-area"><span data-lang="charts-echart-area">Area</span></a>
+<a class="dropdown-item" href="charts-echart-radar"><span data-lang="charts-echart-radar">Radar</span></a>
+<a class="dropdown-item" href="charts-echart-heatmap"><span data-lang="charts-echart-heatmap">Heatmap</span></a>
+<a class="dropdown-item" href="charts-echart-other"><span data-lang="charts-echart-other">Other</span></a>
+</div>
+</div>
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-chartjs" type="button">
+<span data-lang="chartjs">Chart Js</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-chartjs" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="charts-chartjs-area"><span data-lang="charts-chartjs-area">Area</span></a>
+<a class="dropdown-item" href="charts-chartjs-bar"><span data-lang="charts-chartjs-bar">Bar</span></a>
+<a class="dropdown-item" href="charts-chartjs-line"><span data-lang="charts-chartjs-line">Line</span></a>
+<a class="dropdown-item" href="charts-chartjs-other"><span data-lang="charts-chartjs-other">Other</span></a>
+</div>
+</div>
+</div>
+</div>
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-forms" type="button">
+<span data-lang="forms">Forms</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-forms" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="form-elements"><span data-lang="form-elements">Basic Elements</span></a>
+<a class="dropdown-item" href="form-validation"><span data-lang="form-validation">Validation</span></a>
+<a class="dropdown-item" href="form-wizard"><span data-lang="form-wizard">Wizard</span></a>
+<a class="dropdown-item" href="form-select"><span data-lang="form-select">Select</span></a>
+<a class="dropdown-item" href="form-pickers"><span data-lang="form-pickers">Pickers</span></a>
+<a class="dropdown-item" href="form-fileuploads"><span data-lang="form-fileuploads">File Uploads</span></a>
+<a class="dropdown-item" href="form-text-editors"><span data-lang="form-text-editors">Text Editors</span></a>
+<a class="dropdown-item" href="form-range-slider"><span data-lang="form-range-slider">Range Slider</span></a>
+<a class="dropdown-item" href="form-cropper"><span data-lang="form-cropper">Image Cropper</span></a>
+<a class="dropdown-item" href="form-layout"><span data-lang="form-layout">Layouts</span></a>
+<a class="dropdown-item" href="form-other-plugin"><span data-lang="form-other-plugin">Other Plugins</span></a>
+</div>
+</div>
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-tables" type="button">
+<span data-lang="tables">Tables</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-tables" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="tables-static"><span data-lang="tables-static">Static Tables</span></a>
+<a class="dropdown-item" href="tables-custom"><span data-lang="tables-custom">Custom Tables</span></a>
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-datatables" type="button">
+<span data-lang="datatables">DataTables</span><span class="badge bg-success text-white">15</span>
+</button>
+<div aria-labelledby="topnav-submenu-datatables" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="tables-datatables-basic"><span data-lang="tables-datatables-basic">Basic</span></a>
+<a class="dropdown-item" href="tables-datatables-export-data"><span data-lang="tables-datatables-export-data">Export Data</span></a>
+<a class="dropdown-item" href="tables-datatables-select"><span data-lang="tables-datatables-select">Select</span></a>
+<a class="dropdown-item" href="tables-datatables-ajax"><span data-lang="tables-datatables-ajax">Ajax</span></a>
+<a class="dropdown-item" href="tables-datatables-javascript"><span data-lang="tables-datatables-javascript">Javascript Source</span></a>
+<a class="dropdown-item" href="tables-datatables-rendering"><span data-lang="tables-datatables-rendering">Data Rendering</span></a>
+<a class="dropdown-item" href="tables-datatables-scroll"><span data-lang="tables-datatables-scroll">Scroll</span></a>
+<a class="dropdown-item" href="tables-datatables-fixed-columns"><span data-lang="tables-datatables-fixed-columns">Fixed Columns</span></a>
+<a class="dropdown-item" href="tables-datatables-fixed-header"><span data-lang="tables-datatables-fixed-header">Fixed Header</span></a>
+<a class="dropdown-item" href="tables-datatables-columns"><span data-lang="tables-datatables-columns">Show &amp; Hide Column</span></a>
+<a class="dropdown-item" href="tables-datatables-child-rows"><span data-lang="tables-datatables-child-rows">Child Rows</span></a>
+<a class="dropdown-item" href="tables-datatables-column-searching"><span data-lang="tables-datatables-column-searching">Column Searching</span></a>
+<a class="dropdown-item" href="tables-datatables-range-search"><span data-lang="tables-datatables-range-search">Range Search</span></a>
+<a class="dropdown-item" href="tables-datatables-rows-add"><span data-lang="tables-datatables-rows-add">Add Rows</span></a>
+<a class="dropdown-item" href="tables-datatables-checkbox-select"><span data-lang="tables-datatables-checkbox-select">Checkbox Select</span></a>
+</div>
+</div>
+</div>
+</div>
+<div class="hs-dropdown relative [--adaptive:none] [--is-collapse:true] [--strategy:static] md:[--is-collapse:false] md:[--strategy:absolute] md:[--trigger:hover]">
+<button class="hs-dropdown-toggle dropdown-item w-full text-start flex items-center justify-between" id="topnav-submenu-icons" type="button">
+<span data-lang="icons">Icons</span><div class="menu-arrow"></div>
+</button>
+<div aria-labelledby="topnav-submenu-icons" aria-orientation="vertical" class="hs-dropdown-menu hs-dropdown-open:opacity-100 relative z-10 hidden ps-7 opacity-0 transition-[opacity,margin] duration-[0.1ms] before:absolute before:-end-5 before:top-0 before:hidden before:h-full before:w-5 after:absolute after:start-2 after:top-1 after:h-[calc(100%-4px)] after:w-0.5 after:bg-gray-100 md:end-full md:top-0 md:mx-2.5! md:mt-2 md:w-48 md:rounded-lg md:bg-white md:ps-1 md:shadow-md md:duration-[150ms] md:before:block md:after:hidden dark:divide-neutral-700 dark:bg-neutral-800 dark:after:bg-neutral-700 dark:md:bg-neutral-800" role="menu">
+<a class="dropdown-item" href="icons-tabler"><span data-lang="icons-tabler">Tabler</span></a>
+<a class="dropdown-item" href="icons-lucide"><span data-lang="icons-lucide">Lucide</span></a>
+<a class="dropdown-item" href="icons-remix"><span data-lang="icons-remix">Remix</span></a>
+<a class="dropdown-item" href="icons-solar-duotone"><span data-lang="icons-solar-duotone">Solar Duotone</span></a>
+<a class="dropdown-item" href="icons-flags"><span data-lang="icons-flags">Flags</span></a>
+</div>
+</div>
+</div>
+</div>
+</li>
+</ul>
+</nav>
+</div>
+<!-- End Secondary Navbar -->
+</div>
+<!-- Topbar End -->

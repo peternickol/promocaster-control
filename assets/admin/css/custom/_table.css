@@ -1,0 +1,122 @@
+@layer components {
+    .table-wrapper {
+        @apply relative w-full overflow-auto;
+        @apply overflow-x-auto;
+    }
+
+    .table {
+        @apply text-body-color w-full border-collapse align-bottom;
+        caption-side: bottom;
+
+        tr {
+            @apply border-light border-b;
+        }
+
+        caption {
+            @apply text-default-400 mt-4 text-sm;
+        }
+
+        thead {
+            @apply [&_tr]:border-b;
+
+            th {
+                @apply text-start text-body-color px-2.5 py-3 align-middle font-bold;
+            }
+        }
+
+        .thead-sm {
+            th {
+                @apply p-2;
+            }
+        }
+
+        th,
+        td {
+            &:first-child {
+                @apply ps-4.5;
+            }
+
+            &:last-child {
+                @apply pe-4.5;
+            }
+        }
+
+        tbody {
+            @apply [&_tr:last-child]:border-0;
+
+            td {
+                @apply px-2.5 py-3 align-middle;
+            }
+        }
+
+        tfoot {
+            @apply bg-default-400/50 border-t font-medium last:[&>tr]:border-b-0;
+
+            th {
+                @apply text-default-700 h-10 px-2.5 align-middle;
+            }
+        }
+
+        &.table-bordered {
+            @apply border-light border;
+
+            & td,
+            & th {
+                @apply border-light border-e;
+
+                &:last-child {
+                    @apply border-e-0;
+                }
+            }
+        }
+
+        &.table-borderless {
+            tr {
+                @apply border-none;
+            }
+        }
+
+        &.table-striped {
+            tbody {
+                tr {
+                    &:where(:nth-child(odd)) {
+                        @apply !bg-light/45;
+                    }
+                }
+            }
+        }
+
+        &.table-hover {
+            tbody {
+                tr:hover {
+                    @apply !bg-light/45;
+                }
+            }
+        }
+
+        &.table-sm {
+            thead {
+                th {
+                    @apply p-2;
+                }
+            }
+
+            tbody {
+                td {
+                    @apply p-2;
+                }
+            }
+        }
+    }
+
+    /* Table select */
+    .table:has(.form-checkbox:checked) {
+        tr:has(.form-checkbox:checked) {
+            @apply bg-warning/10;
+        }
+    }
+
+    .table-custom th {
+        white-space: nowrap;
+    }
+}

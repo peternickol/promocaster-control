@@ -1,0 +1,1 @@
+setTimeout(()=>{document.querySelectorAll("[data-masonry]").forEach(e=>{new Masonry(e,JSON.parse(e.getAttribute("data-masonry")))})},100);

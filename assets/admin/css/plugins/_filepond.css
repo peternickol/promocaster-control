@@ -1,0 +1,41 @@
+/* _filepond.css */
+
+.filepond--root {
+    margin-bottom: 0;
+}
+
+.filepond--panel-root {
+    border-bottom: 2px dashed var(--color-default-300);
+    background: var(--color-card);
+}
+
+.filepond--drop-label {
+    color: var(--color-body-color);
+
+    .filepond--label-action {
+        font-weight: 500;
+    }
+}
+
+.filepond--credits {
+    display: none;
+}
+
+.filepond--item-panel {
+    background-color: var(--color-primary) !important;
+}
+
+.filepond-uploader.two-grid .filepond--item {
+    width: calc(50% - 0.5em);
+}
+
+.filepond-uploader.three-grid .filepond--item {
+    width: calc(33.3% - 0.5em);
+}
+
+.filepond--root {
+    border: 2px dashed var(--color-default-300);
+    border-bottom: 0;
+    border-radius: 0.5em;
+    min-height: 70px;
+}

@@ -12,10 +12,11 @@
   const saveStatus = document.getElementById("save-status");
   const mediaUpload = document.getElementById("media-upload");
   const saveDecks = document.getElementById("save-decks");
-  const themeToggle = document.getElementById("theme-toggle");
+  const themeToggles = Array.from(document.querySelectorAll("#theme-toggle, [data-control-theme-toggle]"));
   const themeStorageKey = "promocaster-admin-theme";
   const legacyThemeStorageKeys = ["promocaster-editor-theme", "promocaster-viewer-theme"];
-  const controlClient = document.body.dataset.client || "phgi";
+  const controlClient = document.body.dataset.client || "";
+  const initialLocation = document.body.dataset.location || "";
 
   let data = { locations: [] };
   let selectedLocation = "";
@@ -62,7 +63,9 @@
     const nextTheme = theme === "dark" ? "dark" : "light";
     document.documentElement.dataset.theme = nextTheme;
     document.documentElement.dataset.bsTheme = nextTheme;
-    themeToggle.setAttribute("aria-label", `Switch to ${nextTheme === "dark" ? "light" : "dark"} mode`);
+    themeToggles.forEach((toggle) => {
+      toggle.setAttribute("aria-label", `Switch to ${nextTheme === "dark" ? "light" : "dark"} mode`);
+    });
     if (persist) window.localStorage.setItem(themeStorageKey, nextTheme);
   }
 
@@ -147,7 +150,11 @@
       button.append(name, count);
       button.addEventListener("click", () => {
         selectedLocation = location.name;
-        window.location.hash = encodeURIComponent(location.name);
+        window.history.pushState(
+          { location: location.name },
+          "",
+          `/deck/${encodeURIComponent(controlClient)}/${encodeURIComponent(location.name)}?mode=editor`,
+        );
         renderAll();
       });
 
@@ -535,6 +542,10 @@
   }
 
   async function loadRemoteDecks() {
+    if (!controlClient) {
+      saveStatus.textContent = "No client selected";
+      return;
+    }
     saveStatus.textContent = "Loading repo data";
     try {
       const response = await fetch(`/api/clients/${encodeURIComponent(controlClient)}/decks`, { cache: "no-store" });
@@ -546,7 +557,7 @@
       const payload = await response.json();
       setClientName(payload);
       data = normalizeInitialData(payload);
-      selectedLocation = decodeURIComponent(window.location.hash.replace(/^#/, "")) || data.activeLocation || data.locations[0]?.name || "";
+      selectedLocation = initialLocation || decodeURIComponent(window.location.hash.replace(/^#/, "")) || data.activeLocation || data.locations[0]?.name || "";
       if (!getLocation(selectedLocation)) selectedLocation = data.locations[0]?.name || "";
       saveStatus.textContent = "Loaded from repo";
       renderAll();
@@ -557,10 +568,10 @@
 
   mediaUpload.addEventListener("change", () => addFiles(mediaUpload.files));
   saveDecks.addEventListener("click", () => saveToRepo());
-  themeToggle.addEventListener("click", () => {
+  themeToggles.forEach((toggle) => toggle.addEventListener("click", () => {
     const currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
     setTheme(currentTheme === "dark" ? "light" : "dark");
-  });
+  }));
   window.addEventListener("hashchange", () => {
     const hashLocation = decodeURIComponent(window.location.hash.replace(/^#/, ""));
     if (hashLocation && getLocation(hashLocation)) {
@@ -568,12 +579,13 @@
       renderAll();
     }
   });
+  window.addEventListener("popstate", () => loadRemoteDecks());
 
   setTheme(preferredTheme(), false);
   const embeddedData = parseJson(initialData?.textContent || "{}") || {};
   setClientName(embeddedData);
   data = normalizeInitialData(embeddedData);
-  selectedLocation = decodeURIComponent(window.location.hash.replace(/^#/, "")) || data.activeLocation || data.locations[0]?.name || "";
+  selectedLocation = initialLocation || decodeURIComponent(window.location.hash.replace(/^#/, "")) || data.activeLocation || data.locations[0]?.name || "";
   if (!getLocation(selectedLocation)) selectedLocation = data.locations[0]?.name || "";
   renderAll();
   loadRemoteDecks();

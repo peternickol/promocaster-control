@@ -5,12 +5,13 @@ import mimetypes
 import posixpath
 import re
 from pathlib import Path
-from urllib.parse import unquote
+from urllib.parse import quote, unquote
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from jinja2 import TemplateNotFound
 
 from backend.control import (
     ASSETS_DIR,
@@ -22,6 +23,7 @@ from backend.control import (
     SYNC_DIR,
     TEMPLATE_DIR,
     client_branch,
+    client_info,
     client_repo_name,
     deck_to_media_yml,
     ensure_save_preconditions,
@@ -29,6 +31,7 @@ from backend.control import (
     git_status_short,
     is_safe_media_name,
     location_names,
+    load_clients,
     parse_media_yml,
     referenced_media_names,
     run_git,
@@ -38,7 +41,85 @@ from backend.control import (
 
 app = FastAPI(title="Promocaster Control")
 app.mount("/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
+ADMIN_ASSETS_DIR = ASSETS_DIR / "admin"
+ADMIN_TEMPLATE_DIR = TEMPLATE_DIR / "admin"
+if ADMIN_ASSETS_DIR.exists():
+    app.mount("/admin/assets", StaticFiles(directory=str(ADMIN_ASSETS_DIR)), name="admin_assets")
 templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
+admin_templates = Jinja2Templates(directory=str(ADMIN_TEMPLATE_DIR))
+
+
+def deck_nav(mode: str = "editor") -> list[dict]:
+    clients = []
+    for client_id, config in load_clients().items():
+        locations = []
+        media_yml = repo_path(client_id) / "_data" / "media.yml"
+        if media_yml.exists():
+            try:
+                deck_data = parse_media_yml(client_id, media_yml)
+                locations = [
+                    {
+                        "name": location.get("name", ""),
+                        "slide_count": len(location.get("slides", [])),
+                        "href": deck_href(client_id, location.get("name", ""), mode),
+                    }
+                    for location in deck_data.get("locations", [])
+                    if location.get("name")
+                ]
+            except (OSError, ValueError):
+                locations = []
+        clients.append(
+            {
+                "id": client_id,
+                "name": config.get("name") or client_id,
+                "href": deck_href(client_id, locations[0]["name"] if locations else "", mode),
+                "locations": locations,
+            }
+        )
+    return clients
+
+
+def deck_href(client: str, location: str = "", mode: str = "editor") -> str:
+    selected_mode = "viewer" if mode == "viewer" else "editor"
+    path = f"/deck/{quote(client, safe='')}"
+    if location:
+        path += f"/{quote(location, safe='')}"
+    return f"{path}?mode={selected_mode}"
+
+
+def first_deck_href(mode: str = "editor") -> str:
+    nav = deck_nav(mode)
+    if not nav:
+        return f"/deck?mode={'viewer' if mode == 'viewer' else 'editor'}"
+    first_client = nav[0]
+    if first_client["locations"]:
+        return first_client["locations"][0]["href"]
+    return first_client["href"]
+
+
+def admin_context(request: Request, page_title: str = "Dashboard") -> dict:
+    role = (
+        request.headers.get("X-Promocaster-Role")
+        or request.headers.get("X-Remote-Role")
+        or "admin"
+    ).strip().lower()
+    mode = request.query_params.get("mode", "editor")
+    return {
+        "request": request,
+        "title": page_title,
+        "admin_title": "Promocaster Control",
+        "admin_user": "Peter Lawson",
+        "admin_role": "Administrator" if role == "admin" else "User",
+        "is_admin": role == "admin",
+        "deck_clients": deck_nav(mode),
+        "selected_client_id": "",
+        "selected_location_name": "",
+        "editor_href": "/deck?mode=editor",
+        "viewer_href": "/deck?mode=viewer",
+        "deck_mode": "viewer" if mode == "viewer" else "editor",
+        "show_components": False,
+        "sidebar_variant": "promocaster",
+    }
 
 
 def repo_path(client: str) -> Path:
@@ -313,20 +394,86 @@ async def save_decks(
 
 
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
-def home() -> RedirectResponse:
-    return RedirectResponse(url="/editor", status_code=307)
+def login(request: Request):
+    return templates.TemplateResponse(
+        "login.html",
+        admin_context(request, "Sign In"),
+    )
 
 
-@app.api_route("/editor", methods=["GET", "HEAD"], response_class=HTMLResponse)
-def editor(request: Request):
-    return templates.TemplateResponse("editor.html", {"request": request})
+@app.post("/login", response_class=RedirectResponse)
+def login_submit() -> RedirectResponse:
+    return RedirectResponse(url="/deck", status_code=303)
 
 
-@app.api_route("/viewer", methods=["GET", "HEAD"], response_class=HTMLResponse)
-def viewer(request: Request):
-    return templates.TemplateResponse("viewer.html", {"request": request})
+@app.api_route("/deck", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def deck(request: Request, mode: str = "editor"):
+    return RedirectResponse(url=first_deck_href(mode), status_code=307)
 
 
-@app.api_route("/inspector", methods=["GET", "HEAD"], include_in_schema=False)
-def legacy_inspector():
-    return RedirectResponse(url="/viewer")
+@app.api_route("/deck/{client}", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def deck_client(request: Request, client: str, mode: str = "editor"):
+    selected_mode = "viewer" if mode == "viewer" else "editor"
+    context = admin_context(request, "Viewer" if selected_mode == "viewer" else "Editor")
+    context["deck_mode"] = selected_mode
+    context["selected_client_id"] = client
+    context["selected_client"] = client_info(client)
+    context["selected_location_name"] = ""
+    context["editor_href"] = deck_href(client, "", "editor")
+    context["viewer_href"] = deck_href(client, "", "viewer")
+    context["deck_clients"] = deck_nav(selected_mode)
+    template_name = "viewer.html" if selected_mode == "viewer" else "editor.html"
+    return templates.TemplateResponse(template_name, context)
+
+
+@app.api_route("/deck/{client}/{location:path}", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def deck_location(request: Request, client: str, location: str, mode: str = "editor"):
+    selected_mode = "viewer" if mode == "viewer" else "editor"
+    context = admin_context(request, "Viewer" if selected_mode == "viewer" else "Editor")
+    context["deck_mode"] = selected_mode
+    context["selected_client_id"] = client
+    context["selected_client"] = client_info(client)
+    context["selected_location_name"] = unquote(location)
+    context["editor_href"] = deck_href(client, unquote(location), "editor")
+    context["viewer_href"] = deck_href(client, unquote(location), "viewer")
+    context["deck_clients"] = deck_nav(selected_mode)
+    template_name = "viewer.html" if selected_mode == "viewer" else "editor.html"
+    return templates.TemplateResponse(template_name, context)
+
+
+@app.api_route("/admin", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def admin_home(request: Request):
+    return RedirectResponse(url="/dashboard", status_code=307)
+
+
+@app.api_route("/dashboard", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def dashboard(request: Request):
+    return admin_templates.TemplateResponse(
+        "pages/promocaster-dashboard.html",
+        admin_context(request, "Dashboard"),
+    )
+
+
+ADMIN_PAGE_ROUTES = {
+    "clients": ("promocaster-clients.html", "Clients"),
+    "client": ("promocaster-client-edit.html", "Client"),
+    "client-sync": ("promocaster-client-sync.html", "Client Sync"),
+    "user": ("promocaster-users.html", "Users"),
+    "user/edit": ("promocaster-user-edit.html", "User"),
+    "user/new": ("promocaster-user-add.html", "Add User"),
+    "access": ("promocaster-access.html", "Access"),
+    "profile": ("apps-users-profile.html", "Profile"),
+}
+
+
+@app.api_route("/{page_path:path}", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def admin_flat_page(request: Request, page_path: str):
+    safe_path = posixpath.normpath("/" + unquote(page_path)).lstrip("/")
+    route = ADMIN_PAGE_ROUTES.get(safe_path)
+    if not route:
+        raise HTTPException(status_code=404)
+    template_name, title = route
+    return admin_templates.TemplateResponse(
+        f"pages/{template_name}",
+        admin_context(request, title),
+    )

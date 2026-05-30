@@ -1,0 +1,27 @@
+/* _tour.css */
+
+.tg-backdrop {
+    z-index: 1001;
+}
+
+.tg-dialog {
+    @apply !bg-card text-body-color;
+
+    .tg-arrow {
+        @apply !bg-card;
+    }
+}
+
+.tg-dialog-btn {
+    @apply !bg-primary !border-primary !text-white;
+}
+
+.tg-dialog-close-btn {
+    height: 20px !important;
+    width: 20px !important;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    @apply !bg-warning/75;
+}

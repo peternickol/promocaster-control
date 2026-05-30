@@ -1,0 +1,23 @@
+/* _pagination.css */
+
+@layer components {
+    .pagination {
+        @apply inline-flex items-center space-x-1.5;
+
+        > .btn {
+            @apply border border-default-300 size-7.5 px-0;
+        }
+    }
+
+    .page-item .page-link {
+        @apply bg-transparent size-7.5 rounded border border-default-300 flex justify-center items-center;
+    }
+
+    .page-item.active .page-link {
+        @apply bg-primary text-white border-primary;
+    }
+
+    .page-item.disabled .page-link {
+        @apply opacity-60 pointer-events-none;
+    }
+}

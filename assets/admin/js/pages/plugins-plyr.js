@@ -1,0 +1,1 @@
+let p1=new Plyr("#player1"),p3=new Plyr("#player3"),ytPlayer=new Plyr("#yt1",{youtube:{modestbranding:1,rel:0,playsinline:1}}),vimeoPlayer=new Plyr("#vimeo1",{vimeo:{byline:!1,portrait:!1,title:!1}});document.addEventListener("DOMContentLoaded",function(){window.Plyr&&new Plyr("#player-audio")});

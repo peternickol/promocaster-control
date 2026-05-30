@@ -1,0 +1,32 @@
+/* _button.css */
+
+@layer components {
+    .btn {
+        @apply relative z-10 inline-flex cursor-pointer items-center justify-center gap-x-2 rounded;
+        @apply border border-transparent px-4 py-1.75 text-center text-sm font-medium transition-all;
+
+        &.btn-lg {
+            @apply px-5 py-2.25 text-lg rounded;
+        }
+
+        &.btn-icon {
+            @apply size-9.25 p-0;
+        }
+
+        &.btn-sm {
+            @apply px-3 py-1.25 text-xs;
+
+            &.btn-icon {
+                @apply size-7.5 p-0;
+            }
+        }
+    }
+
+    .btn[class*="size-"] {
+        padding: 0 !important;
+    }
+
+    button:disabled {
+        @apply cursor-not-allowed opacity-50;
+    }
+}

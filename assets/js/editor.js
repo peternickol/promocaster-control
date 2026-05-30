@@ -351,21 +351,27 @@
   function mediaElement(slide) {
     const media = document.createElement(slide.type === "video" ? "video" : "img");
     const src = slide.objectUrl || slide.src;
-    media.src = src;
 
     if (slide.type === "video") {
+      media.src = videoThumbnailSrc(src);
       media.muted = true;
       media.defaultMuted = true;
       media.playsInline = true;
-      media.preload = "none";
+      media.preload = "metadata";
       media.controls = true;
     } else {
+      media.src = src;
       media.alt = slide.name;
       media.loading = "lazy";
       media.decoding = "async";
     }
 
     return media;
+  }
+
+  function videoThumbnailSrc(src) {
+    if (!src || src.startsWith("blob:")) return src;
+    return `${src}#t=0.1`;
   }
 
   function rowButton(iconName, title, onClick) {

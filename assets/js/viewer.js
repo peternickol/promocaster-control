@@ -134,14 +134,14 @@
       media.playsInline = true;
       media.controls = previewMode;
       media.loop = previewMode;
-      media.preload = previewMode ? "auto" : "none";
+      media.preload = previewMode ? "auto" : "metadata";
       media.setAttribute("muted", "");
       media.setAttribute("playsinline", "");
       if (previewMode) {
         media.autoplay = true;
         media.setAttribute("autoplay", "");
       }
-      media.src = slide.src;
+      media.src = previewMode ? slide.src : videoThumbnailSrc(slide.src);
     } else {
       media.src = slide.src;
       media.alt = slide.name;
@@ -150,6 +150,11 @@
     }
 
     return media;
+  }
+
+  function videoThumbnailSrc(src) {
+    if (!src || src.startsWith("blob:")) return src;
+    return `${src}#t=0.1`;
   }
 
   function renderPreview(location) {

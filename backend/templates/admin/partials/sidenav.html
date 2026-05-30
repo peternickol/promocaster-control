@@ -81,6 +81,21 @@
 </div>
 </div>
 </div>
+<script>
+(() => {
+  const wrapper = document.querySelector(".promocaster-theme");
+  const menu = document.querySelector(".promocaster-app-menu");
+  if (!wrapper || !menu) return;
+  const resize = () => {
+    if (document.documentElement.dataset.sidenavSize === "condensed") return;
+    const links = Array.from(menu.querySelectorAll(".menu-link"));
+    const widest = links.reduce((width, link) => Math.max(width, link.scrollWidth), 0);
+    wrapper.style.setProperty("--sidenav-width", `${Math.min(Math.max(widest + 42, 300), 460)}px`);
+  };
+  window.addEventListener("resize", resize);
+  requestAnimationFrame(resize);
+})();
+</script>
 {% else %}
 <!-- Sidenav Menu Brand Logo -->
 <a class="logo-box" href="/">

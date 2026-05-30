@@ -54,7 +54,7 @@
 </li>
 {% for client in deck_clients %}
 <li class="menu-item hs-accordion{% if client.id == selected_client_id %} active{% endif %}">
-<a aria-controls="promocaster-client-{{ client.id }}" aria-expanded="{{ 'true' if client.id == selected_client_id else 'false' }}" class="hs-accordion-toggle menu-link{% if client.id == selected_client_id %} bg-light/60{% endif %}" href="{{ client.href }}">
+<a aria-controls="promocaster-client-{{ client.id }}" aria-expanded="{{ 'true' if client.id == selected_client_id else 'false' }}" class="hs-accordion-toggle menu-link{% if client.id == selected_client_id %} bg-light/60{% endif %}" data-deck-nav-link href="{{ client.href }}">
 <span class="menu-icon"><i class="iconify tabler--building-store"></i></span>
 <span class="menu-text" title="{{ client.name }}">{{ client.name }}</span>
 {% if client.locations %}
@@ -65,7 +65,7 @@
 <ul class="sub-menu hs-accordion-content hs-accordion-group{% if client.id != selected_client_id %} hidden{% endif %}">
 {% for location in client.locations %}
 <li class="menu-item">
-<a class="menu-link{% if client.id == selected_client_id and location.name == selected_location_name %} active{% endif %}" href="{{ location.href }}">
+<a class="menu-link{% if client.id == selected_client_id and location.name == selected_location_name %} active{% endif %}" data-deck-nav-link href="{{ location.href }}">
 <span class="menu-icon"><i class="iconify tabler--map-pin"></i></span>
 <span class="menu-text" title="{{ location.name }}">{{ location.name }}</span>
 <span class="deck-slide-count ms-auto" title="{{ location.slide_count }} slides">{{ location.slide_count }}</span>
@@ -88,9 +88,17 @@
   if (!wrapper || !menu) return;
   const resize = () => {
     if (document.documentElement.dataset.sidenavSize === "condensed") return;
-    const links = Array.from(menu.querySelectorAll(".menu-link"));
-    const widest = links.reduce((width, link) => Math.max(width, link.scrollWidth), 0);
-    wrapper.style.setProperty("--sidenav-width", `${Math.min(Math.max(widest + 42, 300), 460)}px`);
+    const links = Array.from(menu.querySelectorAll("[data-deck-nav-link]"));
+    if (links.length === 0) return;
+    const widest = links.reduce((width, link) => {
+      const style = window.getComputedStyle(link);
+      const padding = parseFloat(style.paddingInlineStart) + parseFloat(style.paddingInlineEnd);
+      const gap = parseFloat(style.columnGap) || parseFloat(style.gap) || 0;
+      const children = Array.from(link.children).filter((child) => window.getComputedStyle(child).display !== "none");
+      const content = children.reduce((total, child) => total + Math.ceil(child.scrollWidth), 0);
+      return Math.max(width, padding + content + Math.max(children.length - 1, 0) * gap);
+    }, 0);
+    wrapper.style.setProperty("--sidenav-width", `${Math.min(Math.max(widest + 24, 190), 420)}px`);
   };
   window.addEventListener("resize", resize);
   requestAnimationFrame(resize);

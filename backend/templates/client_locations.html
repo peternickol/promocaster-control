@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Locations - Promocaster Control</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('admin_assets', path='images/promocaster/favicon-16.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('admin_assets', path='images/promocaster/favicon-32.png') }}">
+  <link rel="icon" type="image/png" sizes="64x64" href="{{ url_for('admin_assets', path='images/promocaster/favicon-64.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('admin_assets', path='images/promocaster/apple-touch-icon.png') }}">
+  <link href="{{ url_for('admin_assets', path='css/app.min.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ url_for('admin_assets', path='css/admin-module.css') }}" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/assets/css/control.css">
+  <script src="{{ url_for('admin_assets', path='js/config.js') }}"></script>
+</head>
+<body>
+  <div class="wrapper promocaster-theme promocaster-control-page">
+    {% set subtitle='Decks' %}
+    {% set title='Locations' %}
+    {% set breadcrumbs=[{'label': 'Promocaster Control', 'href': '/deck'}] %}
+    {% include 'admin/partials/topbar.html' %}
+    {% include 'admin/partials/sidenav.html' %}
+    <div class="page-content">
+      <main>
+        {% include 'admin/partials/page-title.html' %}
+        <div class="container-fluid">
+          <section class="control-main">
+            <div class="card client-location-panel">
+              <div class="card-header deck-header">
+                <div>
+                  <p class="control-kicker">Client</p>
+                  <h2 class="card-title">{{ selected_client.name }}</h2>
+                </div>
+                {% if can_edit %}
+                <nav class="control-mode-toggle" aria-label="Default slide mode">
+                  <a class="{{ 'is-active' if deck_mode == 'viewer' else '' }}" href="{{ viewer_href }}">
+                    <i class="iconify tabler--eye"></i>
+                    <span>Viewer</span>
+                  </a>
+                  <a class="{{ 'is-active' if deck_mode == 'editor' else '' }}" href="{{ editor_href }}">
+                    <i class="iconify tabler--edit"></i>
+                    <span>Editor</span>
+                  </a>
+                </nav>
+                {% endif %}
+              </div>
+              <div class="card-body">
+                {% if client_locations %}
+                <div class="client-location-grid">
+                  {% for location in client_locations %}
+                  <a class="client-location-card" href="{{ location.href }}">
+                    <span class="client-location-icon"><i class="iconify tabler--map-pin"></i></span>
+                    <span class="client-location-copy">
+                      <strong>{{ location.name }}</strong>
+                      <small>{{ location.slide_count }} {{ 'slide' if location.slide_count == 1 else 'slides' }}</small>
+                    </span>
+                    <span class="client-location-open"><i class="iconify tabler--arrow-right"></i></span>
+                  </a>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <div class="client-location-empty">
+                  <span class="client-location-icon"><i class="iconify tabler--map-pin-off"></i></span>
+                  <div>
+                    <h3>No locations found</h3>
+                    <p>This client does not have location deck data loaded yet.</p>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+      {% include 'admin/partials/footer.html' %}
+    </div>
+  </div>
+  {% include 'admin/partials/footer-scripts.html' %}
+</body>
+</html>

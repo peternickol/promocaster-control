@@ -154,7 +154,7 @@ def deck_nav(mode: str = "viewer", user: dict | None = None) -> list[dict]:
             {
                 "id": client_id,
                 "name": config.get("name") or client_id,
-                "href": deck_href(client_id, locations[0]["name"] if locations else "", mode),
+                "href": deck_href(client_id, "", mode),
                 "locations": locations,
             }
         )
@@ -175,10 +175,7 @@ def first_deck_href(mode: str = "viewer", user: dict | None = None) -> str:
     nav = deck_nav(mode, user)
     if not nav:
         return "/deck?mode=editor" if mode == "editor" else "/deck"
-    first_client = nav[0]
-    if first_client["locations"]:
-        return first_client["locations"][0]["href"]
-    return first_client["href"]
+    return nav[0]["href"]
 
 
 def admin_context(request: Request, page_title: str = "Dashboard") -> dict:
@@ -697,25 +694,25 @@ def deck(request: Request, mode: str = "viewer"):
     nav = deck_nav(selected_mode, user)
     if not nav:
         raise HTTPException(status_code=403)
-    first_client = nav[0]
-    href = first_client["locations"][0]["href"] if first_client["locations"] else first_client["href"]
-    return RedirectResponse(url=href, status_code=307)
+    return RedirectResponse(url=nav[0]["href"], status_code=307)
 
 
 @app.api_route("/deck/{client}", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def deck_client(request: Request, client: str, mode: str = "viewer"):
     user = ensure_client_access(request, client)
     selected_mode = selected_deck_mode(mode, user)
-    context = admin_context(request, "Viewer" if selected_mode == "viewer" else "Editor")
+    context = admin_context(request, "Locations")
+    deck_clients = deck_nav(selected_mode, user)
+    selected_nav_client = next((item for item in deck_clients if item["id"] == client), None)
     context["deck_mode"] = selected_mode
     context["selected_client_id"] = client
     context["selected_client"] = client_info(client)
     context["selected_location_name"] = ""
     context["editor_href"] = deck_href(client, "", "editor")
     context["viewer_href"] = deck_href(client, "", "viewer")
-    context["deck_clients"] = deck_nav(selected_mode, user)
-    template_name = "viewer.html" if selected_mode == "viewer" else "editor.html"
-    return templates.TemplateResponse(template_name, context)
+    context["deck_clients"] = deck_clients
+    context["client_locations"] = selected_nav_client["locations"] if selected_nav_client else []
+    return templates.TemplateResponse("client_locations.html", context)
 
 
 @app.api_route("/deck/{client}/{location:path}", methods=["GET", "HEAD"], response_class=HTMLResponse)

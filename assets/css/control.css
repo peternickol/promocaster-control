@@ -421,14 +421,16 @@ button:not(.btn):hover {
 
 .promocaster-control-page .deck-card,
 .promocaster-control-page .preview-panel,
-.promocaster-control-page .slide-library-card {
+.promocaster-control-page .slide-library-card,
+.promocaster-control-page .client-location-panel {
   overflow: hidden;
   border-color: var(--border);
   background: var(--panel);
 }
 
 .promocaster-control-page .deck-card > .card-body,
-.promocaster-control-page .preview-panel > .card-body {
+.promocaster-control-page .preview-panel > .card-body,
+.promocaster-control-page .client-location-panel > .card-body {
   display: grid;
   gap: 18px;
   padding: 18px;
@@ -461,6 +463,96 @@ button:not(.btn):hover {
   border-color: rgba(22, 119, 255, 0.22);
   background: rgba(22, 119, 255, 0.1);
   color: var(--color-primary, var(--accent));
+}
+
+.client-location-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.client-location-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 82px;
+  padding: 14px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel) 94%, var(--panel-alt));
+  color: var(--text);
+  text-decoration: none;
+  box-shadow: var(--shadow-soft);
+}
+
+.client-location-card:hover {
+  border-color: var(--accent-border);
+  background: color-mix(in srgb, var(--accent-soft) 44%, var(--panel));
+  color: var(--text);
+}
+
+.client-location-icon,
+.client-location-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 18px;
+}
+
+.client-location-open {
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.client-location-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.client-location-copy strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-location-copy small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.client-location-empty {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 120px;
+  padding: 18px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel-alt) 74%, transparent);
+}
+
+.client-location-empty h3 {
+  margin: 0 0 4px;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.client-location-empty p {
+  margin: 0;
+  color: var(--muted);
 }
 
 .control-kicker {

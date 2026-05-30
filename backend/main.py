@@ -86,13 +86,15 @@ def deck_href(client: str, location: str = "", mode: str = "viewer") -> str:
     path = f"/deck/{quote(client, safe='')}"
     if location:
         path += f"/{quote(location, safe='')}"
-    return f"{path}?mode={selected_mode}"
+    if selected_mode == "editor":
+        return f"{path}?mode=editor"
+    return path
 
 
 def first_deck_href(mode: str = "viewer") -> str:
     nav = deck_nav(mode)
     if not nav:
-        return f"/deck?mode={'editor' if mode == 'editor' else 'viewer'}"
+        return "/deck?mode=editor" if mode == "editor" else "/deck"
     first_client = nav[0]
     if first_client["locations"]:
         return first_client["locations"][0]["href"]

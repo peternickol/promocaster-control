@@ -183,7 +183,8 @@ html[data-sidenav-size="condensed"] .app-menu .sub-menu {
 }
 
 .promocaster-theme .app-menu .menu-arrow,
-.promocaster-theme .app-menu .badge {
+.promocaster-theme .app-menu .badge,
+.promocaster-theme .app-menu .deck-slide-count {
     flex: 0 0 auto;
 }
 
@@ -193,6 +194,13 @@ html[data-sidenav-size="condensed"] .app-menu .sub-menu {
     justify-content: center;
     min-width: 24px;
     padding-inline: 7px;
+    min-height: 20px;
+    border-radius: 999px;
+    background: rgba(22, 119, 255, 0.16);
+    color: #93c5fd;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
 }
 
 .promocaster-theme .card {

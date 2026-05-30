@@ -68,7 +68,7 @@
 <a class="menu-link{% if client.id == selected_client_id and location.name == selected_location_name %} active{% endif %}" href="{{ location.href }}">
 <span class="menu-icon"><i class="iconify tabler--map-pin"></i></span>
 <span class="menu-text" title="{{ location.name }}">{{ location.name }}</span>
-<span class="badge badge-label bg-primary/15 text-primary ms-auto deck-slide-count" title="{{ location.slide_count }} slides">{{ location.slide_count }}</span>
+<span class="deck-slide-count ms-auto" title="{{ location.slide_count }} slides">{{ location.slide_count }}</span>
 </a>
 </li>
 {% endfor %}

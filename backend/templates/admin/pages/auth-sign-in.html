@@ -7,16 +7,16 @@
 <div class="container">
 <div class="flex justify-center">
 <div class="xl:w-5/6">
-<div class="card rounded-2xl">
+<div class="card rounded-2xl" style="background-color: #07111f; border-color: rgba(148, 163, 184, 0.18); color: #e5edf8;">
 <div class="grid grid-cols-1 lg:grid-cols-2">
-<div class="card-body relative p-12.5">
+<div class="card-body relative p-12.5" style="background-color: #07111f; color: #e5edf8;">
 <div class="mb-7.5 flex flex-col items-center justify-center text-center">
 <a class="auth-logo" href="/">
 <img alt="Promocaster" class="flex dark:hidden" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-dark.svg') }}"/>
 <img alt="Promocaster" class="hidden dark:flex" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-light.svg') }}"/>
 </a>
-<h4 class="mt-5 mb-2 text-base font-bold">Sign in to Promocaster Control</h4>
-<p class="text-default-400 mx-auto w-full lg:w-3/4">Enter your account credentials to manage decks, clients, and access.</p>
+<h4 class="mt-5 mb-2 text-base font-bold text-white">Sign in to Promocaster Control</h4>
+<p class="text-slate-300 mx-auto w-full lg:w-3/4">Enter your account credentials to manage decks, clients, and access.</p>
 </div>
 <div class="rounded-md">
 <form action="/login" method="post">
@@ -50,7 +50,7 @@ Password
 <button class="btn bg-primary w-full py-3 font-semibold text-white hover:bg-primary-hover" type="submit">Sign In</button>
 </div>
 </form>
-<p class="text-default-400 mt-7.5 text-center">
+<p class="text-slate-300 mt-7.5 text-center">
 &copy;
 <span data-current-year=""></span>
 Promocaster Control

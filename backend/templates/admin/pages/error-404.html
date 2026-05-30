@@ -1,0 +1,58 @@
+{% extends 'layouts/base.html' %}
+
+
+
+{% block title %}404 Error{% endblock title %}
+
+{% block styles %}
+
+{% endblock styles %}
+
+{% block content %}
+<!-- Start Page Content here -->
+<div class="flex min-h-screen items-center">
+<div class="container">
+<div class="flex justify-center lg:p-0 p-12.5">
+<div class="2xl:w-4/10 md:w-1/2 sm:w-2/3 w-full">
+<div class="absolute end-0 top-0">
+<img alt="auth-card-bg" src="{{ url_for('admin_assets', path='images/auth-card-bg.svg') }}"/>
+</div>
+<div class="absolute start-0 bottom-0 rotate-180">
+<img alt="auth-card-bg" src="{{ url_for('admin_assets', path='images/auth-card-bg.svg') }}"/>
+</div>
+<div class="card rounded-2xl">
+<div class="card-body p-7.5">
+<div class="mb-5 flex flex-col items-center justify-center text-center">
+<a class="auth-logo" href="/deck">
+<img alt="logo" class="flex dark:hidden" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-dark.svg') }}"/>
+<img alt="dark logo" class="hidden dark:flex" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-light.svg') }}"/>
+</a>
+</div>
+<div class="p-6 text-center">
+<div class="from-primary my-4 bg-linear-to-r to-danger bg-clip-text text-7xl font-bold text-transparent">
+                                    404</div>
+<h3 class="mb-2 text-xl font-bold uppercase">Nothing Here</h3>
+<p class="text-default-400 mx-auto">We couldn’t find the page you were looking for. It
+                                    might have been moved or deleted.</p>
+<div class="mt-8 flex items-center justify-center gap-1.5">
+<a class="btn bg-primary text-white hover:bg-primary-hover" href="/deck"> Back to Deck</a>
+
+</div>
+</div>
+</div>
+</div>
+<!-- Auth Footer -->
+<p class="text-default-400 mt-7.5 text-center">
+                        ©
+                        <span data-current-year=""></span>
+                        Promocaster Control
+</p>
+</div>
+</div>
+</div>
+</div>
+<!-- End Page content -->{% endblock content %}
+
+{% block scripts %}
+
+{% endblock scripts %}

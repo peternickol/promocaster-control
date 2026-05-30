@@ -1,0 +1,60 @@
+{% extends 'layouts/base.html' %}
+
+
+
+{% block title %}Maintenance{% endblock title %}
+
+{% block styles %}
+
+{% endblock styles %}
+
+{% block content %}
+<!-- Start Page Content here -->
+<div class="flex min-h-screen items-center">
+<div class="container">
+<div class="flex justify-center lg:p-0 p-12.5">
+<div class="w-full lg:w-1/2">
+<div class="absolute end-0 top-0">
+<img alt="auth-card-bg" src="{{ url_for('admin_assets', path='images/auth-card-bg.svg') }}"/>
+</div>
+<div class="absolute start-0 bottom-0 rotate-180">
+<img alt="auth-card-bg" src="{{ url_for('admin_assets', path='images/auth-card-bg.svg') }}"/>
+</div>
+<div class="card rounded-2xl">
+<div class="card-body p-12.5">
+<div class="flex flex-col items-center justify-center text-center">
+<a class="auth-logo" href="/deck">
+<img alt="logo" class="flex dark:hidden" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-dark.svg') }}"/>
+<img alt="dark logo" class="hidden dark:flex" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-light.svg') }}"/>
+</a>
+</div>
+<div class="p-3 text-center">
+<img alt="Maintenance" class="mx-auto md:size-64" src="{{ url_for('admin_assets', path='images/maintenance.svg') }}"/>
+<h3 class="mb-2 text-xl font-bold uppercase">Site Under Maintenance</h3>
+<p class="text-default-400">
+                                    We’re currently performing scheduled maintenance.
+                                    <br/>
+                                    Please check back soon.
+                                </p>
+<div class="mt-8 flex items-center justify-center gap-2 flex-wrap">
+
+<a class="btn bg-primary text-white hover:bg-primary-hover" href="/deck">Back to Deck</a>
+</div>
+</div>
+<!-- Auth Footer -->
+<p class="text-default-400 mt-18 text-center">
+                                ©
+                                <span data-current-year=""></span>
+                                Promocaster Control
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- End Page content -->{% endblock content %}
+
+{% block scripts %}
+
+{% endblock scripts %}

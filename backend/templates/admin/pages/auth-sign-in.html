@@ -1,0 +1,77 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Sign In - Promocaster Control{% endblock title %}
+
+{% block content %}
+<div class="flex min-h-screen items-center p-12.5">
+<div class="container">
+<div class="flex justify-center">
+<div class="xl:w-5/6">
+<div class="absolute end-0 top-0">
+<img alt="auth-card-bg" src="{{ url_for('admin_assets', path='images/auth-card-bg.svg') }}"/>
+</div>
+<div class="absolute start-0 bottom-0 rotate-180">
+<img alt="auth-card-bg" src="{{ url_for('admin_assets', path='images/auth-card-bg.svg') }}"/>
+</div>
+<div class="card rounded-2xl">
+<div class="grid grid-cols-1 lg:grid-cols-2">
+<div class="card-body relative p-12.5">
+<div class="mb-7.5 flex flex-col items-center justify-center text-center">
+<a class="auth-logo" href="/">
+<img alt="Promocaster" class="flex dark:hidden" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-dark.svg') }}"/>
+<img alt="Promocaster" class="hidden dark:flex" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-light.svg') }}"/>
+</a>
+<h4 class="mt-5 mb-2 text-base font-bold">Sign in to Promocaster Control</h4>
+<p class="text-default-400 mx-auto w-full lg:w-3/4">Enter your account credentials to manage decks, clients, and access.</p>
+</div>
+<div class="rounded-md">
+<form action="/login" method="post">
+<div class="mb-5">
+<label class="form-label" for="username">
+Username or email
+<span class="text-danger">*</span>
+</label>
+<div class="input-icon-group">
+<i class="iconify tabler--mail input-icon"></i>
+<input autocomplete="username" class="form-input" id="username" name="username" placeholder="you@example.com" required="" type="text"/>
+</div>
+</div>
+<div class="mb-5">
+<label class="form-label" for="password">
+Password
+<span class="text-danger">*</span>
+</label>
+<div class="input-icon-group">
+<i class="iconify tabler--lock-password input-icon"></i>
+<input autocomplete="current-password" class="form-input" id="password" name="password" placeholder="Password" required="" type="password"/>
+</div>
+</div>
+<div class="mb-5 flex items-center justify-between">
+<div class="flex items-start gap-2 lg:items-center">
+<input class="form-checkbox form-checkbox-light mt-1 size-4.25 lg:mt-0" id="rememberMe" name="remember" type="checkbox"/>
+<label class="form-check-label" for="rememberMe">Keep me signed in</label>
+</div>
+</div>
+<div>
+<button class="btn bg-primary w-full py-3 font-semibold text-white hover:bg-primary-hover" type="submit">Sign In</button>
+</div>
+</form>
+<p class="text-default-400 mt-7.5 text-center">
+&copy;
+<span data-current-year=""></span>
+Promocaster Control
+</p>
+</div>
+</div>
+<div class="relative hidden h-full overflow-hidden rounded-e-2xl bg-cover bg-center object-cover lg:block" style="background-image: url({{ url_for('admin_assets', path='images/auth.jpg') }})">
+<div class="absolute inset-0 flex items-end justify-center rounded-e-sm p-9 [background:linear-gradient(to_top,#0f172a,rgba(15,23,42,.76),rgba(15,23,42,.35))]">
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+{% include 'partials/footer-scripts.html' %}
+{% endblock content %}

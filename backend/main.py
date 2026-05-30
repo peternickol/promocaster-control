@@ -4,6 +4,7 @@ import json
 import mimetypes
 import posixpath
 import re
+from http import HTTPStatus
 from pathlib import Path
 from urllib.parse import quote, unquote
 
@@ -12,6 +13,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Resp
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from jinja2 import TemplateNotFound
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.control import (
     ASSETS_DIR,
@@ -137,6 +139,50 @@ def authenticated_user(request: Request) -> str:
         or request.headers.get("X-Remote-User")
         or "unknown"
     ).strip() or "unknown"
+
+
+def wants_json_error(request: Request) -> bool:
+    accept = request.headers.get("accept", "")
+    return request.url.path.startswith("/api/") or "application/json" in accept
+
+
+def error_template_name(status_code: int) -> str:
+    if status_code in {400, 401, 403, 404, 408, 500}:
+        return f"pages/error-{status_code}.html"
+    if 400 <= status_code < 500:
+        return "pages/error-400.html"
+    return "pages/error-500.html"
+
+
+def http_status_title(status_code: int) -> str:
+    try:
+        return HTTPStatus(status_code).phrase
+    except ValueError:
+        return "Error"
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    status_code = exc.status_code
+    message = str(exc.detail or http_status_title(status_code))
+    if wants_json_error(request):
+        return api_error(http_status_title(status_code).lower().replace(" ", "_"), message, status_code)
+    return admin_templates.TemplateResponse(
+        error_template_name(status_code),
+        admin_context(request, f"{status_code} Error"),
+        status_code=status_code,
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    if wants_json_error(request):
+        return api_error("internal_server_error", "Internal Server Error", 500)
+    return admin_templates.TemplateResponse(
+        "pages/error-500.html",
+        admin_context(request, "500 Error"),
+        status_code=500,
+    )
 
 
 def read_sync_status(client: str) -> dict:
@@ -395,8 +441,8 @@ async def save_decks(
 
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def login(request: Request):
-    return templates.TemplateResponse(
-        "login.html",
+    return admin_templates.TemplateResponse(
+        "pages/auth-sign-in.html",
         admin_context(request, "Sign In"),
     )
 

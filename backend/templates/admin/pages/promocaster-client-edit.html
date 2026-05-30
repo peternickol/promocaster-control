@@ -1,11 +1,11 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}Edit Promocaster Client{% endblock title %}
+{% block title %}{{ 'Add' if is_new else 'Edit' }} Promocaster Client{% endblock title %}
 
 {% block content %}
 <div class="wrapper promocaster-theme">
 {% set subtitle='Promocaster' %}
-{% set title='Edit Client' %}
+{% set title='Add Client' if is_new else 'Edit Client' %}
 {% set breadcrumbs=[
     {'label': 'Promocaster Control', 'href': './'},
     {'label': 'Admin', 'href': 'promocaster-dashboard'},
@@ -18,56 +18,54 @@
 {% include 'partials/page-title.html' %}
 <div class="container-fluid">
 <div class="grid grid-cols-1 gap-base xl:grid-cols-[1fr_360px]">
-<div class="card">
+<form class="card" method="post" action="{{ '/client' if is_new else '/client/' ~ form_values.id }}">
 <div class="card-header">
 <h4 class="card-title">Client Details</h4>
 </div>
 <div class="card-body grid gap-5">
+{% if form_error %}
+<div class="rounded-md border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">{{ form_error }}</div>
+{% endif %}
 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 <label class="grid gap-1">
 <span class="text-sm font-semibold">Client Name</span>
-<input class="form-input" type="text" value="PHGI">
+<input class="form-input" name="name" type="text" value="{{ form_values.name }}" required>
 </label>
 <label class="grid gap-1">
 <span class="text-sm font-semibold">Client Slug</span>
-<input class="form-input" type="text" value="phgi">
+<input class="form-input" name="id" type="text" value="{{ form_values.id }}" required{% if not is_new %} readonly{% endif %}>
 </label>
 </div>
 <label class="grid gap-1">
 <span class="text-sm font-semibold">Git Repository</span>
-<input class="form-input" type="text" value="git@github.com:peternickol/promocaster.phgi.git">
+<input class="form-input" name="repo" type="text" value="{{ form_values.repo }}" placeholder="git@github.com:example/acme.promocaster.git" required>
 </label>
-<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-<label class="grid gap-1">
+<label class="grid gap-1 md:max-w-xs">
 <span class="text-sm font-semibold">Branch</span>
-<input class="form-input" type="text" value="master">
+<input class="form-input" name="branch" type="text" value="{{ form_values.branch or 'master' }}" required>
 </label>
-<label class="grid gap-1">
-<span class="text-sm font-semibold">Client Status</span>
-<select class="form-select">
-<option selected>Active</option>
-<option>Paused</option>
-</select>
-</label>
-</div>
 <div class="flex flex-wrap gap-2">
 <a class="btn bg-light hover:text-primary" href="/clients">Cancel</a>
-<button class="btn bg-primary text-white hover:bg-primary-hover" type="button">Save Client</button>
+<button class="btn bg-primary text-white hover:bg-primary-hover" type="submit"><i class="iconify tabler--device-floppy"></i>Save Client</button>
 </div>
 </div>
-</div>
+</form>
 <div class="grid gap-base">
 <div class="card">
 <div class="card-header">
 <h4 class="card-title">Repo Sync</h4>
 </div>
 <div class="card-body grid gap-3">
+{% if is_new %}
+<p class="text-sm text-default-400">Save the client before syncing its repository.</p>
+{% else %}
 <div>
-<span class="badge badge-label bg-success/15 text-success">In Sync</span>
-<p class="mt-2 text-sm text-default-400">Checkout is present and current with origin/master.</p>
+<span class="badge badge-label {{ sync_badge.class }}">{{ sync_badge.label }}</span>
+<p class="mt-2 text-sm text-default-400">{{ sync_status.message }}</p>
 </div>
-<a class="btn bg-primary text-white hover:bg-primary-hover justify-start" href="/client-sync"><i class="iconify tabler--refresh"></i>Resync Repository</a>
-<p class="text-xs text-default-400">This will refresh the local checkout used by the editor and viewer.</p>
+<a class="btn bg-primary text-white hover:bg-primary-hover justify-start" href="/client-sync/{{ form_values.id }}"><i class="iconify tabler--refresh"></i>Resync Repository</a>
+<p class="text-xs text-default-400">This refreshes the local checkout used by the editor and viewer.</p>
+{% endif %}
 </div>
 </div>
 <div class="card">
@@ -75,16 +73,20 @@
 <h4 class="card-title">Assigned Users</h4>
 </div>
 <div class="card-body grid gap-3">
-<label class="flex items-center gap-2">
-<input class="form-checkbox" type="checkbox" checked>
-<span>Adam Mercer</span>
-</label>
-<label class="flex items-center gap-2">
-<input class="form-checkbox" type="checkbox" checked>
-<span>Matt Rivera</span>
-</label>
+{% if is_new %}
+<p class="text-sm text-default-400">User access can be assigned after the client is saved.</p>
+{% elif assigned_users %}
+{% for user in assigned_users %}
+<div class="flex items-center gap-2">
+<i class="iconify tabler--user text-default-400"></i>
+<span>{{ user.email }}</span>
+</div>
+{% endfor %}
+{% else %}
+<p class="text-sm text-default-400">No non-admin users are assigned to this client.</p>
+{% endif %}
 <hr class="border-default-300">
-<p class="text-xs text-default-400">Admins are not assigned per client; they have implicit access to every client.</p>
+<p class="text-xs text-default-400">Admins have implicit access to every client.</p>
 <a class="btn bg-light hover:text-primary justify-start" href="/access"><i class="iconify tabler--shield-lock"></i>Manage Access Rules</a>
 </div>
 </div>

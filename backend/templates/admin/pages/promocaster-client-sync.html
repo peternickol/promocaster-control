@@ -10,7 +10,7 @@
     {'label': 'Promocaster Control', 'href': './'},
     {'label': 'Admin', 'href': 'promocaster-dashboard'},
     {'label': 'Clients', 'href': '/clients'},
-    {'label': 'PHGI', 'href': '/client'}
+    {'label': form_values.name, 'href': '/client/' ~ form_values.id}
 ] %}
 {% include 'partials/topbar.html' %}
 {% include 'partials/sidenav.html' %}
@@ -24,31 +24,37 @@
 <h4 class="card-title">Repository Refresh</h4>
 </div>
 <div class="card-body grid gap-5">
+{% if form_error %}
+<div class="rounded-md border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger whitespace-pre-wrap">{{ form_error }}</div>
+{% endif %}
 <div class="rounded-md border border-default-300 bg-light/30 p-4">
-<p class="font-semibold">PHGI</p>
-<p class="text-sm text-default-400">git@github.com:peternickol/promocaster.phgi.git</p>
-<p class="mt-1 text-sm text-default-400">Branch: master</p>
+<p class="font-semibold">{{ form_values.name }}</p>
+<p class="text-sm text-default-400 break-all">{{ form_values.repo }}</p>
+<p class="mt-1 text-sm text-default-400">Branch: {{ form_values.branch }}</p>
 </div>
 <div class="grid gap-3">
 <div class="flex items-start gap-3">
-<span class="size-9 flex shrink-0 items-center justify-center rounded-full bg-success/15 text-success"><i class="iconify tabler--git-branch"></i></span>
+<span class="size-9 flex shrink-0 items-center justify-center rounded-full bg-info/15 text-info"><i class="iconify tabler--git-branch"></i></span>
 <div>
-<p class="font-semibold">Current checkout detected</p>
-<p class="text-sm text-default-400">The local client repo exists and is ready to be compared with origin/master.</p>
+<p class="font-semibold">Repository checkout</p>
+<p class="text-sm text-default-400">{{ sync_status.repo_path }}</p>
 </div>
 </div>
 <div class="flex items-start gap-3">
-<span class="size-9 flex shrink-0 items-center justify-center rounded-full bg-info/15 text-info"><i class="iconify tabler--refresh"></i></span>
+<span class="size-9 flex shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary"><i class="iconify tabler--refresh"></i></span>
 <div>
 <p class="font-semibold">Resync action</p>
-<p class="text-sm text-default-400">This should fetch the latest remote changes, update the checkout, and refresh slide data used by the editor and viewer.</p>
+<p class="text-sm text-default-400">Fetches the remote branch, verifies the checkout is clean, and updates the editor/viewer content repo.</p>
 </div>
 </div>
 </div>
-<div class="flex flex-wrap gap-2">
+<form class="flex flex-wrap gap-2" method="post" action="/client-sync/{{ form_values.id }}">
 <a class="btn bg-light hover:text-primary" href="/clients">Cancel</a>
-<button class="btn bg-primary text-white hover:bg-primary-hover" type="button"><i class="iconify tabler--refresh"></i>Run Resync</button>
-</div>
+<button class="btn bg-primary text-white hover:bg-primary-hover" type="submit"><i class="iconify tabler--refresh"></i>Run Resync</button>
+</form>
+{% if sync_output %}
+<pre class="max-h-80 overflow-auto rounded-md border border-default-300 bg-default-950 p-4 text-xs text-white whitespace-pre-wrap">{{ sync_output }}</pre>
+{% endif %}
 </div>
 </div>
 <div class="card">
@@ -57,14 +63,20 @@
 </div>
 <div class="card-body grid gap-3">
 <div>
-<span class="badge badge-label bg-success/15 text-success">In Sync</span>
-<p class="mt-2 text-sm text-default-400">Last checked 2 min ago.</p>
+<span class="badge badge-label {{ sync_badge.class }}">{{ sync_badge.label }}</span>
+<p class="mt-2 text-sm text-default-400">{{ sync_status.message }}</p>
 </div>
 <hr class="border-default-300">
 <div>
-<p class="text-sm font-semibold">Last result</p>
-<p class="text-sm text-default-400">No pending changes from origin/master.</p>
+<p class="text-sm font-semibold">Last update</p>
+<p class="text-sm text-default-400">{{ sync_status.updated_at or 'No sync status has been written yet.' }}</p>
 </div>
+{% if sync_status.head %}
+<div>
+<p class="text-sm font-semibold">Current head</p>
+<p class="text-sm text-default-400">{{ sync_status.head }}</p>
+</div>
+{% endif %}
 </div>
 </div>
 </div>

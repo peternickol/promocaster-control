@@ -1,5 +1,0 @@
-clients:
-  phgi:
-    name: PHGI
-    repo: git@github.com:peternickol/promocaster.phgi.git
-    branch: master

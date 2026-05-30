@@ -2,8 +2,10 @@ import json
 import os
 import re
 import shutil
+import sqlite3
 import subprocess
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote
 
@@ -12,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 ASSETS_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_ASSETS_DIR", BASE_DIR / "assets")).resolve()
 TEMPLATE_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_TEMPLATE_DIR", BASE_DIR / "backend" / "templates")).resolve()
 DATA_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_DATA_DIR", ".")).resolve()
-CLIENTS_FILE = Path(os.environ.get("PROMOCASTER_CONTROL_CLIENTS_FILE", "client.yml")).resolve()
+CONTROL_DB_PATH = Path(os.environ.get("PROMOCASTER_CONTROL_AUTH_DB", DATA_DIR / "control.sqlite3")).resolve()
 REPOS_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_REPOS_DIR", DATA_DIR / "client")).resolve()
 SYNC_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_SYNC_DIR", DATA_DIR / "sync")).resolve()
 SSH_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_SSH_DIR", DATA_DIR / "ssh")).resolve()
@@ -35,21 +37,98 @@ VIDEO_PREFERRED_CODEC = os.environ.get("PROMOCASTER_CONTROL_VIDEO_PREFERRED_CODE
 SUBPROCESS_CWD = Path("/")
 
 
-def load_clients():
-    clients = {}
-    if not CLIENTS_FILE.exists():
-        return clients
+def utc_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
-    current = ""
-    for raw_line in CLIENTS_FILE.read_text(encoding="utf-8").splitlines():
-        if raw_line.startswith("  ") and not raw_line.startswith("    ") and raw_line.strip().endswith(":"):
-            current = raw_line.strip()[:-1]
-            clients[current] = {}
-            continue
-        if current and raw_line.startswith("    ") and ":" in raw_line:
-            key, value = raw_line.strip().split(":", 1)
-            clients[current][key] = clean_yaml_scalar(value.strip())
-    return clients
+
+def connect_control_db() -> sqlite3.Connection:
+    CONTROL_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(CONTROL_DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def ensure_clients_table(conn: sqlite3.Connection) -> None:
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS clients (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            repo TEXT NOT NULL,
+            branch TEXT NOT NULL DEFAULT 'master',
+            active INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+        """
+    )
+
+
+def init_clients_db() -> None:
+    with connect_control_db() as conn:
+        ensure_clients_table(conn)
+
+
+def load_clients():
+    try:
+        with connect_control_db() as conn:
+            ensure_clients_table(conn)
+            rows = conn.execute(
+                "SELECT id, name, repo, branch FROM clients WHERE active = 1 ORDER BY lower(name), id"
+            ).fetchall()
+            return {
+                row["id"]: {"name": row["name"], "repo": row["repo"], "branch": row["branch"]}
+                for row in rows
+            }
+    except sqlite3.Error:
+        return {}
+
+
+def validate_client_config(client_id: str, name: str, repo: str, branch: str) -> str:
+    client_id = client_id.strip()
+    if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", client_id):
+        return "Client slug must start with a lowercase letter or number and contain only lowercase letters, numbers, hyphens, or underscores."
+    if not name.strip():
+        return "Client name is required."
+    if not repo.strip():
+        return "Git repository is required."
+    if not branch.strip():
+        return "Branch is required."
+    return ""
+
+
+def upsert_client(client_id: str, name: str, repo: str, branch: str, *, create: bool) -> str:
+    error = validate_client_config(client_id, name, repo, branch)
+    if error:
+        return error
+
+    clients = load_clients()
+    if create and client_id in clients:
+        return "Client slug already exists."
+    if not create and client_id not in clients:
+        return "Client does not exist."
+
+    now = utc_iso()
+    with connect_control_db() as conn:
+        ensure_clients_table(conn)
+        if create:
+            conn.execute(
+                """
+                INSERT INTO clients (id, name, repo, branch, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (client_id.strip(), name.strip(), repo.strip(), branch.strip(), now, now),
+            )
+        else:
+            conn.execute(
+                """
+                UPDATE clients
+                SET name = ?, repo = ?, branch = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                (name.strip(), repo.strip(), branch.strip(), now, client_id.strip()),
+            )
+    return ""
 
 
 def repo_checkout_name(repo_url):

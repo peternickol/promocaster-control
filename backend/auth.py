@@ -9,7 +9,7 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from backend.control import DATA_DIR, load_clients
+from backend.control import DATA_DIR, init_clients_db, load_clients
 
 
 AUTH_DB_PATH = Path(os.environ.get("PROMOCASTER_CONTROL_AUTH_DB", DATA_DIR / "control.sqlite3")).resolve()
@@ -107,6 +107,7 @@ def init_auth_db() -> None:
             """
         )
         migrate_email_only_users(conn)
+    init_clients_db()
     if not users_exist():
         ensure_setup_token()
 

@@ -36,9 +36,9 @@ through the API.
 
 - `backend/templates/` contains the editor and viewer pages.
 - `assets/` contains shared CSS, JavaScript, images, and vendored browser assets.
-- `client.yml` is the control-side registry of clients and content repos.
+- The control SQLite database is the registry of clients, users, and access rules.
 - Locations are derived from the synced client repo's `_data/media.yml`.
-- The `client.yml` key is the client id.
+- The client id is stored as the `clients.id` database key.
 - `backend/` contains the FastAPI web app and Promocaster domain helpers.
 - Dish owns Debian install, Caddy/service wiring, project builds, refreshes,
   and Dish self-update.
@@ -375,16 +375,14 @@ loading decks.
 Operators can sync configured client repos from the command line:
 
 ```sh
-promocaster-control client add acme git@github.com:example/acme.promocaster.git --name "ACME"
 promocaster-control client-repo list
 promocaster-control client-repo sync phgi
 promocaster-control client-repo status phgi
 ```
 
-`client add <client> <repo>` appends a new client entry to `client.yml`. The
-client id must be lowercase and URL-safe. Use `--name` for the display name and
-`--branch` when the repo does not use `master`.
-`client-repo sync <client>` reads `client.yml`, uses the client GitHub key,
+Clients are added and edited from the admin UI. The operator CLI intentionally
+does not mutate the client registry.
+`client-repo sync <client>` reads the client registry from SQLite, uses the client GitHub key,
 clones or fetches into a directory named after the Git repo, writes progress
 state to `/var/lib/dish/project/sync/<client>.json`, and leaves the
 checkout at the configured branch. It also repairs ownership of the checkout for
@@ -452,7 +450,7 @@ dish project github-key edit
 
 Promocaster Control separately manages a client GitHub key. This key is
 project-specific and is used only for the downstream client repos listed in
-`client.yml`, starting with `promocaster.phgi`:
+the control database:
 
 ```text
 /var/lib/dish/project/ssh/client_github_key
@@ -498,7 +496,7 @@ editor and viewer.
 
 Returns the authenticated user and the clients/locations they can access.
 Locations are discovered from the client repo after sync, then filtered by auth
-policy. They are not duplicated in `client.yml`.
+policy. They are not duplicated in the control database.
 
 ```json
 {

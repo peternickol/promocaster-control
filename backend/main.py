@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import json
 import mimetypes
+import os
 import posixpath
 import re
 import sqlite3
+import subprocess
 from datetime import date
 from http import HTTPStatus
 from pathlib import Path
@@ -38,7 +40,9 @@ from backend.auth import (
 )
 from backend.control import (
     ASSETS_DIR,
-    CLIENTS_FILE,
+    CLIENT_GITHUB_KEY,
+    CONTROL_GIT_CONFIG,
+    CONTROL_DB_PATH,
     DATA_DIR,
     MAX_JSON_BODY_BYTES,
     MAX_MULTIPART_BODY_BYTES,
@@ -58,6 +62,7 @@ from backend.control import (
     parse_media_yml,
     referenced_media_names,
     run_git,
+    upsert_client,
     write_upload_media,
 )
 
@@ -382,6 +387,87 @@ def user_admin_context(request: Request, page_title: str, **extra) -> dict:
     return context
 
 
+def client_status_badge(state: str) -> dict:
+    normalized = (state or "not_started").replace("-", "_")
+    if normalized in {"ready", "synced"}:
+        return {"label": "Ready", "class": "bg-success/15 text-success"}
+    if normalized in {"syncing", "fetching", "resetting", "cloning"}:
+        return {"label": "Syncing", "class": "bg-info/15 text-info"}
+    if normalized == "error":
+        return {"label": "Error", "class": "bg-danger/15 text-danger"}
+    return {"label": "Not synced", "class": "bg-warning/15 text-warning"}
+
+
+def client_user_counts() -> dict[str, int]:
+    counts = {client_id: 0 for client_id in load_clients()}
+    for user in list_users():
+        if user["role"] == "admin":
+            continue
+        for client_id in user.get("clients", []):
+            if client_id in counts:
+                counts[client_id] += 1
+    return counts
+
+
+def client_admin_rows() -> list[dict]:
+    counts = client_user_counts()
+    rows = []
+    for client_id, config in sorted(load_clients().items(), key=lambda item: (item[1].get("name") or item[0]).lower()):
+        status = read_sync_status(client_id)
+        state = status.get("state", "")
+        rows.append(
+            {
+                "id": client_id,
+                "name": config.get("name") or client_id,
+                "repo": config.get("repo", ""),
+                "branch": config.get("branch") or "master",
+                "users": counts.get(client_id, 0),
+                "sync_status": status,
+                "sync_badge": client_status_badge(state),
+            }
+        )
+    return rows
+
+
+def client_form_context(request: Request, page_title: str, **extra) -> dict:
+    context = user_admin_context(request, page_title)
+    context.update(
+        {
+            "form_error": "",
+            "form_values": {"id": "", "name": "", "repo": "", "branch": "master"},
+            "is_new": True,
+            "sync_status": {},
+            "sync_badge": client_status_badge("not_started"),
+            "sync_output": "",
+        }
+    )
+    context.update(extra)
+    return context
+
+
+async def client_form_data(request: Request) -> dict:
+    form = await request.form()
+    return {
+        "id": str(form.get("id") or "").strip(),
+        "name": str(form.get("name") or "").strip(),
+        "repo": str(form.get("repo") or "").strip(),
+        "branch": str(form.get("branch") or "master").strip() or "master",
+    }
+
+
+def run_client_sync(client: str) -> subprocess.CompletedProcess[str]:
+    command = [str(Path(__file__).resolve().parents[1] / "bin" / "promocaster-control"), "client-repo", "sync", client]
+    env = {
+        **os.environ,
+        "PROMOCASTER_CONTROL_DATA_DIR": str(DATA_DIR),
+        "PROMOCASTER_CONTROL_REPOS_DIR": str(REPOS_DIR),
+        "PROMOCASTER_CONTROL_SYNC_DIR": str(SYNC_DIR),
+        "PROMOCASTER_CONTROL_CLIENT_GITHUB_KEY": str(CLIENT_GITHUB_KEY),
+        "PROMOCASTER_CONTROL_GIT_CONFIG": str(CONTROL_GIT_CONFIG),
+    }
+    return subprocess.run(command, check=False, capture_output=True, text=True, env=env, cwd=str(Path(__file__).resolve().parents[1]), timeout=900)
+
+
 async def user_form_data(request: Request, *, require_password: bool) -> tuple[dict, list[str], str]:
     form = await request.form()
     password = str(form.get("password") or "")
@@ -564,8 +650,8 @@ def health() -> dict:
         "data_dir": str(DATA_DIR),
         "repos_dir": str(REPOS_DIR),
         "sync_dir": str(SYNC_DIR),
-        "clients_file": str(CLIENTS_FILE),
-        "clients_file_exists": CLIENTS_FILE.exists(),
+        "control_db": str(CONTROL_DB_PATH),
+        "clients_source": "database",
     }
 
 
@@ -897,9 +983,21 @@ def admin_home(request: Request):
 @app.api_route("/dashboard", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def dashboard(request: Request):
     require_admin(request)
+    client_rows = client_admin_rows()
+    users = list_users()
     return admin_templates.TemplateResponse(
         "pages/promocaster-dashboard.html",
-        admin_context(request, "Dashboard"),
+        user_admin_context(
+            request,
+            "Dashboard",
+            client_rows=client_rows,
+            admin_stats={
+                "clients": len(client_rows),
+                "ready_repos": sum(1 for client in client_rows if client["sync_status"].get("state") in {"ready", "synced"}),
+                "users": len(users),
+            },
+            admin_users=users,
+        ),
     )
 
 
@@ -1010,10 +1108,155 @@ async def access_submit(request: Request):
     return RedirectResponse(url="/access", status_code=303)
 
 
+@app.api_route("/clients", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def clients_page(request: Request):
+    require_admin(request)
+    return admin_templates.TemplateResponse(
+        "pages/promocaster-clients.html",
+        user_admin_context(request, "Clients", client_rows=client_admin_rows()),
+    )
+
+
+@app.api_route("/client", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def client_new_page(request: Request):
+    require_admin(request)
+    return admin_templates.TemplateResponse(
+        "pages/promocaster-client-edit.html",
+        client_form_context(request, "Add Client"),
+    )
+
+
+@app.post("/client", response_class=HTMLResponse)
+async def client_new_submit(request: Request):
+    require_admin(request)
+    data = await client_form_data(request)
+    error = upsert_client(data["id"], data["name"], data["repo"], data["branch"], create=True)
+    if error:
+        return admin_templates.TemplateResponse(
+            "pages/promocaster-client-edit.html",
+            client_form_context(request, "Add Client", form_error=error, form_values=data),
+            status_code=400,
+        )
+    return RedirectResponse(url=f"/client/{quote(data['id'], safe='')}", status_code=303)
+
+
+@app.api_route("/client/{client}", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def client_edit_page(request: Request, client: str):
+    require_admin(request)
+    config = load_clients().get(client)
+    if not config:
+        raise HTTPException(status_code=404)
+    status = read_sync_status(client)
+    return admin_templates.TemplateResponse(
+        "pages/promocaster-client-edit.html",
+        client_form_context(
+            request,
+            "Edit Client",
+            is_new=False,
+            form_values={
+                "id": client,
+                "name": config.get("name") or client,
+                "repo": config.get("repo") or "",
+                "branch": config.get("branch") or "master",
+            },
+            sync_status=status,
+            sync_badge=client_status_badge(status.get("state", "")),
+            assigned_users=[user for user in list_users() if client in user.get("clients", [])],
+        ),
+    )
+
+
+@app.post("/client/{client}", response_class=HTMLResponse)
+async def client_edit_submit(request: Request, client: str):
+    require_admin(request)
+    if client not in load_clients():
+        raise HTTPException(status_code=404)
+    data = await client_form_data(request)
+    data["id"] = client
+    error = upsert_client(client, data["name"], data["repo"], data["branch"], create=False)
+    if error:
+        status = read_sync_status(client)
+        return admin_templates.TemplateResponse(
+            "pages/promocaster-client-edit.html",
+            client_form_context(
+                request,
+                "Edit Client",
+                is_new=False,
+                form_error=error,
+                form_values=data,
+                sync_status=status,
+                sync_badge=client_status_badge(status.get("state", "")),
+            ),
+            status_code=400,
+        )
+    return RedirectResponse(url=f"/client/{quote(client, safe='')}", status_code=303)
+
+
+@app.api_route("/client-sync/{client}", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def client_sync_page(request: Request, client: str):
+    require_admin(request)
+    config = load_clients().get(client)
+    if not config:
+        raise HTTPException(status_code=404)
+    status = read_sync_status(client)
+    return admin_templates.TemplateResponse(
+        "pages/promocaster-client-sync.html",
+        client_form_context(
+            request,
+            "Resync Client Repository",
+            client_id=client,
+            form_values={
+                "id": client,
+                "name": config.get("name") or client,
+                "repo": config.get("repo") or "",
+                "branch": config.get("branch") or "master",
+            },
+            is_new=False,
+            sync_status=status,
+            sync_badge=client_status_badge(status.get("state", "")),
+        ),
+    )
+
+
+@app.post("/client-sync/{client}", response_class=HTMLResponse)
+def client_sync_submit(request: Request, client: str):
+    require_admin(request)
+    config = load_clients().get(client)
+    if not config:
+        raise HTTPException(status_code=404)
+    sync_output = ""
+    error = ""
+    try:
+        proc = run_client_sync(client)
+        sync_output = "\n".join(part.strip() for part in (proc.stdout, proc.stderr) if part and part.strip())
+        if proc.returncode != 0:
+            error = sync_output or f"Sync exited with status {proc.returncode}."
+    except subprocess.TimeoutExpired:
+        error = "Sync timed out after 15 minutes. Check the repository and run the sync again."
+    status = read_sync_status(client)
+    return admin_templates.TemplateResponse(
+        "pages/promocaster-client-sync.html",
+        client_form_context(
+            request,
+            "Resync Client Repository",
+            client_id=client,
+            form_values={
+                "id": client,
+                "name": config.get("name") or client,
+                "repo": config.get("repo") or "",
+                "branch": config.get("branch") or "master",
+            },
+            is_new=False,
+            form_error=error,
+            sync_status=status,
+            sync_badge=client_status_badge(status.get("state", "")),
+            sync_output=sync_output,
+        ),
+        status_code=400 if error else 200,
+    )
+
+
 ADMIN_PAGE_ROUTES = {
-    "clients": ("promocaster-clients.html", "Clients"),
-    "client": ("promocaster-client-edit.html", "Client"),
-    "client-sync": ("promocaster-client-sync.html", "Client Sync"),
     "user": ("promocaster-users.html", "Users"),
     "user/edit": ("promocaster-user-edit.html", "User"),
     "user/new": ("promocaster-user-add.html", "Add User"),
@@ -1024,7 +1267,7 @@ ADMIN_PAGE_ROUTES = {
 
 @app.api_route("/{page_path:path}", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def admin_flat_page(request: Request, page_path: str):
-    if page_path in {"clients", "client", "client-sync", "user", "user/edit", "user/new", "access"}:
+    if page_path in {"user", "user/edit", "user/new", "access"}:
         require_admin(request)
     safe_path = posixpath.normpath("/" + unquote(page_path)).lstrip("/")
     route = ADMIN_PAGE_ROUTES.get(safe_path)

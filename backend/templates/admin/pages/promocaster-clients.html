@@ -27,22 +27,28 @@
 <tr><th>Client</th><th>Repository</th><th>Branch</th><th>Users</th><th>Repo Sync</th><th class="text-end">Actions</th></tr>
 </thead>
 <tbody>
+{% for client in client_rows %}
 <tr>
-<td><span class="font-semibold">PHGI</span><p class="text-xs text-default-400">phgi</p></td>
-<td>promocaster.phgi.git</td>
-<td>master</td>
-<td>3 assigned</td>
+<td><span class="font-semibold">{{ client.name }}</span><p class="text-xs text-default-400">{{ client.id }}</p></td>
+<td class="max-w-[420px] truncate">{{ client.repo }}</td>
+<td>{{ client.branch }}</td>
+<td>{{ client.users }} assigned</td>
 <td>
-<span class="badge badge-label bg-success/15 text-success">In Sync</span>
-<p class="text-xs text-default-400">Last checked 2 min ago</p>
+<span class="badge badge-label {{ client.sync_badge.class }}">{{ client.sync_badge.label }}</span>
+<p class="text-xs text-default-400">{{ client.sync_status.message }}</p>
 </td>
 <td class="text-end">
 <div class="flex justify-end gap-2">
-<a class="btn btn-sm bg-light hover:text-primary" href="/client-sync"><i class="iconify tabler--refresh"></i>Resync</a>
-<a class="btn btn-sm bg-light hover:text-primary" href="/client"><i class="iconify tabler--edit"></i>Edit</a>
+<a class="btn btn-sm bg-light hover:text-primary" href="/client-sync/{{ client.id }}"><i class="iconify tabler--refresh"></i>Resync</a>
+<a class="btn btn-sm bg-light hover:text-primary" href="/client/{{ client.id }}"><i class="iconify tabler--edit"></i>Edit</a>
 </div>
 </td>
 </tr>
+{% else %}
+<tr>
+<td colspan="6" class="py-8 text-center text-default-400">No clients have been added yet.</td>
+</tr>
+{% endfor %}
 </tbody>
 </table>
 </div>

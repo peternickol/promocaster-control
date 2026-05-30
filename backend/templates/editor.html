@@ -22,6 +22,7 @@
     {% set subtitle='Slides' %}
     {% set title='Editor' %}
     {% set breadcrumbs=[{'label': 'Promocaster Control', 'href': '/deck'}] %}
+    {% set show_theme_toggle=false %}
     {% include 'admin/partials/topbar.html' %}
     {% include 'admin/partials/sidenav.html' %}
     <div class="page-content">
@@ -51,10 +52,6 @@
                         <span>Editor</span>
                       </a>
                     </nav>
-                    <button class="btn btn-sm bg-light hover:text-primary icon-button" type="button" aria-label="Switch theme" data-control-theme-toggle>
-                      <i data-lucide="sun-moon" aria-hidden="true"></i>
-                      <span>Theme</span>
-                    </button>
                     <button id="save-decks" class="btn btn-sm bg-success text-white hover:bg-success-hover icon-button" type="button">
                       <i data-lucide="cloud-upload" aria-hidden="true"></i>
                       <span>Save & Push</span>

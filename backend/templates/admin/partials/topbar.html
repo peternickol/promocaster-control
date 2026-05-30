@@ -144,12 +144,14 @@
 </div>
 </div>
 {% endif %}
+{% if show_theme_toggle is not defined or show_theme_toggle %}
 <div class="sm:inline-flex hidden" id="theme-toggle">
 <button aria-label="Toggle color mode" class="topbar-link rounded-full" id="light-dark-mode" type="button">
 <i class="iconify tabler--sun topbar-link-icon hidden" id="theme-icon-light"></i>
 <i class="iconify tabler--moon topbar-link-icon hidden" id="theme-icon-dark"></i>
 </button>
 </div>
+{% endif %}
 {% if sidebar_variant != "promocaster" %}
 <div class="topbar-item hs-dropdown relative inline-flex [--auto-close:inside] [--placement:bottom-right]" id="notification-dropdown-people">
 <button aria-expanded="false" aria-haspopup="menu" aria-label="Dropdown" class="topbar-link hs-dropdown-toggle relative flex items-center" type="button">

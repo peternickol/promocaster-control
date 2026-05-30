@@ -107,6 +107,18 @@ def require_admin(request: Request) -> dict:
     return user
 
 
+def user_can_edit(user: dict | None) -> bool:
+    return bool(user and user["role"] in {"admin", "editor"})
+
+
+def selected_deck_mode(mode: str, user: dict | None) -> str:
+    if mode == "editor":
+        if not user_can_edit(user):
+            raise HTTPException(status_code=403)
+        return "editor"
+    return "viewer"
+
+
 def ensure_client_access(request: Request, client: str) -> dict:
     user = require_user(request)
     if client not in allowed_client_ids(user):
@@ -173,6 +185,8 @@ def admin_context(request: Request, page_title: str = "Dashboard") -> dict:
     user = request_user(request)
     role = (user or {}).get("role", "viewer")
     mode = request.query_params.get("mode", "viewer")
+    if mode == "editor" and not user_can_edit(user):
+        mode = "viewer"
     return {
         "request": request,
         "title": page_title,
@@ -181,6 +195,7 @@ def admin_context(request: Request, page_title: str = "Dashboard") -> dict:
         "admin_user": (user or {}).get("email", "Promocaster"),
         "admin_role": ROLE_LABELS.get(role, role.title()),
         "is_admin": role == "admin",
+        "can_edit": user_can_edit(user),
         "deck_clients": deck_nav(mode, user),
         "selected_client_id": "",
         "selected_location_name": "",
@@ -677,7 +692,9 @@ def logout(request: Request) -> RedirectResponse:
 
 @app.api_route("/deck", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def deck(request: Request, mode: str = "viewer"):
-    nav = deck_nav(mode, require_user(request))
+    user = require_user(request)
+    selected_mode = selected_deck_mode(mode, user)
+    nav = deck_nav(selected_mode, user)
     if not nav:
         raise HTTPException(status_code=403)
     first_client = nav[0]
@@ -687,8 +704,8 @@ def deck(request: Request, mode: str = "viewer"):
 
 @app.api_route("/deck/{client}", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def deck_client(request: Request, client: str, mode: str = "viewer"):
-    ensure_client_access(request, client)
-    selected_mode = "editor" if mode == "editor" else "viewer"
+    user = ensure_client_access(request, client)
+    selected_mode = selected_deck_mode(mode, user)
     context = admin_context(request, "Viewer" if selected_mode == "viewer" else "Editor")
     context["deck_mode"] = selected_mode
     context["selected_client_id"] = client
@@ -696,15 +713,15 @@ def deck_client(request: Request, client: str, mode: str = "viewer"):
     context["selected_location_name"] = ""
     context["editor_href"] = deck_href(client, "", "editor")
     context["viewer_href"] = deck_href(client, "", "viewer")
-    context["deck_clients"] = deck_nav(selected_mode, request_user(request))
+    context["deck_clients"] = deck_nav(selected_mode, user)
     template_name = "viewer.html" if selected_mode == "viewer" else "editor.html"
     return templates.TemplateResponse(template_name, context)
 
 
 @app.api_route("/deck/{client}/{location:path}", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def deck_location(request: Request, client: str, location: str, mode: str = "viewer"):
-    ensure_client_access(request, client)
-    selected_mode = "editor" if mode == "editor" else "viewer"
+    user = ensure_client_access(request, client)
+    selected_mode = selected_deck_mode(mode, user)
     context = admin_context(request, "Viewer" if selected_mode == "viewer" else "Editor")
     context["deck_mode"] = selected_mode
     context["selected_client_id"] = client
@@ -712,7 +729,7 @@ def deck_location(request: Request, client: str, location: str, mode: str = "vie
     context["selected_location_name"] = unquote(location)
     context["editor_href"] = deck_href(client, unquote(location), "editor")
     context["viewer_href"] = deck_href(client, unquote(location), "viewer")
-    context["deck_clients"] = deck_nav(selected_mode, request_user(request))
+    context["deck_clients"] = deck_nav(selected_mode, user)
     template_name = "viewer.html" if selected_mode == "viewer" else "editor.html"
     return templates.TemplateResponse(template_name, context)
 

@@ -40,6 +40,7 @@
                     <p class="control-kicker">Deck</p>
                     <h2 id="location-title" class="card-title">Loading</h2>
                   </div>
+                  {% if can_edit %}
                   <div class="deck-actions">
                     <nav class="control-mode-toggle" aria-label="Slide mode">
                       <a href="{{ viewer_href }}">
@@ -56,6 +57,7 @@
                       <span>Save & Push</span>
                     </button>
                   </div>
+                  {% endif %}
                 </div>
 
                 <div class="card-body">

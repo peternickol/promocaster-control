@@ -40,6 +40,7 @@
                     <p class="control-kicker">Location</p>
                     <h2 id="location-title" class="card-title">Loading</h2>
                   </div>
+                  {% if can_edit %}
                   <div class="viewer-actions">
                     <nav class="control-mode-toggle" aria-label="Slide mode">
                       <a class="is-active" href="{{ viewer_href }}" aria-current="page">
@@ -52,6 +53,7 @@
                       </a>
                     </nav>
                   </div>
+                  {% endif %}
                 </div>
                 <div class="card-body">
                   <dl class="summary" id="summary"></dl>

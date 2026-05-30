@@ -639,3 +639,80 @@ html[data-sidenav-size="condensed"] .promocaster-theme .promocaster-app-menu .si
 html[data-sidenav-size="condensed"] .promocaster-theme .promocaster-app-menu .side-nav > .menu-item:hover > .sub-menu {
     display: none !important;
 }
+
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .logo-lg {
+    display: flex;
+}
+
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .logo-sm {
+    display: none;
+}
+
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav {
+    padding: 8px 8px 16px;
+}
+
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item,
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item.hs-accordion,
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item.active {
+    display: block;
+}
+
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item > .menu-link {
+    display: flex;
+    width: 46px;
+    min-height: 44px;
+    justify-content: center;
+    padding: 10px;
+    color: rgba(255, 255, 255, 0.76);
+    background: transparent;
+    box-shadow: none;
+}
+
+html[data-theme="light"][data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item > .menu-link {
+    color: #475569;
+}
+
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item.active > .menu-link,
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item > .menu-link.active,
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item > .menu-link.bg-light\/60 {
+    color: #ffffff;
+    background: rgba(96, 165, 250, 0.18);
+}
+
+html[data-theme="light"][data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item.active > .menu-link,
+html[data-theme="light"][data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item > .menu-link.active,
+html[data-theme="light"][data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item > .menu-link.bg-light\/60 {
+    color: #0f63d8;
+    background: rgba(22, 119, 255, 0.12);
+}
+
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item > .menu-link .menu-icon {
+    display: inline-flex;
+    width: 22px;
+    min-width: 22px;
+    color: #60a5fa;
+}
+
+html[data-theme="light"][data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item > .menu-link .menu-icon {
+    color: #1677ff;
+}
+
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item.active > .menu-link .menu-icon,
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item > .menu-link.active .menu-icon,
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item > .menu-link.bg-light\/60 .menu-icon {
+    color: #93c5fd;
+}
+
+html[data-theme="light"][data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item.active > .menu-link .menu-icon,
+html[data-theme="light"][data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item > .menu-link.active .menu-icon,
+html[data-theme="light"][data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item > .menu-link.bg-light\/60 .menu-icon {
+    color: #0f63d8;
+}
+
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item .menu-text,
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item .menu-arrow,
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item .deck-slide-count,
+html[data-sidenav-size="on-hover"] .promocaster-theme .promocaster-app-menu:not(:hover) .side-nav > .menu-item > .sub-menu {
+    display: none !important;
+}

@@ -14,8 +14,8 @@
 <div class="card-body relative p-12.5" style="background-color: #07111f; color: #e5edf8;">
 <div class="mb-7.5 flex flex-col items-center justify-center text-center">
 <a class="auth-logo" href="/">
-<img alt="Promocaster" class="flex dark:hidden" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-dark.svg') }}"/>
-<img alt="Promocaster" class="hidden dark:flex" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-light.svg') }}"/>
+<img alt="Promocaster" class="flex dark:hidden" src="{{ admin_asset_url('images/promocaster/app-icon-enclosed-dark.svg') }}"/>
+<img alt="Promocaster" class="hidden dark:flex" src="{{ admin_asset_url('images/promocaster/app-icon-enclosed-light.svg') }}"/>
 </a>
 <h4 class="mt-5 mb-2 text-base font-bold text-white">{% if setup_mode %}Create the first admin{% else %}Sign in to Promocaster Control{% endif %}</h4>
 <p class="text-slate-300 mx-auto w-full lg:w-3/4">
@@ -113,7 +113,7 @@ Promocaster Control
 </div>
 </div>
 <div class="relative hidden h-full overflow-hidden rounded-e-2xl bg-slate-950 lg:block">
-<img alt="Promocaster" class="h-full w-full object-contain object-center" src="{{ url_for('admin_assets', path='images/auth.jpg') }}"/>
+<img alt="Promocaster" class="h-full w-full object-contain object-center" src="{{ admin_asset_url('images/auth.jpg') }}"/>
 </div>
 </div>
 </div>

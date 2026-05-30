@@ -5,17 +5,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('admin_assets', path='images/promocaster/favicon-16.png') }}">
-  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('admin_assets', path='images/promocaster/favicon-32.png') }}">
-  <link rel="icon" type="image/png" sizes="64x64" href="{{ url_for('admin_assets', path='images/promocaster/favicon-64.png') }}">
-  <link rel="apple-touch-icon" href="{{ url_for('admin_assets', path='images/promocaster/apple-touch-icon.png') }}">
-  <link href="{{ url_for('admin_assets', path='css/app.min.css') }}" rel="stylesheet" type="text/css">
-  <link href="{{ url_for('admin_assets', path='css/admin-module.css') }}" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="/assets/css/control.css">
-  <link rel="stylesheet" href="/assets/css/editor.css">
-  <script src="{{ url_for('admin_assets', path='js/config.js') }}"></script>
-  <script src="/assets/vendor/lucide/lucide.min.js" defer></script>
-  <script src="/assets/js/editor.js" defer></script>
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ admin_asset_url('images/promocaster/favicon-16.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ admin_asset_url('images/promocaster/favicon-32.png') }}">
+  <link rel="icon" type="image/png" sizes="64x64" href="{{ admin_asset_url('images/promocaster/favicon-64.png') }}">
+  <link rel="apple-touch-icon" href="{{ admin_asset_url('images/promocaster/apple-touch-icon.png') }}">
+  <link href="{{ admin_asset_url('css/app.min.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ admin_asset_url('css/admin-module.css') }}" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="{{ asset_url('css/control.css') }}">
+  <link rel="stylesheet" href="{{ asset_url('css/editor.css') }}">
+  <script src="{{ admin_asset_url('js/config.js') }}"></script>
+  <script src="{{ asset_url('vendor/lucide/lucide.min.js') }}" defer></script>
+  <script src="{{ asset_url('js/editor.js') }}" defer></script>
 </head>
 <body data-client="{{ selected_client_id }}" data-location="{{ selected_location_name }}">
   <div class="wrapper promocaster-theme promocaster-control-page">

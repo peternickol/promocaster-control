@@ -5,14 +5,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('admin_assets', path='images/promocaster/favicon-16.png') }}">
-  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('admin_assets', path='images/promocaster/favicon-32.png') }}">
-  <link rel="icon" type="image/png" sizes="64x64" href="{{ url_for('admin_assets', path='images/promocaster/favicon-64.png') }}">
-  <link rel="apple-touch-icon" href="{{ url_for('admin_assets', path='images/promocaster/apple-touch-icon.png') }}">
-  <link href="{{ url_for('admin_assets', path='css/app.min.css') }}" rel="stylesheet" type="text/css">
-  <link href="{{ url_for('admin_assets', path='css/admin-module.css') }}" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="/assets/css/control.css">
-  <script src="{{ url_for('admin_assets', path='js/config.js') }}"></script>
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ admin_asset_url('images/promocaster/favicon-16.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ admin_asset_url('images/promocaster/favicon-32.png') }}">
+  <link rel="icon" type="image/png" sizes="64x64" href="{{ admin_asset_url('images/promocaster/favicon-64.png') }}">
+  <link rel="apple-touch-icon" href="{{ admin_asset_url('images/promocaster/apple-touch-icon.png') }}">
+  <link href="{{ admin_asset_url('css/app.min.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ admin_asset_url('css/admin-module.css') }}" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="{{ asset_url('css/control.css') }}">
+  <script src="{{ admin_asset_url('js/config.js') }}"></script>
 </head>
 <body>
   <div class="wrapper promocaster-theme promocaster-control-page">

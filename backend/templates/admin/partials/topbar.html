@@ -7,21 +7,21 @@
 <!-- Light Brand Logo -->
 <div class="logo-light">
 {% if sidebar_variant == "promocaster" %}
-<img alt="Promocaster" class="logo-lg h-6" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-dark.svg') }}"/>
-<img alt="Promocaster" class="logo-sm h-6" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-dark.svg') }}"/>
+<img alt="Promocaster" class="logo-lg h-6" src="{{ admin_asset_url('images/promocaster/app-icon-enclosed-dark.svg') }}"/>
+<img alt="Promocaster" class="logo-sm h-6" src="{{ admin_asset_url('images/promocaster/app-icon-enclosed-dark.svg') }}"/>
 {% else %}
-<img alt="Light logo" class="logo-lg h-6" src="{{ url_for('admin_assets', path='images/logo.png') }}"/>
-<img alt="Small logo" class="logo-sm h-6" src="{{ url_for('admin_assets', path='images/logo-sm.png') }}"/>
+<img alt="Light logo" class="logo-lg h-6" src="{{ admin_asset_url('images/logo.png') }}"/>
+<img alt="Small logo" class="logo-sm h-6" src="{{ admin_asset_url('images/logo-sm.png') }}"/>
 {% endif %}
 </div>
 <!-- Dark Brand Logo -->
 <div class="logo-dark">
 {% if sidebar_variant == "promocaster" %}
-<img alt="Promocaster" class="logo-lg h-6" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-light.svg') }}"/>
-<img alt="Promocaster" class="logo-sm h-6" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-light.svg') }}"/>
+<img alt="Promocaster" class="logo-lg h-6" src="{{ admin_asset_url('images/promocaster/app-icon-enclosed-light.svg') }}"/>
+<img alt="Promocaster" class="logo-sm h-6" src="{{ admin_asset_url('images/promocaster/app-icon-enclosed-light.svg') }}"/>
 {% else %}
-<img alt="Dark logo" class="logo-lg h-6" src="{{ url_for('admin_assets', path='images/logo-black.png') }}"/>
-<img alt="Small logo" class="logo-sm h-6" src="{{ url_for('admin_assets', path='images/logo-sm.png') }}"/>
+<img alt="Dark logo" class="logo-lg h-6" src="{{ admin_asset_url('images/logo-black.png') }}"/>
+<img alt="Small logo" class="logo-sm h-6" src="{{ admin_asset_url('images/logo-sm.png') }}"/>
 {% endif %}
 </div>
 </a>
@@ -168,7 +168,7 @@
 <div data-simplebar="" style="max-height: 300px">
 <div class="dropdown-item gap-6 px-4.5 py-3 text-wrap" id="message-1">
 <span class="shrink-0 relative">
-<img alt="User Avatar" class="size-9 rounded-full" src="{{ url_for('admin_assets', path='images/users/user-4.jpg') }}"/>
+<img alt="User Avatar" class="size-9 rounded-full" src="{{ admin_asset_url('images/users/user-4.jpg') }}"/>
 <span class="absolute -top-3 -end-2 border-2 border-card bg-success text-white flex size-5.5 items-center justify-center rounded-full">
 <i class="iconify tabler--bell text-2xs align-middle"></i>
 <span class="sr-only">unread notification</span>
@@ -184,7 +184,7 @@
 </div>
 <div class="dropdown-item gap-6 px-4.5 py-3 text-wrap" id="message-2">
 <span class="shrink-0 relative">
-<img alt="User Avatar" class="size-9 rounded-full" src="{{ url_for('admin_assets', path='images/users/user-5.jpg') }}"/>
+<img alt="User Avatar" class="size-9 rounded-full" src="{{ admin_asset_url('images/users/user-5.jpg') }}"/>
 <span class="absolute -top-3 -end-2 border-2 border-card bg-info text-white flex size-5.5 items-center justify-center rounded-full">
 <i class="iconify tabler--cloud-upload text-2xs align-middle"></i>
 <span class="sr-only">upload notification</span>

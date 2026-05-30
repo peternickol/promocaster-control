@@ -72,6 +72,40 @@ templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
 admin_templates = Jinja2Templates(directory=str(ADMIN_TEMPLATE_DIR))
 
 
+def static_asset_version(root: Path, path: str) -> str:
+    try:
+        return str((root / path.lstrip("/")).stat().st_mtime_ns)
+    except OSError:
+        return "dev"
+
+
+def asset_url(path: str) -> str:
+    clean_path = path.lstrip("/")
+    return f"/assets/{clean_path}?v={static_asset_version(ASSETS_DIR, clean_path)}"
+
+
+def admin_asset_url(path: str) -> str:
+    clean_path = path.lstrip("/")
+    return f"/admin/assets/{clean_path}?v={static_asset_version(ADMIN_ASSETS_DIR, clean_path)}"
+
+
+templates.env.globals["asset_url"] = asset_url
+templates.env.globals["admin_asset_url"] = admin_asset_url
+admin_templates.env.globals["asset_url"] = asset_url
+admin_templates.env.globals["admin_asset_url"] = admin_asset_url
+
+
+@app.middleware("http")
+async def prevent_stale_html(request: Request, call_next):
+    response = await call_next(request)
+    content_type = response.headers.get("content-type", "")
+    if "text/html" in content_type:
+        response.headers["Cache-Control"] = "no-store, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
+
 def request_user(request: Request) -> dict | None:
     if hasattr(request.state, "user"):
         return request.state.user

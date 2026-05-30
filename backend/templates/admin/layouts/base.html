@@ -7,12 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     {% if sidebar_variant == "promocaster" %}
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('admin_assets', path='images/promocaster/favicon-16.png') }}" />
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('admin_assets', path='images/promocaster/favicon-32.png') }}" />
-    <link rel="icon" type="image/png" sizes="64x64" href="{{ url_for('admin_assets', path='images/promocaster/favicon-64.png') }}" />
-    <link rel="apple-touch-icon" href="{{ url_for('admin_assets', path='images/promocaster/apple-touch-icon.png') }}" />
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ admin_asset_url('images/promocaster/favicon-16.png') }}" />
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ admin_asset_url('images/promocaster/favicon-32.png') }}" />
+    <link rel="icon" type="image/png" sizes="64x64" href="{{ admin_asset_url('images/promocaster/favicon-64.png') }}" />
+    <link rel="apple-touch-icon" href="{{ admin_asset_url('images/promocaster/apple-touch-icon.png') }}" />
     {% else %}
-    <link rel="shortcut icon" href="{{ url_for('admin_assets', path='images/favicon.ico') }}" />
+    <link rel="shortcut icon" href="{{ admin_asset_url('images/favicon.ico') }}" />
     {% endif %}
 
     {% block styles %}{% endblock styles %}

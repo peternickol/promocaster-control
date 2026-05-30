@@ -20,12 +20,12 @@
 <div class="card-body p-12.5" style="background-color: #07111f; color: #e5edf8;">
 <div class="flex flex-col items-center justify-center text-center">
 <a class="auth-logo" href="/deck">
-<img alt="logo" class="flex dark:hidden" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-dark.svg') }}"/>
-<img alt="dark logo" class="hidden dark:flex" src="{{ url_for('admin_assets', path='images/promocaster/app-icon-enclosed-light.svg') }}"/>
+<img alt="logo" class="flex dark:hidden" src="{{ admin_asset_url('images/promocaster/app-icon-enclosed-dark.svg') }}"/>
+<img alt="dark logo" class="hidden dark:flex" src="{{ admin_asset_url('images/promocaster/app-icon-enclosed-light.svg') }}"/>
 </a>
 </div>
 <div class="p-3 text-center">
-<img alt="Maintenance" class="mx-auto md:size-64" src="{{ url_for('admin_assets', path='images/maintenance.svg') }}"/>
+<img alt="Maintenance" class="mx-auto md:size-64" src="{{ admin_asset_url('images/maintenance.svg') }}"/>
 <h3 class="mb-2 text-xl font-bold uppercase text-white">Site Under Maintenance</h3>
 <p class="text-slate-300">
                                     We’re currently performing scheduled maintenance.

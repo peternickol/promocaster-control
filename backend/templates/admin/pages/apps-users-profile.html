@@ -6,22 +6,19 @@
 {% endblock styles %}
 
 {% block content %}
-<div class="wrapper">
-        {% set subtitle='Account' %}
+<div class="wrapper promocaster-theme">
+{% set subtitle='Account' %}
 {% set title='Profile' %}
+{% set breadcrumbs=[
+    {'label': 'Promocaster Control', 'href': '/dashboard'},
+    {'label': 'Account', 'href': '/profile'}
+] %}
 {% include 'partials/topbar.html' %}
-
-        {% include 'partials/sidenav.html' %}
-
-        <!-- Start Page Content here -->
+{% include 'partials/sidenav.html' %}
 <div class="page-content">
 <main>
-
-                {% set subtitle='Account' %}
-{% set title='Profile' %}
 {% include 'partials/page-title.html' %}
-
-                <div class="container-fluid">
+<div class="container-fluid">
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-base">
 <div class="xl:col-span-2">
 <form class="card">
@@ -35,8 +32,8 @@
 <section>
 <h5 class="mb-4 flex items-center gap-2 text-sm font-semibold uppercase text-default-500">
 <i class="iconify tabler--user-circle text-base"></i>
-                                    Identity
-                                </h5>
+Identity
+</h5>
 <div class="grid grid-cols-1 gap-base">
 <div>
 <label class="form-label" for="email">Email</label>
@@ -47,8 +44,8 @@
 <section>
 <h5 class="mb-4 flex items-center gap-2 text-sm font-semibold uppercase text-default-500">
 <i class="iconify tabler--lock text-base"></i>
-                                    Change Password
-                                </h5>
+Change Password
+</h5>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-base">
 <div class="md:col-span-2">
 <label class="form-label" for="current-password">Current Password</label>
@@ -69,8 +66,8 @@
 <button class="btn border-default-300 text-default-700 hover:bg-default-100" type="reset">Reset</button>
 <button class="btn bg-primary text-white hover:bg-primary-hover" type="submit">
 <i class="iconify tabler--device-floppy text-base"></i>
-                                Save Changes
-                            </button>
+Save Changes
+</button>
 </div>
 </form>
 </div>
@@ -104,12 +101,10 @@
 </div>
 </div>
 </main>
-
-            {% include 'partials/footer.html' %}
-        </div>
-<!-- End Page content -->
+{% include 'partials/footer.html' %}
 </div>
-    {% include 'partials/footer-scripts.html' %}
+</div>
+{% include 'partials/footer-scripts.html' %}
 
 {% endblock content %}
 

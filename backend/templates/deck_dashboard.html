@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Deck - Promocaster Control</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('admin_assets', path='images/promocaster/favicon-16.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('admin_assets', path='images/promocaster/favicon-32.png') }}">
+  <link rel="icon" type="image/png" sizes="64x64" href="{{ url_for('admin_assets', path='images/promocaster/favicon-64.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('admin_assets', path='images/promocaster/apple-touch-icon.png') }}">
+  <link href="{{ url_for('admin_assets', path='css/app.min.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ url_for('admin_assets', path='css/admin-module.css') }}" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/assets/css/control.css">
+  <script src="{{ url_for('admin_assets', path='js/config.js') }}"></script>
+</head>
+<body>
+  <div class="wrapper promocaster-theme promocaster-control-page">
+    {% set subtitle='Decks' %}
+    {% set title='Deck' %}
+    {% set breadcrumbs=[] %}
+    {% include 'admin/partials/topbar.html' %}
+    {% include 'admin/partials/sidenav.html' %}
+    <div class="page-content">
+      <main>
+        {% include 'admin/partials/page-title.html' %}
+        <div class="container-fluid">
+          <section class="control-main">
+            <div class="deck-dashboard-stats">
+              <div class="deck-stat-card">
+                <span class="deck-stat-icon"><i class="iconify tabler--briefcase"></i></span>
+                <span class="deck-stat-copy">
+                  <strong>{{ deck_dashboard.totals.clients }}</strong>
+                  <small>{{ 'Client' if deck_dashboard.totals.clients == 1 else 'Clients' }}</small>
+                </span>
+              </div>
+              <div class="deck-stat-card">
+                <span class="deck-stat-icon"><i class="iconify tabler--map-pin"></i></span>
+                <span class="deck-stat-copy">
+                  <strong>{{ deck_dashboard.totals.locations }}</strong>
+                  <small>{{ 'Location' if deck_dashboard.totals.locations == 1 else 'Locations' }}</small>
+                </span>
+              </div>
+              <div class="deck-stat-card">
+                <span class="deck-stat-icon"><i class="iconify tabler--photo"></i></span>
+                <span class="deck-stat-copy">
+                  <strong>{{ deck_dashboard.totals.slides }}</strong>
+                  <small>{{ deck_dashboard.totals.images }} images / {{ deck_dashboard.totals.videos }} videos</small>
+                </span>
+              </div>
+              <div class="deck-stat-card">
+                <span class="deck-stat-icon"><i class="iconify tabler--check"></i></span>
+                <span class="deck-stat-copy">
+                  <strong>{{ deck_dashboard.totals.active }}</strong>
+                  <small>Active slides</small>
+                </span>
+              </div>
+              <div class="deck-stat-card">
+                <span class="deck-stat-icon"><i class="iconify tabler--calendar-time"></i></span>
+                <span class="deck-stat-copy">
+                  <strong>{{ deck_dashboard.totals.scheduled }}</strong>
+                  <small>Scheduled</small>
+                </span>
+              </div>
+              <div class="deck-stat-card">
+                <span class="deck-stat-icon"><i class="iconify tabler--calendar-x"></i></span>
+                <span class="deck-stat-copy">
+                  <strong>{{ deck_dashboard.totals.expired }}</strong>
+                  <small>Expired</small>
+                </span>
+              </div>
+              <div class="deck-stat-card">
+                <span class="deck-stat-icon"><i class="iconify tabler--alert-circle"></i></span>
+                <span class="deck-stat-copy">
+                  <strong>{{ deck_dashboard.totals.missing_decks }}</strong>
+                  <small>Deck issues</small>
+                </span>
+              </div>
+              <div class="deck-stat-card">
+                <span class="deck-stat-icon"><i class="iconify tabler--git-branch"></i></span>
+                <span class="deck-stat-copy">
+                  <strong>{{ deck_dashboard.totals.dirty_repos }}</strong>
+                  <small>Repos pending</small>
+                </span>
+              </div>
+            </div>
+
+            {% if deck_dashboard.clients %}
+            <div class="deck-dashboard-clients">
+              {% for client in deck_dashboard.clients %}
+              <section class="card deck-dashboard-client">
+                <div class="card-header deck-header">
+                  <div>
+                    <p class="control-kicker">Client</p>
+                    <h2 class="card-title">{{ client.name }}</h2>
+                  </div>
+                  <a class="btn btn-sm bg-light hover:text-primary" href="{{ client.href }}">Locations</a>
+                </div>
+                <div class="card-body">
+                  <div class="deck-client-facts">
+                    <span>{{ client.location_count }} {{ 'location' if client.location_count == 1 else 'locations' }}</span>
+                    <span>{{ client.slide_count }} {{ 'slide' if client.slide_count == 1 else 'slides' }}</span>
+                    <span>{{ client.active_count }} active</span>
+                    {% if client.scheduled_count %}<span>{{ client.scheduled_count }} scheduled</span>{% endif %}
+                    {% if client.expired_count %}<span>{{ client.expired_count }} expired</span>{% endif %}
+                    <span>{{ client.status }}</span>
+                  </div>
+                  {% if client.locations %}
+                  <div class="deck-location-state-grid">
+                    {% for location in client.locations %}
+                    <a class="deck-location-state" href="{{ location.href }}">
+                      <span class="client-location-icon"><i class="iconify tabler--map-pin"></i></span>
+                      <span class="client-location-copy">
+                        <strong>{{ location.name }}</strong>
+                        <small>{{ location.slide_count }} slides, {{ location.image_count }} images, {{ location.video_count }} videos</small>
+                      </span>
+                      <span class="deck-location-badges">
+                        {% if location.scheduled_count %}
+                        <span class="deck-state-badge">{{ location.scheduled_count }} scheduled</span>
+                        {% endif %}
+                        {% if location.expired_count %}
+                        <span class="deck-state-badge is-expired">{{ location.expired_count }} expired</span>
+                        {% endif %}
+                        <span class="deck-state-badge">{{ location.state }}</span>
+                      </span>
+                    </a>
+                    {% endfor %}
+                  </div>
+                  {% else %}
+                  <div class="client-location-empty">
+                    <span class="client-location-icon"><i class="iconify tabler--map-pin-off"></i></span>
+                    <div>
+                      <h3>No locations found</h3>
+                      <p>{{ client.status }}</p>
+                    </div>
+                  </div>
+                  {% endif %}
+                </div>
+              </section>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="card client-location-panel">
+              <div class="card-body">
+                <div class="client-location-empty">
+                  <span class="client-location-icon"><i class="iconify tabler--briefcase-off"></i></span>
+                  <div>
+                    <h3>No clients available</h3>
+                    <p>Your account does not have client access yet.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </section>
+        </div>
+      </main>
+      {% include 'admin/partials/footer.html' %}
+    </div>
+  </div>
+  {% include 'admin/partials/footer-scripts.html' %}
+</body>
+</html>

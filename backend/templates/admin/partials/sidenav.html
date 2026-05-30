@@ -48,6 +48,15 @@
 </a>
 </li>
 {% endif %}
+<li class="menu-title">
+<span>Main</span>
+</li>
+<li class="menu-item">
+<a class="menu-link{% if request.url.path == '/deck' %} active{% endif %}" data-deck-nav-item href="/deck">
+<span class="menu-icon"><i class="iconify tabler--dashboard"></i></span>
+<span class="menu-text">Deck</span>
+</a>
+</li>
 {% if deck_clients %}
 <li class="menu-title">
 <span>Decks</span>

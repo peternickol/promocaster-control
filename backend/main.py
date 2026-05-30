@@ -5,6 +5,7 @@ import mimetypes
 import posixpath
 import re
 import sqlite3
+from datetime import date
 from http import HTTPStatus
 from pathlib import Path
 from urllib.parse import quote, unquote
@@ -176,6 +177,128 @@ def first_deck_href(mode: str = "viewer", user: dict | None = None) -> str:
     if not nav:
         return "/deck?mode=editor" if mode == "editor" else "/deck"
     return nav[0]["href"]
+
+
+def parse_iso_date(value: str) -> date | None:
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def deck_dashboard(mode: str = "viewer", user: dict | None = None) -> dict:
+    today = date.today()
+    clients = []
+    totals = {
+        "clients": 0,
+        "locations": 0,
+        "slides": 0,
+        "images": 0,
+        "videos": 0,
+        "scheduled": 0,
+        "expired": 0,
+        "active": 0,
+        "missing_decks": 0,
+        "dirty_repos": 0,
+    }
+    allowed = allowed_client_ids(user)
+
+    for client_id, config in load_clients().items():
+        if allowed and client_id not in allowed:
+            continue
+        if not allowed and user is not None:
+            continue
+
+        client = {
+            "id": client_id,
+            "name": config.get("name") or client_id,
+            "href": deck_href(client_id, "", mode),
+            "locations": [],
+            "location_count": 0,
+            "slide_count": 0,
+            "image_count": 0,
+            "video_count": 0,
+            "scheduled_count": 0,
+            "expired_count": 0,
+            "active_count": 0,
+            "repo_exists": False,
+            "deck_loaded": False,
+            "repo_dirty": False,
+            "status": "No repo sync",
+        }
+        path = repo_path(client_id)
+        media_yml = path / "_data" / "media.yml"
+        client["repo_exists"] = path.exists()
+        if path.exists():
+            try:
+                client["repo_dirty"] = bool(git_status_short(path))
+            except RuntimeError:
+                client["repo_dirty"] = False
+            client["status"] = "Pending changes" if client["repo_dirty"] else "Synced"
+        if path.exists() and not media_yml.exists():
+            client["status"] = "Missing media.yml"
+
+        if media_yml.exists():
+            try:
+                deck_data = parse_media_yml(client_id, media_yml)
+                client["deck_loaded"] = True
+                for location in deck_data.get("locations", []):
+                    slides = location.get("slides", [])
+                    slide_count = len(slides)
+                    image_count = sum(1 for slide in slides if slide.get("type") != "video")
+                    video_count = sum(1 for slide in slides if slide.get("type") == "video")
+                    scheduled_count = 0
+                    expired_count = 0
+                    active_count = 0
+                    for slide in slides:
+                        starts_on = parse_iso_date(slide.get("startsOn", ""))
+                        expires_on = parse_iso_date(slide.get("expiresOn", ""))
+                        is_scheduled = starts_on is not None and starts_on > today
+                        is_expired = expires_on is not None and expires_on < today
+                        scheduled_count += 1 if is_scheduled else 0
+                        expired_count += 1 if is_expired else 0
+                        active_count += 0 if is_scheduled or is_expired else 1
+                    location_state = "Empty"
+                    if slide_count:
+                        location_state = "Attention" if scheduled_count or expired_count else "Active"
+                    client["locations"].append(
+                        {
+                            "name": location.get("name", ""),
+                            "href": deck_href(client_id, location.get("name", ""), mode),
+                            "slide_count": slide_count,
+                            "image_count": image_count,
+                            "video_count": video_count,
+                            "scheduled_count": scheduled_count,
+                            "expired_count": expired_count,
+                            "active_count": active_count,
+                            "state": location_state,
+                        }
+                    )
+                    client["slide_count"] += slide_count
+                    client["image_count"] += image_count
+                    client["video_count"] += video_count
+                    client["scheduled_count"] += scheduled_count
+                    client["expired_count"] += expired_count
+                    client["active_count"] += active_count
+            except (OSError, RuntimeError, ValueError):
+                client["status"] = "Deck parse error"
+
+        client["location_count"] = len(client["locations"])
+        totals["clients"] += 1
+        totals["locations"] += client["location_count"]
+        totals["slides"] += client["slide_count"]
+        totals["images"] += client["image_count"]
+        totals["videos"] += client["video_count"]
+        totals["scheduled"] += client["scheduled_count"]
+        totals["expired"] += client["expired_count"]
+        totals["active"] += client["active_count"]
+        totals["missing_decks"] += 0 if client["deck_loaded"] else 1
+        totals["dirty_repos"] += 1 if client["repo_dirty"] else 0
+        clients.append(client)
+
+    return {"clients": clients, "totals": totals}
 
 
 def admin_context(request: Request, page_title: str = "Dashboard") -> dict:
@@ -691,10 +814,10 @@ def logout(request: Request) -> RedirectResponse:
 def deck(request: Request, mode: str = "viewer"):
     user = require_user(request)
     selected_mode = selected_deck_mode(mode, user)
-    nav = deck_nav(selected_mode, user)
-    if not nav:
-        raise HTTPException(status_code=403)
-    return RedirectResponse(url=nav[0]["href"], status_code=307)
+    context = admin_context(request, "Deck")
+    context["deck_mode"] = selected_mode
+    context["deck_dashboard"] = deck_dashboard(selected_mode, user)
+    return templates.TemplateResponse("deck_dashboard.html", context)
 
 
 @app.api_route("/deck/{client}", methods=["GET", "HEAD"], response_class=HTMLResponse)

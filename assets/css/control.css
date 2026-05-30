@@ -555,6 +555,131 @@ button:not(.btn):hover {
   color: var(--muted);
 }
 
+.deck-dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+
+.deck-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 84px;
+  padding: 14px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow-soft);
+}
+
+.deck-stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 20px;
+}
+
+.deck-stat-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.deck-stat-copy strong {
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.deck-stat-copy small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deck-dashboard-clients {
+  display: grid;
+  gap: 14px;
+}
+
+.deck-dashboard-client {
+  overflow: hidden;
+  border-color: var(--border);
+  background: var(--panel);
+}
+
+.deck-dashboard-client > .card-body {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.deck-client-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.deck-client-facts span,
+.deck-state-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel-alt) 78%, transparent);
+  color: var(--muted-strong);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.deck-location-state-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.deck-location-state {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 86px;
+  padding: 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel) 94%, var(--panel-alt));
+  color: var(--text);
+  text-decoration: none;
+}
+
+.deck-location-state:hover {
+  border-color: var(--accent-border);
+  background: color-mix(in srgb, var(--accent-soft) 42%, var(--panel));
+  color: var(--text);
+}
+
+.deck-location-badges {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.deck-state-badge.is-expired {
+  background: color-mix(in srgb, var(--error) 14%, var(--panel));
+  color: var(--error);
+}
+
 .control-kicker {
   margin: 0 0 4px;
   color: var(--color-primary, var(--accent));

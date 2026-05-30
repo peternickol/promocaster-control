@@ -41,7 +41,7 @@
 </div>
 </div>
 <div class="flex items-start gap-3">
-<span class="size-9 flex shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary"><i class="iconify tabler--refresh"></i></span>
+<span class="size-9 flex shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary"><i class="iconify tabler--cloud-upload"></i></span>
 <div>
 <p class="font-semibold">Resync action</p>
 <p class="text-sm text-default-400">Fetches the remote branch, verifies the checkout is clean, and updates the editor/viewer content repo.</p>
@@ -50,7 +50,7 @@
 </div>
 <form class="flex flex-wrap gap-2" method="post" action="/client-sync/{{ form_values.id }}">
 <a class="btn bg-light hover:text-primary" href="/clients">Cancel</a>
-<button class="btn bg-primary text-white hover:bg-primary-hover" type="submit"><i class="iconify tabler--refresh"></i>Run Resync</button>
+<button class="btn bg-primary text-white hover:bg-primary-hover" type="submit"><i class="iconify tabler--cloud-upload"></i>Run Resync</button>
 </form>
 {% if sync_output %}
 <pre class="max-h-80 overflow-auto rounded-md border border-[#1f2937] bg-[#07111f] p-4 font-mono text-xs leading-relaxed text-[#e5edf8] shadow-inner whitespace-pre-wrap">{{ sync_output }}</pre>

@@ -1,2 +1,8 @@
 <script src="{{ admin_asset_url('js/vendors.min.js') }}"></script>
+<script src="{{ asset_url('vendor/lucide/lucide.min.js') }}"></script>
 <script src="{{ admin_asset_url('js/app.js') }}"></script>
+<script>
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+</script>

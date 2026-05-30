@@ -25,25 +25,25 @@
 </li>
 <li class="menu-item">
 <a class="menu-link" href="/dashboard">
-<span class="menu-icon"><i class="iconify tabler--dashboard"></i></span>
+<span class="menu-icon"><i data-lucide="layout-dashboard"></i></span>
 <span class="menu-text">Dashboard</span>
 </a>
 </li>
 <li class="menu-item">
 <a class="menu-link" href="/clients">
-<span class="menu-icon"><i class="iconify tabler--briefcase"></i></span>
+<span class="menu-icon"><i data-lucide="briefcase-business"></i></span>
 <span class="menu-text">Clients</span>
 </a>
 </li>
 <li class="menu-item">
 <a class="menu-link" href="/user">
-<span class="menu-icon"><i class="iconify tabler--users"></i></span>
+<span class="menu-icon"><i data-lucide="users"></i></span>
 <span class="menu-text">Users</span>
 </a>
 </li>
 <li class="menu-item">
 <a class="menu-link" href="/access">
-<span class="menu-icon"><i class="iconify tabler--shield-lock"></i></span>
+<span class="menu-icon"><i data-lucide="shield-check"></i></span>
 <span class="menu-text">Access</span>
 </a>
 </li>
@@ -53,7 +53,7 @@
 </li>
 <li class="menu-item">
 <a class="menu-link{% if request.url.path == '/deck' %} active{% endif %}" data-deck-nav-item href="/deck">
-<span class="menu-icon"><i class="iconify tabler--dashboard"></i></span>
+<span class="menu-icon"><i data-lucide="layout-dashboard"></i></span>
 <span class="menu-text">Deck</span>
 </a>
 </li>
@@ -64,7 +64,7 @@
 {% for client in deck_clients %}
 <li class="menu-item hs-accordion{% if client.id == selected_client_id %} active{% endif %}">
 <button aria-controls="promocaster-client-{{ client.id }}" aria-expanded="{{ 'true' if client.id == selected_client_id else 'false' }}" class="hs-accordion-toggle menu-link{% if client.id == selected_client_id %} bg-light/60{% endif %}" data-deck-nav-item type="button">
-<span class="menu-icon"><i class="iconify tabler--briefcase"></i></span>
+<span class="menu-icon"><i data-lucide="briefcase-business"></i></span>
 <span class="menu-text" title="{{ client.name }}">{{ client.name }}</span>
 {% if client.locations %}
 <span class="menu-arrow"></span>
@@ -75,7 +75,7 @@
 {% for location in client.locations %}
 <li class="menu-item">
 <a class="menu-link{% if client.id == selected_client_id and location.name == selected_location_name %} active{% endif %}" data-deck-nav-item data-deck-nav-link href="{{ location.href }}">
-<span class="menu-icon"><i class="iconify tabler--map-pin"></i></span>
+<span class="menu-icon"><i data-lucide="map-pin"></i></span>
 <span class="menu-text" title="{{ location.name }}">{{ location.name }}</span>
 <span class="deck-slide-count ms-auto" title="{{ location.slide_count }} slides">{{ location.slide_count }}</span>
 </a>
@@ -151,7 +151,7 @@
 </li>
 <li class="menu-item hs-accordion">
 <a aria-controls="dashboards" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
-<span class="menu-icon"><i class="iconify tabler--dashboard"></i></span>
+<span class="menu-icon"><i data-lucide="layout-dashboard"></i></span>
 <span class="menu-text" data-lang="dashboards">Dashboards</span>
 <span class="menu-arrow"></span>
 </a>
@@ -178,7 +178,7 @@
 </li>
 <li class="menu-item hs-accordion">
 <a aria-controls="ecommerce" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
-<span class="menu-icon"><i class="iconify tabler--basket"></i></span>
+<span class="menu-icon"><i data-lucide="shopping-basket"></i></span>
 <span class="menu-text" data-lang="ecommerce">Ecommerce</span>
 <span class="menu-arrow"></span>
 </a>
@@ -337,7 +337,7 @@
 </li>
 <li class="menu-item hs-accordion">
 <a aria-controls="courses" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
-<span class="menu-icon"><i class="iconify tabler--briefcase"></i></span>
+<span class="menu-icon"><i data-lucide="briefcase-business"></i></span>
 <span class="menu-text" data-lang="courses">Courses</span>
 <span class="menu-arrow"></span>
 </a>
@@ -376,19 +376,19 @@
 </li>
 <li class="menu-item">
 <a class="menu-link" href="apps-orders">
-<span class="menu-icon"><i class="iconify tabler--shopping-cart"></i></span>
+<span class="menu-icon"><i data-lucide="shopping-cart"></i></span>
 <span class="menu-text">Orders</span>
 </a>
 </li>
 <li class="menu-item">
 <a class="menu-link" href="apps-users-profile">
-<span class="menu-icon"><i class="iconify tabler--user-cog"></i></span>
+<span class="menu-icon"><i data-lucide="user-cog"></i></span>
 <span class="menu-text">Profile</span>
 </a>
 </li>
 <li class="menu-item hs-accordion">
 <a aria-controls="users" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
-<span class="menu-icon"><i class="iconify tabler--users"></i></span>
+<span class="menu-icon"><i data-lucide="users"></i></span>
 <span class="menu-text" data-lang="users">Users</span>
 <span class="menu-arrow"></span>
 </a>
@@ -412,7 +412,7 @@
 </li>
 <li class="menu-item hs-accordion">
 <a aria-controls="promo" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
-<span class="menu-icon"><i class="iconify tabler--discount"></i></span>
+<span class="menu-icon"><i data-lucide="badge-percent"></i></span>
 <span class="menu-text" data-lang="promo">Promo</span>
 <span class="menu-arrow"></span>
 </a>
@@ -436,7 +436,7 @@
 </li>
 <li class="menu-item hs-accordion">
 <a aria-controls="plugins" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
-<span class="menu-icon"><i class="iconify tabler--cpu"></i></span>
+<span class="menu-icon"><i data-lucide="cpu"></i></span>
 <span class="menu-text" data-lang="plugins">Plugins</span>
 <span class="menu-arrow"></span>
 </a>
@@ -504,7 +504,7 @@
 </li>
 <li class="menu-item hs-accordion">
 <a aria-controls="base-ui" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
-<span class="menu-icon"><i class="iconify tabler--components"></i></span>
+<span class="menu-icon"><i data-lucide="blocks"></i></span>
 <span class="menu-text" data-lang="base-ui">Base UI</span>
 <span class="menu-arrow"></span>
 </a>
@@ -648,7 +648,7 @@
 </li>
 <li class="menu-item hs-accordion">
 <a aria-controls="widgets" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
-<span class="menu-icon"><i class="iconify tabler--category"></i></span>
+<span class="menu-icon"><i data-lucide="layout-grid"></i></span>
 <span class="menu-text" data-lang="widgets">Widgets</span>
 <span class="menu-arrow"></span>
 </a>
@@ -682,7 +682,7 @@
 </li>
 <li class="menu-item hs-accordion">
 <a aria-controls="charts" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
-<span class="menu-icon"><i class="iconify tabler--chart-donut"></i></span>
+<span class="menu-icon"><i data-lucide="chart-pie"></i></span>
 <span class="menu-text" data-lang="charts">Charts</span>
 <span class="menu-arrow"></span>
 </a>
@@ -885,7 +885,7 @@
 </li>
 <li class="menu-item hs-accordion">
 <a aria-controls="forms" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
-<span class="menu-icon"><i class="iconify tabler--clipboard-list"></i></span>
+<span class="menu-icon"><i data-lucide="clipboard-list"></i></span>
 <span class="menu-text" data-lang="forms">Forms</span>
 <span class="menu-arrow"></span>
 </a>
@@ -949,7 +949,7 @@
 </li>
 <li class="menu-item hs-accordion">
 <a aria-controls="tables" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
-<span class="menu-icon"><i class="iconify tabler--table-column"></i></span>
+<span class="menu-icon"><i data-lucide="columns-3"></i></span>
 <span class="menu-text" data-lang="tables">Tables</span>
 <span class="menu-arrow"></span>
 </a>
@@ -1051,7 +1051,7 @@
 </li>
 <li class="menu-item hs-accordion">
 <a aria-controls="icons" aria-expanded="false" class="hs-accordion-toggle menu-link" href="javascript:void(0)">
-<span class="menu-icon"><i class="iconify tabler--icons"></i></span>
+<span class="menu-icon"><i data-lucide="shapes"></i></span>
 <span class="menu-text" data-lang="icons">Icons</span>
 <span class="menu-arrow"></span>
 </a>

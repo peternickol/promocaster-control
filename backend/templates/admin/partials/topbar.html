@@ -28,20 +28,20 @@
 </div>
 <!-- Sidenav Menu Toggle Button -->
 <button class="sidenav-toggle-button btn btn-icon" id="button-toggle-menu">
-<i class="iconify tabler--menu-4 text-xl"></i>
+<i data-lucide="menu" class="text-xl"></i>
 </button>
 </div>
 <div class="flex items-center gap-2.5 ms-auto">
 <!-- Topnav Menu Toggle Button for Horizontal -->
 <div class="topnav-toggle-button">
 <button aria-controls="topnav-menu" aria-expanded="false" aria-label="Toggle navigation" class="hs-collapse-toggle btn topnav-toggle-button" data-hs-collapse="#topnav-menu" id="topnav-menu-collapse" type="button">
-<i class="iconify tabler--menu-4 text-xl"></i>
+<i data-lucide="menu" class="text-xl"></i>
 </button>
 </div>
 {% if sidebar_variant != "promocaster" %}
 <div class="md:inline-flex hidden" id="megamenu-columns">
 <div class="topbar-item hs-dropdown relative inline-flex">
-<button aria-expanded="false" aria-haspopup="menu" aria-label="Dropdown" class="topbar-link hs-dropdown-toggle btn px-2.5! font-medium" type="button">Mega Menu <i class="iconify tabler--chevron-down"></i></button>
+<button aria-expanded="false" aria-haspopup="menu" aria-label="Dropdown" class="topbar-link hs-dropdown-toggle btn px-2.5! font-medium" type="button">Mega Menu <i data-lucide="chevron-down"></i></button>
 <div aria-labelledby="dropdown-menu" aria-orientation="vertical" class="hs-dropdown-menu p-0 md:min-w-3xl" role="menu">
 <div data-simplebar="" style="max-height: 380px">
 <div class="grid md:grid-cols-3">
@@ -50,31 +50,31 @@
 <ul class="list-unstyled megamenu-list">
 <li>
 <a class="dropdown-item" href="javascript:void(0);">
-<i class="iconify tabler--chevron-right align-middle text-default-400"></i>
+<i data-lucide="chevron-right" class="align-middle text-default-400"></i>
                                                 Sales Dashboard
                                             </a>
 </li>
 <li>
 <a class="dropdown-item" href="javascript:void(0);">
-<i class="iconify tabler--chevron-right align-middle text-default-400"></i>
+<i data-lucide="chevron-right" class="align-middle text-default-400"></i>
                                                 Marketing Dashboard
                                             </a>
 </li>
 <li>
 <a class="dropdown-item" href="javascript:void(0);">
-<i class="iconify tabler--chevron-right align-middle text-default-400"></i>
+<i data-lucide="chevron-right" class="align-middle text-default-400"></i>
                                                 Operations Overview
                                             </a>
 </li>
 <li>
 <a class="dropdown-item" href="javascript:void(0);">
-<i class="iconify tabler--chevron-right align-middle text-default-400"></i>
+<i data-lucide="chevron-right" class="align-middle text-default-400"></i>
                                                 User Analytics
                                             </a>
 </li>
 <li>
 <a class="dropdown-item" href="javascript:void(0);">
-<i class="iconify tabler--chevron-right align-middle text-default-400"></i>
+<i data-lucide="chevron-right" class="align-middle text-default-400"></i>
                                                 Traffic Insights
                                             </a>
 </li>
@@ -85,31 +85,31 @@
 <ul class="list-unstyled megamenu-list">
 <li>
 <a class="dropdown-item" href="javascript:void(0);">
-<i class="iconify tabler--minus align-middle text-default-400"></i>
+<i data-lucide="minus" class="align-middle text-default-400"></i>
                                                 Kanban Workflow
                                             </a>
 </li>
 <li>
 <a class="dropdown-item" href="javascript:void(0);">
-<i class="iconify tabler--minus align-middle text-default-400"></i>
+<i data-lucide="minus" class="align-middle text-default-400"></i>
                                                 Course Timeline
                                             </a>
 </li>
 <li>
 <a class="dropdown-item" href="javascript:void(0);">
-<i class="iconify tabler--minus align-middle text-default-400"></i>
+<i data-lucide="minus" class="align-middle text-default-400"></i>
                                                 Lesson Management
                                             </a>
 </li>
 <li>
 <a class="dropdown-item" href="javascript:void(0);">
-<i class="iconify tabler--minus align-middle text-default-400"></i>
+<i data-lucide="minus" class="align-middle text-default-400"></i>
                                                 Team Members
                                             </a>
 </li>
 <li>
 <a class="dropdown-item" href="javascript:void(0);">
-<i class="iconify tabler--minus align-middle text-default-400"></i>
+<i data-lucide="minus" class="align-middle text-default-400"></i>
                                                 Assignments
                                             </a>
 </li>
@@ -120,18 +120,18 @@
 <ul class="list-unstyled megamenu-list">
 <li>
 <a class="dropdown-item" href="/profile">
-<i class="iconify tabler--chevron-right align-middle text-default-400"></i>
+<i data-lucide="chevron-right" class="align-middle text-default-400"></i>
                                                 User Profiles
                                             </a>
 </li>
 <li>
 <a class="dropdown-item" href="/access">
-<i class="iconify tabler--chevron-right align-middle text-default-400"></i>
+<i data-lucide="chevron-right" class="align-middle text-default-400"></i>
                                                 Access Control
                                             </a>
 </li>
 <a class="dropdown-item" href="/user">
-<i class="iconify tabler--chevron-right align-middle text-default-400"></i>
+<i data-lucide="chevron-right" class="align-middle text-default-400"></i>
                                                 User Groups
                                             </a>
 </li>
@@ -147,15 +147,15 @@
 {% if show_theme_toggle is not defined or show_theme_toggle %}
 <div class="sm:inline-flex hidden" id="theme-toggle">
 <button aria-label="Toggle color mode" class="topbar-link rounded-full" id="light-dark-mode" type="button">
-<i class="iconify tabler--sun topbar-link-icon hidden" id="theme-icon-light"></i>
-<i class="iconify tabler--moon topbar-link-icon hidden" id="theme-icon-dark"></i>
+<i data-lucide="sun" class="topbar-link-icon hidden" id="theme-icon-light"></i>
+<i data-lucide="moon" class="topbar-link-icon hidden" id="theme-icon-dark"></i>
 </button>
 </div>
 {% endif %}
 {% if sidebar_variant != "promocaster" %}
 <div class="topbar-item hs-dropdown relative inline-flex [--auto-close:inside] [--placement:bottom-right]" id="notification-dropdown-people">
 <button aria-expanded="false" aria-haspopup="menu" aria-label="Dropdown" class="topbar-link hs-dropdown-toggle relative flex items-center" type="button">
-<i class="iconify tabler--bell topbar-link-icon"></i>
+<i data-lucide="bell" class="topbar-link-icon"></i>
 <span class="badge bg-danger absolute -end-px -top-[13px] size-4 rounded-full leading-0 text-white">5</span>
 </button>
 <div aria-labelledby="dropdown-menu" aria-orientation="vertical" class="hs-dropdown-menu min-w-80 p-0 space-y-0" role="menu">
@@ -170,7 +170,7 @@
 <span class="shrink-0 relative">
 <img alt="User Avatar" class="size-9 rounded-full" src="{{ admin_asset_url('images/users/user-4.jpg') }}"/>
 <span class="absolute -top-3 -end-2 border-2 border-card bg-success text-white flex size-5.5 items-center justify-center rounded-full">
-<i class="iconify tabler--bell text-2xs align-middle"></i>
+<i data-lucide="bell" class="text-2xs align-middle"></i>
 <span class="sr-only">unread notification</span>
 </span>
 </span>
@@ -186,7 +186,7 @@
 <span class="shrink-0 relative">
 <img alt="User Avatar" class="size-9 rounded-full" src="{{ admin_asset_url('images/users/user-5.jpg') }}"/>
 <span class="absolute -top-3 -end-2 border-2 border-card bg-info text-white flex size-5.5 items-center justify-center rounded-full">
-<i class="iconify tabler--cloud-upload text-2xs align-middle"></i>
+<i data-lucide="cloud-upload" class="text-2xs align-middle"></i>
 <span class="sr-only">upload notification</span>
 </span>
 </span>
@@ -201,10 +201,10 @@
 <div class="dropdown-item gap-6 px-4.5 py-3 text-wrap" id="message-6">
 <span class="shrink-0 relative">
 <span class="size-9 rounded-full bg-light flex items-center justify-center">
-<i class="iconify tabler--database text-lg"></i>
+<i data-lucide="database" class="text-lg"></i>
 </span>
 <span class="absolute -top-3 -end-2 border-2 border-card bg-danger text-white flex size-5.5 items-center justify-center rounded-full">
-<i class="iconify tabler--alert-circle text-2xs align-middle"></i>
+<i data-lucide="circle-alert" class="text-2xs align-middle"></i>
 <span class="sr-only">server alert</span>
 </span>
 </span>
@@ -223,38 +223,38 @@
 <div class="md:inline-flex hidden" id="fullscreen-toggler">
 <div class="topbar-item">
 <button aria-label="Full Screen" class="topbar-link btn group size-8 rounded-full" data-toggle="fullscreen">
-<i class="iconify tabler--maximize topbar-link-icon group-[.fullscreen-active]:hidden"></i>
-<i class="iconify tabler--minimize hidden topbar-link-icon group-[.fullscreen-active]:inline-block"></i>
+<i data-lucide="maximize" class="topbar-link-icon group-[.fullscreen-active]:hidden"></i>
+<i data-lucide="minimize" class="hidden topbar-link-icon group-[.fullscreen-active]:inline-block"></i>
 </button>
 </div>
 </div>
 <div class="topbar-item hs-dropdown before:bg-default-700/35 relative inline-flex before:h-4.5 before:w-px before:content-['']" id="user-dropdown-detailed">
 <button aria-expanded="false" aria-haspopup="menu" aria-label="Dropdown" class="hs-dropdown-toggle topbar-link ms-2.5 cursor-pointer items-center px-3! flex">
 <span class="size-8 rounded-full bg-default-100 text-default-600 lg:me-3 flex items-center justify-center">
-<i class="iconify tabler--user text-lg"></i>
+<i data-lucide="user" class="text-lg"></i>
 </span>
 <div class="hidden lg:flex items-center gap-1.5">
 <span class="flex flex-col items-start">
 <h5 class="pro-username">{{ admin_user }}</h5>
 <span class="text-xs/none mb-0.5">{{ admin_role }}</span>
 </span>
-<i class="iconify tabler--chevron-down align-middle"></i>
+<i data-lucide="chevron-down" class="align-middle"></i>
 </div>
 </button>
 <div aria-labelledby="hs-dropdown-with-icons" aria-orientation="vertical" class="hs-dropdown-menu min-w-48" role="menu">
 <!-- My Profile -->
 <a class="dropdown-item" href="/profile">
-<i class="iconify tabler--user-circle text-base align-middle"></i>
+<i data-lucide="circle-user-round" class="text-base align-middle"></i>
 <span class="align-middle">Profile</span>
 </a>
 {% if sidebar_variant != "promocaster" %}
 <a class="dropdown-item" href="javascript:void(0);">
-<i class="iconify tabler--bell-ringing text-base align-middle"></i>
+<i data-lucide="bell-ring" class="text-base align-middle"></i>
 <span class="align-middle">Notifications</span>
 </a>
 {% endif %}
 <a class="dropdown-item" href="/logout">
-<i class="iconify tabler--logout text-base align-middle"></i>
+<i data-lucide="log-out" class="text-base align-middle"></i>
 <span class="align-middle">Logout</span>
 </a>
 </div>

@@ -28,42 +28,42 @@
           <section class="control-main">
             <div class="deck-dashboard-stats">
               <div class="deck-stat-card">
-                <span class="deck-stat-icon"><i class="iconify tabler--briefcase"></i></span>
+                <span class="deck-stat-icon"><i data-lucide="briefcase-business"></i></span>
                 <span class="deck-stat-copy">
                   <strong>{{ deck_dashboard.totals.clients }}</strong>
                   <small>{{ 'Client' if deck_dashboard.totals.clients == 1 else 'Clients' }}</small>
                 </span>
               </div>
               <div class="deck-stat-card">
-                <span class="deck-stat-icon"><i class="iconify tabler--map-pin"></i></span>
+                <span class="deck-stat-icon"><i data-lucide="map-pin"></i></span>
                 <span class="deck-stat-copy">
                   <strong>{{ deck_dashboard.totals.locations }}</strong>
                   <small>{{ 'Location' if deck_dashboard.totals.locations == 1 else 'Locations' }}</small>
                 </span>
               </div>
               <div class="deck-stat-card">
-                <span class="deck-stat-icon"><i class="iconify tabler--dashboard"></i></span>
+                <span class="deck-stat-icon"><i data-lucide="layout-dashboard"></i></span>
                 <span class="deck-stat-copy">
                   <strong>{{ deck_dashboard.totals.slides }}</strong>
                   <small>{{ deck_dashboard.totals.images }} images / {{ deck_dashboard.totals.videos }} videos</small>
                 </span>
               </div>
               <div class="deck-stat-card">
-                <span class="deck-stat-icon"><i class="iconify tabler--eye"></i></span>
+                <span class="deck-stat-icon"><i data-lucide="eye"></i></span>
                 <span class="deck-stat-copy">
                   <strong>{{ deck_dashboard.totals.active }}</strong>
                   <small>Active slides</small>
                 </span>
               </div>
               <div class="deck-stat-card">
-                <span class="deck-stat-icon"><i class="iconify tabler--edit"></i></span>
+                <span class="deck-stat-icon"><i data-lucide="pencil"></i></span>
                 <span class="deck-stat-copy">
                   <strong>{{ deck_dashboard.totals.scheduled }}</strong>
                   <small>Scheduled</small>
                 </span>
               </div>
               <div class="deck-stat-card">
-                <span class="deck-stat-icon"><i class="iconify tabler--alert-circle"></i></span>
+                <span class="deck-stat-icon"><i data-lucide="circle-alert"></i></span>
                 <span class="deck-stat-copy">
                   <strong>{{ deck_dashboard.totals.expired }}</strong>
                   <small>Expired</small>
@@ -95,7 +95,7 @@
                   <div class="deck-location-state-grid">
                     {% for location in client.locations %}
                     <a class="deck-location-state" href="{{ location.href }}">
-                      <span class="client-location-icon"><i class="iconify tabler--map-pin"></i></span>
+                      <span class="client-location-icon"><i data-lucide="map-pin"></i></span>
                       <span class="client-location-copy">
                         <strong>{{ location.name }}</strong>
                         <small>{{ location.slide_count }} slides, {{ location.image_count }} images, {{ location.video_count }} videos</small>
@@ -114,7 +114,7 @@
                   </div>
                   {% else %}
                   <div class="client-location-empty">
-                    <span class="client-location-icon"><i class="iconify tabler--map-pin"></i></span>
+                    <span class="client-location-icon"><i data-lucide="map-pin"></i></span>
                     <div>
                       <h3>No locations found</h3>
                       <p>{{ client.status }}</p>
@@ -129,7 +129,7 @@
             <div class="card client-location-panel">
               <div class="card-body">
                 <div class="client-location-empty">
-                  <span class="client-location-icon"><i class="iconify tabler--briefcase"></i></span>
+                  <span class="client-location-icon"><i data-lucide="briefcase-business"></i></span>
                   <div>
                     <h3>No clients available</h3>
                     <p>Your account does not have client access yet.</p>

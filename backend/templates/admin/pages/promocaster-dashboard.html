@@ -20,7 +20,7 @@
 <div class="card-body">
 <div class="mb-4 flex items-center justify-between">
 <h3 class="text-2xl">{{ admin_stats.clients }}</h3>
-<span class="size-10 flex items-center justify-center rounded-full bg-primary/15 text-primary"><i class="iconify tabler--briefcase text-xl"></i></span>
+<span class="size-10 flex items-center justify-center rounded-full bg-primary/15 text-primary"><i data-lucide="briefcase-business" class="text-xl"></i></span>
 </div>
 <p class="font-semibold">Clients</p>
 <p class="text-sm text-default-400">Client slide libraries managed by Promocaster.</p>
@@ -30,7 +30,7 @@
 <div class="card-body">
 <div class="mb-4 flex items-center justify-between">
 <h3 class="text-2xl">{{ admin_stats.ready_repos }}</h3>
-<span class="size-10 flex items-center justify-center rounded-full bg-info/15 text-info"><i class="iconify tabler--refresh text-xl"></i></span>
+<span class="size-10 flex items-center justify-center rounded-full bg-info/15 text-info"><i data-lucide="refresh-cw" class="text-xl"></i></span>
 </div>
 <p class="font-semibold">Repositories In Sync</p>
 <p class="text-sm text-default-400">{{ admin_stats.ready_repos }} of {{ admin_stats.clients }} client repositories are current and ready for slide updates.</p>
@@ -40,7 +40,7 @@
 <div class="card-body">
 <div class="mb-4 flex items-center justify-between">
 <h3 class="text-2xl">{{ admin_stats.users }}</h3>
-<span class="size-10 flex items-center justify-center rounded-full bg-success/15 text-success"><i class="iconify tabler--users text-xl"></i></span>
+<span class="size-10 flex items-center justify-center rounded-full bg-success/15 text-success"><i data-lucide="users" class="text-xl"></i></span>
 </div>
 <p class="font-semibold">Users</p>
 <p class="text-sm text-default-400">People with access to one or more client slide decks.</p>
@@ -63,7 +63,7 @@
 <td><span class="font-semibold">{{ client.name }}</span></td>
 <td>{{ client.users }} assigned</td>
 <td><span class="badge badge-label {{ client.sync_badge.class }}">{{ client.sync_badge.label }}</span></td>
-<td class="text-end"><a class="btn btn-sm bg-light hover:text-primary" href="/client-sync/{{ client.id }}"><i class="iconify tabler--refresh"></i>Resync</a></td>
+<td class="text-end"><a class="btn btn-sm bg-light hover:text-primary" href="/client-sync/{{ client.id }}"><i data-lucide="refresh-cw"></i>Resync</a></td>
 </tr>
 {% else %}
 <tr>

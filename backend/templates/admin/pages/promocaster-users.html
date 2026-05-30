@@ -19,12 +19,12 @@
 <div class="card">
 <div class="card-header">
 <h4 class="card-title">Users</h4>
-<a class="btn bg-primary text-white hover:bg-primary-hover ms-auto" href="/user/new"><i class="iconify tabler--user-plus"></i>Add User</a>
+<a class="btn bg-primary text-white hover:bg-primary-hover ms-auto" href="/user/new"><i data-lucide="user-plus"></i>Add User</a>
 </div>
 <div class="card-body border-b border-default-200">
 <div class="flex flex-wrap items-center gap-3">
 <div class="input-icon-group">
-<i class="iconify tabler--search input-icon"></i>
+<i data-lucide="search" class="input-icon"></i>
 <input class="form-input" placeholder="Search users" type="search">
 </div>
 <select class="form-select w-auto">
@@ -80,7 +80,7 @@
 {% endif %}
 </td>
 <td class="text-end">
-<a class="btn btn-sm bg-light hover:text-primary" href="/user/edit/{{ user.id }}"><i class="iconify tabler--edit"></i>Edit</a>
+<a class="btn btn-sm bg-light hover:text-primary" href="/user/edit/{{ user.id }}"><i data-lucide="pencil"></i>Edit</a>
 </td>
 </tr>
 {% else %}

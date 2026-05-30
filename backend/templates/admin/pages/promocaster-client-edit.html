@@ -46,7 +46,7 @@
 </label>
 <div class="flex flex-wrap gap-2">
 <a class="btn bg-light hover:text-primary" href="/clients">Cancel</a>
-<button class="btn bg-primary text-white hover:bg-primary-hover" type="submit"><i class="iconify tabler--device-floppy"></i>Save Client</button>
+<button class="btn bg-primary text-white hover:bg-primary-hover" type="submit"><i data-lucide="save"></i>Save Client</button>
 </div>
 </div>
 </form>
@@ -63,7 +63,7 @@
 <span class="badge badge-label {{ sync_badge.class }}">{{ sync_badge.label }}</span>
 <p class="mt-2 text-sm text-default-400">{{ sync_status.message }}</p>
 </div>
-<a class="btn bg-primary text-white hover:bg-primary-hover justify-start" href="/client-sync/{{ form_values.id }}"><i class="iconify tabler--refresh"></i>Resync Repository</a>
+<a class="btn bg-primary text-white hover:bg-primary-hover justify-start" href="/client-sync/{{ form_values.id }}"><i data-lucide="refresh-cw"></i>Resync Repository</a>
 <p class="text-xs text-default-400">This refreshes the local checkout used by the editor and viewer.</p>
 {% endif %}
 </div>
@@ -78,7 +78,7 @@
 {% elif assigned_users %}
 {% for user in assigned_users %}
 <div class="flex items-center gap-2">
-<i class="iconify tabler--user text-default-400"></i>
+<i data-lucide="user" class="text-default-400"></i>
 <span>{{ user.email }}</span>
 </div>
 {% endfor %}
@@ -87,7 +87,7 @@
 {% endif %}
 <hr class="border-default-300">
 <p class="text-xs text-default-400">Admins have implicit access to every client.</p>
-<a class="btn bg-light hover:text-primary justify-start" href="/access"><i class="iconify tabler--shield-lock"></i>Manage Access Rules</a>
+<a class="btn bg-light hover:text-primary justify-start" href="/access"><i data-lucide="shield-check"></i>Manage Access Rules</a>
 </div>
 </div>
 </div>

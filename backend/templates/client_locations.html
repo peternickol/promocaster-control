@@ -35,11 +35,11 @@
                 {% if can_edit %}
                 <nav class="control-mode-toggle" aria-label="Default slide mode">
                   <a class="{{ 'is-active' if deck_mode == 'viewer' else '' }}" href="{{ viewer_href }}">
-                    <i class="iconify tabler--eye"></i>
+                    <i data-lucide="eye"></i>
                     <span>Viewer</span>
                   </a>
                   <a class="{{ 'is-active' if deck_mode == 'editor' else '' }}" href="{{ editor_href }}">
-                    <i class="iconify tabler--edit"></i>
+                    <i data-lucide="pencil"></i>
                     <span>Editor</span>
                   </a>
                 </nav>
@@ -50,18 +50,18 @@
                 <div class="client-location-grid">
                   {% for location in client_locations %}
                   <a class="client-location-card" href="{{ location.href }}">
-                    <span class="client-location-icon"><i class="iconify tabler--map-pin"></i></span>
+                    <span class="client-location-icon"><i data-lucide="map-pin"></i></span>
                     <span class="client-location-copy">
                       <strong>{{ location.name }}</strong>
                       <small>{{ location.slide_count }} {{ 'slide' if location.slide_count == 1 else 'slides' }}</small>
                     </span>
-                    <span class="client-location-open"><i class="iconify tabler--chevron-right"></i></span>
+                    <span class="client-location-open"><i data-lucide="chevron-right"></i></span>
                   </a>
                   {% endfor %}
                 </div>
                 {% else %}
                 <div class="client-location-empty">
-                  <span class="client-location-icon"><i class="iconify tabler--map-pin"></i></span>
+                  <span class="client-location-icon"><i data-lucide="map-pin"></i></span>
                   <div>
                     <h3>No locations found</h3>
                     <p>This client does not have location deck data loaded yet.</p>

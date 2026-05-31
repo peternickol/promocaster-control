@@ -12,6 +12,11 @@ The control app is not deployed to signage devices. Devices continue to pull a
 client content repo, such as `promocaster.phgi`, and `nix.promocaster` builds the
 single slideshow selected by the device-local `promocaster.location` value.
 
+## TODO
+
+- Add CSRF protection for browser form posts and state-changing API requests.
+- Add two-factor authentication after the initial public launch.
+
 ## Repo Map
 
 Local development checkouts:

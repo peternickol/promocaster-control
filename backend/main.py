@@ -68,6 +68,7 @@ from backend.control import (
 
 
 app = FastAPI(title="Promocaster Control")
+SECURE_COOKIES = os.environ.get("PROMOCASTER_CONTROL_SECURE_COOKIES", "1").strip().lower() not in {"0", "false", "no"}
 app.mount("/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
 ADMIN_ASSETS_DIR = ASSETS_DIR / "admin"
 ADMIN_TEMPLATE_DIR = TEMPLATE_DIR / "admin"
@@ -131,6 +132,17 @@ def safe_next_path(next_path: str | None) -> str:
     if not next_path.startswith("/") or next_path.startswith("//"):
         return "/deck"
     return next_path
+
+
+def set_session_cookie(response: Response, token: str, expires) -> None:
+    response.set_cookie(
+        SESSION_COOKIE,
+        token,
+        expires=expires,
+        httponly=True,
+        secure=SECURE_COOKIES,
+        samesite="lax",
+    )
 
 
 def require_user(request: Request) -> dict:
@@ -645,14 +657,7 @@ async def require_authentication(request: Request, call_next):
 
 @app.get("/api/health")
 def health() -> dict:
-    return {
-        "ok": True,
-        "data_dir": str(DATA_DIR),
-        "repos_dir": str(REPOS_DIR),
-        "sync_dir": str(SYNC_DIR),
-        "control_db": str(CONTROL_DB_PATH),
-        "clients_source": "database",
-    }
+    return {"ok": True}
 
 
 @app.get("/api/me")
@@ -878,14 +883,7 @@ def login_submit(
         return RedirectResponse(url=f"/?error=invalid&next={quote(safe_next_path(next), safe='/?=&')}", status_code=303)
     token, expires = create_session(user["id"], remember=bool(remember))
     response = RedirectResponse(url=safe_next_path(next), status_code=303)
-    response.set_cookie(
-        SESSION_COOKIE,
-        token,
-        expires=expires,
-        httponly=True,
-        secure=request.url.scheme == "https",
-        samesite="lax",
-    )
+    set_session_cookie(response, token, expires)
     return response
 
 
@@ -918,7 +916,7 @@ def setup_submit(
     consume_setup_token()
     token, expires = create_session(user_id, remember=False)
     response = RedirectResponse(url="/deck", status_code=303)
-    response.set_cookie(SESSION_COOKIE, token, expires=expires, httponly=True, secure=request.url.scheme == "https", samesite="lax")
+    set_session_cookie(response, token, expires)
     return response
 
 

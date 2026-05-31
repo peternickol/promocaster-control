@@ -22,7 +22,7 @@ build:
   - __DATA_DIR__/.venv/bin/python -m py_compile backend/main.py backend/control.py bin/promocaster-control
   - __DATA_DIR__/.venv/bin/python -c "import backend.main"
   - test -e __DATABASE_PATH__ || test ! -e __DATA_DIR__/control.sqlite3 || cp __DATA_DIR__/control.sqlite3 __DATABASE_PATH__
-  - PROMOCASTER_CONTROL_DATA_DIR=__DATA_DIR__ PROMOCASTER_CONTROL_AUTH_DB=__DATABASE_PATH__ PROMOCASTER_CONTROL_REPOS_DIR=__DATA_DIR__/client PROMOCASTER_CONTROL_SYNC_DIR=__DATA_DIR__/sync PROMOCASTER_CONTROL_SSH_DIR=__DATA_DIR__/ssh PROMOCASTER_CONTROL_GIT_CONFIG=__DATA_DIR__/gitconfig PROMOCASTER_CONTROL_SERVICE_USER=__SERVICE_USER__ ./bin/promocaster-control runtime prepare
+  - PROMOCASTER_CONTROL_DATA_DIR=__DATA_DIR__ PROMOCASTER_CONTROL_AUTH_DB=__DATABASE_PATH__ PROMOCASTER_CONTROL_REPOS_DIR=__DATA_DIR__/client PROMOCASTER_CONTROL_UPLOADS_DIR=__CONTENT_DIR__/uploads PROMOCASTER_CONTROL_SYNC_DIR=__DATA_DIR__/sync PROMOCASTER_CONTROL_SSH_DIR=__DATA_DIR__/ssh PROMOCASTER_CONTROL_GIT_CONFIG=__DATA_DIR__/gitconfig PROMOCASTER_CONTROL_SERVICE_USER=__SERVICE_USER__ ./bin/promocaster-control runtime prepare
 components:
   service_user: dish-project
   service:
@@ -39,6 +39,10 @@ components:
     PROMOCASTER_CONTROL_TEMPLATE_DIR: __APP_DIR__/backend/templates
     PROMOCASTER_CONTROL_DATA_DIR: __DATA_DIR__
     PROMOCASTER_CONTROL_REPOS_DIR: __DATA_DIR__/client
+    PROMOCASTER_CONTROL_UPLOADS_DIR: __CONTENT_DIR__/uploads
+    PROMOCASTER_CONTROL_CONTENT_DIR: __CONTENT_DIR__
+    PROMOCASTER_CONTROL_CONTENT_URL_PREFIX: __CONTENT_URL_PREFIX__
+    PROMOCASTER_CONTROL_CACHE_DIR: __CACHE_DIR__
     PROMOCASTER_CONTROL_SYNC_DIR: __DATA_DIR__/sync
     PROMOCASTER_CONTROL_SSH_DIR: __DATA_DIR__/ssh
     PROMOCASTER_CONTROL_AUTH_DB: __DATABASE_PATH__
@@ -55,7 +59,9 @@ components:
     allow:
 database:
   engine: sqlite
+  schema:
 publish:
   source: .
 refresh:
   commands:
+  services:

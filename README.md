@@ -237,7 +237,7 @@ promocaster-control client-github-key generate
 promocaster-control client-github-key show-public
 promocaster-control client-github-key test
 promocaster-control client-repo sync phgi
-promocaster-control auth setup-token
+site admin-token generate admin@example.com
 promocaster-control doctor
 ```
 
@@ -254,13 +254,16 @@ Run `dish build` before any `promocaster-control ...` command. The global
 `components.bin` declaration and does not exist until the project has been
 published.
 
-After the service starts for the first time, create the first admin user from
-the login page. The setup token is stored under the Dish project data directory
-and can be printed with:
+After the service starts for the first time, create the first admin login URL
+from SSH with the Dish-bundled `site` command:
 
 ```sh
-promocaster-control auth setup-token
+site admin-token generate admin@example.com
 ```
+
+Open the printed login URL, then create the account password when prompted.
+Promocaster Control does not use a setup-token file; generic admin access,
+emergency user recovery, and server-owned secrets belong to `site`.
 
 The first test deployment should prove:
 
@@ -287,10 +290,12 @@ what this hosted app owns.
 
 ```sh
 promocaster-control doctor
-promocaster-control auth setup-token
 promocaster-control client-repo list
 promocaster-control client-repo sync phgi
 promocaster-control client-repo status phgi
+site status
+site admin-token generate admin@example.com
+site user list
 ```
 
 Use Dish for build and update work:

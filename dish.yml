@@ -49,6 +49,12 @@ components:
     PROMOCASTER_CONTROL_CLIENT_GITHUB_KEY: __DATA_DIR__/ssh/client_github_key
     PROMOCASTER_CONTROL_GIT_CONFIG: __DATA_DIR__/gitconfig
     PROMOCASTER_CONTROL_SERVICE_USER: __SERVICE_USER__
+    SITE_URL: https://control.promocaster.io
+    SITE_ADMIN_LOGIN_PATH: /
+    SITE_DATABASE_PATH: __DATABASE_PATH__
+    SITE_CONTENT_DIR: __CONTENT_DIR__
+    SITE_UPLOAD_DIR: __CONTENT_DIR__/uploads
+    SITE_CACHE_DIR: __CACHE_DIR__
   bin:
     promocaster-control: __APP_DIR__/bin/promocaster-control
   caddy:

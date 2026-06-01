@@ -1,6 +1,6 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}{% if setup_mode %}Set Up{% else %}Sign In{% endif %} - Promocaster Control{% endblock title %}
+{% block title %}Sign In - Promocaster Control{% endblock title %}
 
 {% block body_attribute %}style="background-color: #020617;"{% endblock body_attribute %}
 
@@ -17,61 +17,17 @@
 <img alt="Promocaster" class="flex dark:hidden" src="{{ admin_asset_url('images/promocaster/app-icon-enclosed-dark.svg') }}"/>
 <img alt="Promocaster" class="hidden dark:flex" src="{{ admin_asset_url('images/promocaster/app-icon-enclosed-light.svg') }}"/>
 </a>
-<h4 class="mt-5 mb-2 text-base font-bold text-white">{% if setup_mode %}Create the first admin{% else %}Sign in to Promocaster Control{% endif %}</h4>
+<h4 class="mt-5 mb-2 text-base font-bold text-white">Sign in to Promocaster Control</h4>
 <p class="text-slate-300 mx-auto w-full lg:w-3/4">
-{% if setup_mode %}
-Enter the setup token from <span class="font-semibold text-white">{{ setup_token_path }}</span>.
-{% else %}
 Enter your account credentials to manage decks, clients, and access.
-{% endif %}
 </p>
 </div>
 <div class="rounded-md">
 {% if login_error %}
 <div class="mb-5 rounded-md border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
-{% if login_error == "setup" %}Setup token or password confirmation was invalid.{% elif login_error == "invalid" %}Invalid email or password.{% else %}Sign in failed.{% endif %}
+{% if login_error == "invalid_token" %}Admin login token was invalid or expired.{% elif login_error == "invalid" %}Invalid email or password.{% else %}Sign in failed.{% endif %}
 </div>
 {% endif %}
-{% if setup_mode %}
-<form action="/setup" method="post">
-<div class="mb-5">
-<label class="form-label" for="setup_token">
-Setup Token
-<span class="text-danger">*</span>
-</label>
-<div class="input-icon-group">
-<i data-lucide="key-round" class="input-icon"></i>
-<input autocomplete="off" class="form-input" id="setup_token" name="setup_token" placeholder="Setup token" required="" type="password"/>
-</div>
-</div>
-<div class="mb-5">
-<label class="form-label" for="email">Email <span class="text-danger">*</span></label>
-<div class="input-icon-group">
-<i data-lucide="mail" class="input-icon"></i>
-<input autocomplete="email" class="form-input" id="email" name="email" placeholder="you@example.com" required="" type="email"/>
-</div>
-</div>
-<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-<div class="mb-5">
-<label class="form-label" for="password">Password <span class="text-danger">*</span></label>
-<div class="input-icon-group">
-<i data-lucide="lock-keyhole" class="input-icon"></i>
-<input autocomplete="new-password" class="form-input" id="password" name="password" placeholder="Password" required="" type="password"/>
-</div>
-</div>
-<div class="mb-5">
-<label class="form-label" for="confirm_password">Confirm Password <span class="text-danger">*</span></label>
-<div class="input-icon-group">
-<i data-lucide="shield-check" class="input-icon"></i>
-<input autocomplete="new-password" class="form-input" id="confirm_password" name="confirm_password" placeholder="Confirm password" required="" type="password"/>
-</div>
-</div>
-</div>
-<div>
-<button class="btn bg-primary w-full py-3 font-semibold text-white hover:bg-primary-hover" type="submit">Create Admin</button>
-</div>
-</form>
-{% else %}
 <form action="/login" method="post">
 <input name="next" type="hidden" value="{{ next or '/deck' }}">
 <div class="mb-5">
@@ -104,7 +60,10 @@ Password
 <button class="btn bg-primary w-full py-3 font-semibold text-white hover:bg-primary-hover" type="submit">Sign In</button>
 </div>
 </form>
-{% endif %}
+<p class="mt-5 rounded-md border border-slate-700/60 bg-slate-900/60 px-4 py-3 text-sm text-slate-300">
+Need first access or emergency recovery? Generate a one-time admin login URL from SSH with
+<span class="font-semibold text-white">site admin-token generate admin@example.com</span>.
+</p>
 <p class="text-slate-300 mt-7.5 text-center">
 &copy;
 <span data-current-year=""></span>

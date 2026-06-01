@@ -13,7 +13,6 @@ from backend.control import DATA_DIR, init_clients_db, load_clients
 
 
 AUTH_DB_PATH = Path(os.environ.get("PROMOCASTER_CONTROL_AUTH_DB", DATA_DIR / "control.sqlite3")).resolve()
-SETUP_TOKEN_PATH = Path(os.environ.get("PROMOCASTER_CONTROL_SETUP_TOKEN_FILE", DATA_DIR / "setup-token")).resolve()
 SESSION_COOKIE = "promocaster_session"
 ROLE_LABELS = {"admin": "Administrator", "editor": "Editor", "viewer": "Viewer"}
 VALID_ROLES = tuple(ROLE_LABELS)
@@ -47,6 +46,16 @@ def hash_password(password: str, *, salt: bytes | None = None) -> str:
 
 
 def verify_password(password: str, encoded: str) -> bool:
+    if encoded.startswith("$argon2"):
+        try:
+            from argon2 import PasswordHasher
+            from argon2.exceptions import VerifyMismatchError, VerificationError
+        except ImportError:
+            return False
+        try:
+            return PasswordHasher().verify(encoded, password)
+        except (VerifyMismatchError, VerificationError, ValueError, TypeError):
+            return False
     try:
         scheme, rounds, salt, digest = encoded.split("$", 3)
         if scheme != "pbkdf2_sha256":
@@ -71,25 +80,37 @@ def row_to_user(row: sqlite3.Row | None) -> dict | None:
     if row is None:
         return None
     user = dict(row)
-    user["active"] = bool(user["active"])
-    user["is_admin"] = user["role"] == "admin"
+    user["is_admin"] = bool(user.get("is_admin", 0)) or user.get("role") == "admin"
+    user["role"] = "admin" if user["is_admin"] else normalize_role(user.get("role", "viewer"))
+    user["active"] = bool(user.get("active", 1)) and not bool(user.get("is_disabled", 0))
+    user["force_password_reset"] = bool(user.get("force_password_reset", 0))
     user["role_label"] = ROLE_LABELS.get(user["role"], user["role"].title())
     return user
 
 
 def init_auth_db() -> None:
     with connect() as conn:
+        reset_legacy_auth_schema(conn)
         conn.executescript(
             """
             CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email TEXT NOT NULL UNIQUE COLLATE NOCASE,
-                role TEXT NOT NULL CHECK (role IN ('admin', 'editor', 'viewer')),
-                active INTEGER NOT NULL DEFAULT 1,
                 password_hash TEXT NOT NULL,
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                last_login_at TEXT
+                role TEXT NOT NULL DEFAULT 'admin' CHECK (role IN ('admin', 'editor', 'viewer')),
+                active INTEGER NOT NULL DEFAULT 1,
+                status TEXT NOT NULL DEFAULT 'verified',
+                is_admin INTEGER NOT NULL DEFAULT 0,
+                is_disabled INTEGER NOT NULL DEFAULT 0,
+                force_password_reset INTEGER NOT NULL DEFAULT 0,
+                can_buy_restricted INTEGER NOT NULL DEFAULT 0,
+                business_name TEXT NOT NULL DEFAULT '',
+                license_number TEXT NOT NULL DEFAULT '',
+                license_file_path TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                last_login_at TEXT,
+                verified_at TEXT
             );
 
             CREATE TABLE IF NOT EXISTS user_clients (
@@ -104,12 +125,33 @@ def init_auth_db() -> None:
                 expires_at TEXT NOT NULL,
                 created_at TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS admin_login_tokens (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                token_hash TEXT NOT NULL UNIQUE,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                expires_at TEXT NOT NULL,
+                used_at TEXT,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
             """
         )
-        migrate_email_only_users(conn)
+        migrate_auth_columns(conn)
     init_clients_db()
-    if not users_exist():
-        ensure_setup_token()
+
+
+def reset_legacy_auth_schema(conn: sqlite3.Connection) -> None:
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
+    if not columns or {"status", "is_admin", "is_disabled", "force_password_reset"}.issubset(columns):
+        return
+    conn.executescript(
+        """
+        DROP TABLE IF EXISTS sessions;
+        DROP TABLE IF EXISTS user_clients;
+        DROP TABLE IF EXISTS admin_login_tokens;
+        DROP TABLE IF EXISTS users;
+        """
+    )
 
 
 def migrate_email_only_users(conn: sqlite3.Connection) -> None:
@@ -140,31 +182,64 @@ def migrate_email_only_users(conn: sqlite3.Connection) -> None:
     conn.execute("PRAGMA foreign_keys = ON")
 
 
+def migrate_auth_columns(conn: sqlite3.Connection) -> None:
+    migrate_email_only_users(conn)
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
+    additions = {
+        "role": "TEXT NOT NULL DEFAULT 'admin'",
+        "active": "INTEGER NOT NULL DEFAULT 1",
+        "status": "TEXT NOT NULL DEFAULT 'verified'",
+        "is_admin": "INTEGER NOT NULL DEFAULT 0",
+        "is_disabled": "INTEGER NOT NULL DEFAULT 0",
+        "force_password_reset": "INTEGER NOT NULL DEFAULT 0",
+        "can_buy_restricted": "INTEGER NOT NULL DEFAULT 0",
+        "business_name": "TEXT NOT NULL DEFAULT ''",
+        "license_number": "TEXT NOT NULL DEFAULT ''",
+        "license_file_path": "TEXT NOT NULL DEFAULT ''",
+        "updated_at": "TEXT NOT NULL DEFAULT ''",
+        "last_login_at": "TEXT",
+        "verified_at": "TEXT",
+    }
+    for column, definition in additions.items():
+        if column not in columns:
+            conn.execute(f"ALTER TABLE users ADD COLUMN {column} {definition}")
+    conn.execute("UPDATE users SET is_admin = 1 WHERE role = 'admin'")
+    conn.execute("UPDATE users SET is_disabled = 1 WHERE active = 0")
+    conn.execute("UPDATE users SET role = 'admin' WHERE is_admin = 1")
+    conn.execute("UPDATE users SET updated_at = created_at WHERE updated_at = ''")
+    conn.execute("UPDATE users SET verified_at = COALESCE(verified_at, created_at)")
+
+
 def users_exist() -> bool:
     with connect() as conn:
         return bool(conn.execute("SELECT 1 FROM users LIMIT 1").fetchone())
 
 
-def ensure_setup_token() -> str:
-    SETUP_TOKEN_PATH.parent.mkdir(parents=True, exist_ok=True)
-    if SETUP_TOKEN_PATH.exists():
-        return SETUP_TOKEN_PATH.read_text(encoding="utf-8").strip()
-    token = secrets.token_urlsafe(32)
-    SETUP_TOKEN_PATH.write_text(f"{token}\n", encoding="utf-8")
-    SETUP_TOKEN_PATH.chmod(0o600)
-    return token
-
-
-def verify_setup_token(token: str) -> bool:
-    expected = ensure_setup_token()
-    return hmac.compare_digest((token or "").strip(), expected)
-
-
-def consume_setup_token() -> None:
-    try:
-        SETUP_TOKEN_PATH.unlink()
-    except FileNotFoundError:
-        pass
+def consume_admin_login_token(token: str) -> int | None:
+    token = token.strip()
+    if not token:
+        return None
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    now = iso(utc_now())
+    with connect() as conn:
+        row = conn.execute(
+            """
+            SELECT admin_login_tokens.id, admin_login_tokens.user_id
+            FROM admin_login_tokens
+            JOIN users ON users.id = admin_login_tokens.user_id
+            WHERE admin_login_tokens.token_hash = ?
+              AND admin_login_tokens.expires_at > ?
+              AND admin_login_tokens.used_at IS NULL
+              AND users.is_admin = 1
+              AND users.is_disabled = 0
+              AND users.status = 'verified'
+            """,
+            (token_hash, now),
+        ).fetchone()
+        if not row:
+            return None
+        conn.execute("UPDATE admin_login_tokens SET used_at = ? WHERE id = ?", (now, row["id"]))
+        return int(row["user_id"])
 
 
 def authenticate(email: str, password: str) -> dict | None:
@@ -173,7 +248,10 @@ def authenticate(email: str, password: str) -> dict | None:
         row = conn.execute(
             """
             SELECT * FROM users
-            WHERE active = 1 AND email = ? COLLATE NOCASE
+            WHERE active = 1
+              AND is_disabled = 0
+              AND status = 'verified'
+              AND email = ? COLLATE NOCASE
             """,
             (login,),
         ).fetchone()
@@ -215,6 +293,8 @@ def user_for_session(token: str | None) -> dict | None:
             FROM sessions
             JOIN users ON users.id = sessions.user_id
             WHERE sessions.token = ? AND sessions.expires_at > ? AND users.active = 1
+              AND users.is_disabled = 0
+              AND users.status = 'verified'
             """,
             (token, now),
         ).fetchone()
@@ -272,14 +352,17 @@ def create_user(data: dict, client_ids: list[str]) -> int:
         cursor = conn.execute(
             """
             INSERT INTO users
-                (email, role, active, password_hash, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?)
+                (email, role, active, password_hash, status, is_admin, is_disabled, force_password_reset, verified_at, created_at, updated_at)
+            VALUES (?, ?, ?, ?, 'verified', ?, ?, 0, ?, ?, ?)
             """,
             (
                 data["email"].strip(),
                 role,
                 1 if data.get("active", True) else 0,
                 hash_password(data["password"]),
+                1 if role == "admin" else 0,
+                0 if data.get("active", True) else 1,
+                now,
                 now,
                 now,
             ),
@@ -295,23 +378,34 @@ def update_user(user_id: int, data: dict, client_ids: list[str]) -> None:
     role = normalize_role(data.get("role"))
     sql = """
         UPDATE users
-        SET email = ?, role = ?, active = ?, updated_at = ?
+        SET email = ?, role = ?, active = ?, is_admin = ?, is_disabled = ?, updated_at = ?
         WHERE id = ?
     """
     params: list = [
         data["email"].strip(),
         role,
         1 if data.get("active", True) else 0,
+        1 if role == "admin" else 0,
+        0 if data.get("active", True) else 1,
         now,
         user_id,
     ]
     if data.get("password"):
         sql = """
             UPDATE users
-            SET email = ?, role = ?, active = ?, updated_at = ?, password_hash = ?
+            SET email = ?, role = ?, active = ?, is_admin = ?, is_disabled = ?, updated_at = ?, password_hash = ?, force_password_reset = 0
             WHERE id = ?
         """
         params = params[:-1] + [hash_password(data["password"]), user_id]
     with connect() as conn:
         conn.execute(sql, tuple(params))
     set_user_clients(user_id, [] if role == "admin" else client_ids)
+
+
+def set_user_password(user_id: int, password: str) -> None:
+    now = iso(utc_now())
+    with connect() as conn:
+        conn.execute(
+            "UPDATE users SET password_hash = ?, force_password_reset = 0, updated_at = ? WHERE id = ?",
+            (hash_password(password), now, user_id),
+        )

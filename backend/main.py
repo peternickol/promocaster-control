@@ -20,12 +20,11 @@ from jinja2 import TemplateNotFound
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.auth import (
-    SETUP_TOKEN_PATH,
     ROLE_LABELS,
     SESSION_COOKIE,
     allowed_client_ids,
     authenticate,
-    consume_setup_token,
+    consume_admin_login_token,
     create_session,
     create_user,
     delete_session,
@@ -33,10 +32,9 @@ from backend.auth import (
     init_auth_db,
     list_users,
     set_user_clients,
+    set_user_password,
     update_user,
     user_for_session,
-    users_exist,
-    verify_setup_token,
 )
 from backend.control import (
     ASSETS_DIR,
@@ -132,6 +130,10 @@ def safe_next_path(next_path: str | None) -> str:
     if not next_path.startswith("/") or next_path.startswith("//"):
         return "/deck"
     return next_path
+
+
+def user_requires_password_reset(user: dict | None) -> bool:
+    return bool(user and user.get("force_password_reset"))
 
 
 def set_session_cookie(response: Response, token: str, expires) -> None:
@@ -642,7 +644,7 @@ async def require_authentication(request: Request, call_next):
     public = (
         path == "/"
         or path == "/login"
-        or path == "/setup"
+        or path == "/set-password"
         or path.startswith("/assets/")
         or path.startswith("/admin/assets/")
         or path == "/api/health"
@@ -652,6 +654,16 @@ async def require_authentication(request: Request, call_next):
         if path.startswith("/api/"):
             return api_error("not_authenticated", "Sign in required", 401)
         return login_redirect(request)
+    if (
+        request.state.user
+        and user_requires_password_reset(request.state.user)
+        and path not in {"/set-password", "/logout"}
+        and not path.startswith("/assets/")
+        and not path.startswith("/admin/assets/")
+    ):
+        if path.startswith("/api/"):
+            return api_error("password_reset_required", "Set a new password before continuing", 403)
+        return RedirectResponse(url="/set-password", status_code=303)
     return await call_next(request)
 
 
@@ -849,24 +861,22 @@ async def save_decks(
 
 
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
-def login(request: Request, next: str = "/deck", error: str = ""):
+def login(request: Request, next: str = "/deck", error: str = "", token: str = ""):
     next = safe_next_path(next)
-    if not users_exist():
-        return admin_templates.TemplateResponse(
-            "pages/auth-sign-in.html",
-            {
-                **admin_context(request, "Set Up"),
-                "setup_mode": True,
-                "next": next,
-                "login_error": error,
-                "setup_token_path": str(SETUP_TOKEN_PATH),
-            },
-        )
-    if request_user(request):
-        return RedirectResponse(url=next, status_code=303)
+    if token:
+        user_id = consume_admin_login_token(token)
+        if not user_id:
+            return RedirectResponse(url="/?error=invalid_token", status_code=303)
+        session_token, expires = create_session(user_id, remember=False)
+        response = RedirectResponse(url="/set-password", status_code=303)
+        set_session_cookie(response, session_token, expires)
+        return response
+    user = request_user(request)
+    if user:
+        return RedirectResponse(url="/set-password" if user_requires_password_reset(user) else next, status_code=303)
     return admin_templates.TemplateResponse(
         "pages/auth-sign-in.html",
-        {**admin_context(request, "Sign In"), "setup_mode": False, "next": next, "login_error": error},
+        {**admin_context(request, "Sign In"), "next": next, "login_error": error},
     )
 
 
@@ -882,42 +892,39 @@ def login_submit(
     if not user:
         return RedirectResponse(url=f"/?error=invalid&next={quote(safe_next_path(next), safe='/?=&')}", status_code=303)
     token, expires = create_session(user["id"], remember=bool(remember))
-    response = RedirectResponse(url=safe_next_path(next), status_code=303)
+    response = RedirectResponse(url="/set-password" if user_requires_password_reset(user) else safe_next_path(next), status_code=303)
     set_session_cookie(response, token, expires)
     return response
 
 
-@app.post("/setup", response_class=RedirectResponse)
-def setup_submit(
+@app.api_route("/set-password", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def set_password(request: Request, error: str = ""):
+    user = require_user(request)
+    return admin_templates.TemplateResponse(
+        "pages/set-password.html",
+        {**admin_context(request, "Set Password"), "login_error": error, "current_user": user},
+    )
+
+
+@app.post("/set-password", response_class=HTMLResponse)
+def set_password_submit(
     request: Request,
-    setup_token: str = Form(default=""),
-    email: str = Form(default=""),
     password: str = Form(default=""),
     confirm_password: str = Form(default=""),
-) -> RedirectResponse:
-    if users_exist():
-        return RedirectResponse(url="/", status_code=303)
-    if (
-        not verify_setup_token(setup_token)
-        or not email.strip()
-        or not password
-        or password != confirm_password
-    ):
-        return RedirectResponse(url="/?error=setup", status_code=303)
-    user_id = create_user(
-        {
-            "email": email,
-            "role": "admin",
-            "active": True,
-            "password": password,
-        },
-        [],
-    )
-    consume_setup_token()
-    token, expires = create_session(user_id, remember=False)
-    response = RedirectResponse(url="/deck", status_code=303)
-    set_session_cookie(response, token, expires)
-    return response
+):
+    user = require_user(request)
+    if not password or password != confirm_password:
+        return admin_templates.TemplateResponse(
+            "pages/set-password.html",
+            {
+                **admin_context(request, "Set Password"),
+                "login_error": "password",
+                "current_user": user,
+            },
+            status_code=400,
+        )
+    set_user_password(int(user["id"]), password)
+    return RedirectResponse(url="/deck", status_code=303)
 
 
 @app.api_route("/logout", methods=["GET", "POST"], response_class=RedirectResponse)

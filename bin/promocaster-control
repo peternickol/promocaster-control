@@ -46,7 +46,6 @@ REPOS_DIR = Path(setting("PROMOCASTER_CONTROL_REPOS_DIR", DATA_DIR / "client"))
 UPLOADS_DIR = Path(setting("PROMOCASTER_CONTROL_UPLOADS_DIR", DATA_DIR / "uploads"))
 SYNC_DIR = Path(setting("PROMOCASTER_CONTROL_SYNC_DIR", DATA_DIR / "sync"))
 AUTH_DB_PATH = Path(setting("PROMOCASTER_CONTROL_AUTH_DB", DATA_DIR / "control.sqlite3"))
-SETUP_TOKEN_PATH = Path(setting("PROMOCASTER_CONTROL_SETUP_TOKEN_FILE", DATA_DIR / "setup-token"))
 CONTROL_GIT_CONFIG = Path(setting("PROMOCASTER_CONTROL_GIT_CONFIG", DATA_DIR / "gitconfig"))
 BUILD_DIR = Path(setting("PROMOCASTER_CONTROL_BUILD_DIR", "/tmp/promocaster-control-builds"))
 SERVICE_USER = setting("PROMOCASTER_CONTROL_SERVICE_USER", "dish-project")
@@ -63,7 +62,6 @@ ROOT_EXAMPLES = """examples:
   promocaster-control doctor
   promocaster-control client-repo list
   promocaster-control client-repo sync phgi
-  promocaster-control auth setup-token
   promocaster-control client-github-key show-public
 """
 
@@ -193,40 +191,6 @@ def secure_data_paths() -> None:
     except (LookupError, PermissionError):
         pass
     CONTROL_GIT_CONFIG.chmod(0o640)
-
-
-def auth_users_exist() -> bool:
-    if not AUTH_DB_PATH.exists():
-        return False
-    try:
-        with sqlite3.connect(AUTH_DB_PATH) as conn:
-            row = conn.execute("SELECT 1 FROM users LIMIT 1").fetchone()
-            return bool(row)
-    except sqlite3.Error:
-        return False
-
-
-def command_auth(args: argparse.Namespace) -> int:
-    if args.auth_command == "setup-token":
-        if auth_users_exist():
-            print_ok("Authentication is already initialized; at least one user exists.")
-            print(f"     database: {AUTH_DB_PATH}")
-            return 0
-        if not SETUP_TOKEN_PATH.exists():
-            print_warn("No setup token exists yet.")
-            print(f"     expected: {SETUP_TOKEN_PATH}")
-            print("hint: start or restart the Promocaster Control service, then open / once.")
-            return 1
-        token = SETUP_TOKEN_PATH.read_text(encoding="utf-8").strip()
-        if not token:
-            raise CommandError(f"setup token file is empty: {SETUP_TOKEN_PATH}")
-        print()
-        print("First Admin Setup Token")
-        print("=======================")
-        print(f"path: {SETUP_TOKEN_PATH}")
-        print(f"token: {token}")
-        return 0
-    raise CommandError("unknown auth command")
 
 
 def chown_tree(path: Path, user: str = SERVICE_USER, group: str = SERVICE_USER) -> None:
@@ -764,17 +728,6 @@ def main(argv: list[str] | None = None) -> int:
     client_key_sub.add_parser("edit", help="Open the client repo private key in nano or $EDITOR")
     client_key_sub.add_parser("show-public", help="Print the public key derived from the client repo private key")
     client_key_sub.add_parser("test", help="Test client repo SSH authentication to git@github.com")
-    auth = sub.add_parser(
-        "auth",
-        help="Inspect Promocaster Control authentication setup",
-        description="Inspect first-run authentication setup for Promocaster Control.",
-        epilog="""examples:
-  promocaster-control auth setup-token
-""",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    auth_sub = auth.add_subparsers(dest="auth_command", required=True)
-    auth_sub.add_parser("setup-token", help="Print the first-admin setup token if setup is still pending")
     runtime = sub.add_parser("runtime", help="Prepare runtime path ownership")
     runtime_sub = runtime.add_subparsers(dest="runtime_command", required=True)
     runtime_sub.add_parser("prepare", help="Create and repair runtime data directories")
@@ -819,16 +772,6 @@ def main(argv: list[str] | None = None) -> int:
             ],
         )
         return 2
-    if argv == ["auth"]:
-        print_missing_command_help(
-            auth,
-            [],
-            "No auth command provided.",
-            [
-                "use `promocaster-control auth setup-token` to print the first-admin setup token.",
-            ],
-        )
-        return 2
     if argv == ["runtime"]:
         print_missing_command_help(
             runtime,
@@ -856,8 +799,6 @@ def main(argv: list[str] | None = None) -> int:
             return print_checks(collect_checks())
         if args.command == "client-github-key":
             return command_client_github_key(args)
-        if args.command == "auth":
-            return command_auth(args)
         if args.command == "runtime":
             return command_runtime(args)
         if args.command == "client-repo":

@@ -14,7 +14,7 @@ from backend.control import DATA_DIR, init_clients_db, load_clients
 
 AUTH_DB_PATH = Path(
     os.environ.get("SITE_DATABASE_PATH")
-    or DATA_DIR / "control.sqlite3"
+    or DATA_DIR / "database.sqlite3"
 ).resolve()
 SESSION_COOKIE = "promocaster_session"
 ROLE_LABELS = {"admin": "Administrator", "editor": "Editor", "viewer": "Viewer"}

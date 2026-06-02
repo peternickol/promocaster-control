@@ -16,7 +16,7 @@ TEMPLATE_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_TEMPLATE_DIR", BASE_DIR 
 DATA_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_DATA_DIR", ".")).resolve()
 CONTROL_DB_PATH = Path(
     os.environ.get("SITE_DATABASE_PATH")
-    or DATA_DIR / "control.sqlite3"
+    or DATA_DIR / "database.sqlite3"
 ).resolve()
 REPOS_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_REPOS_DIR", DATA_DIR / "client")).resolve()
 SYNC_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_SYNC_DIR", DATA_DIR / "sync")).resolve()

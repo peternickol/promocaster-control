@@ -219,6 +219,7 @@ def users_exist() -> bool:
 
 
 def consume_admin_login_token(token: str) -> int | None:
+    init_auth_db()
     token = token.strip()
     if not token:
         return None
@@ -268,6 +269,7 @@ def authenticate(email: str, password: str) -> dict | None:
 
 
 def create_session(user_id: int, remember: bool = False) -> tuple[str, datetime]:
+    init_auth_db()
     token = secrets.token_urlsafe(32)
     expires = utc_now() + (timedelta(days=30) if remember else timedelta(hours=12))
     with connect() as conn:
@@ -288,6 +290,7 @@ def delete_session(token: str | None) -> None:
 def user_for_session(token: str | None) -> dict | None:
     if not token:
         return None
+    init_auth_db()
     now = iso(utc_now())
     with connect() as conn:
         row = conn.execute(

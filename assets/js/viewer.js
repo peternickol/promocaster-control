@@ -299,6 +299,44 @@
     if (payload) loadData(payload);
   });
 
+
+  function wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  async function pollRepoSync() {
+    for (let attempt = 0; attempt < 300; attempt += 1) {
+      const response = await fetch(`/api/clients/${encodeURIComponent(controlClient)}/sync/status`, { cache: "no-store" });
+      const status = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setAuditStatus(status.message || `Sync status failed (${response.status})`);
+        return false;
+      }
+      const state = status.state || "unknown";
+      setAuditStatus(status.message || `Repo sync ${state}`);
+      if (state === "ready") return true;
+      if (state === "error") return false;
+      await wait(3000);
+    }
+    setAuditStatus("Repo sync timed out");
+    return false;
+  }
+
+  async function startRepoSync() {
+    setAuditStatus("Starting repo sync");
+    const response = await fetch(`/api/clients/${encodeURIComponent(controlClient)}/sync`, {
+      method: "POST",
+      cache: "no-store",
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setAuditStatus(payload.message || `Sync failed (${response.status})`);
+      return false;
+    }
+    setAuditStatus(payload.message || "Repo sync started");
+    return pollRepoSync();
+  }
+
   async function loadRemoteDecks() {
     if (!controlClient) {
       setAuditStatus("No client selected");
@@ -308,7 +346,13 @@
     try {
       const response = await fetch(`/api/clients/${encodeURIComponent(controlClient)}/decks`, { cache: "no-store" });
       if (!response.ok) {
-        setAuditStatus(response.status === 409 ? "Repo not synced" : `Load failed (${response.status})`);
+        const payload = await response.json().catch(() => ({}));
+        if (response.status === 409 && payload.error === "repo_not_synced") {
+          const synced = await startRepoSync();
+          if (synced) return loadRemoteDecks();
+          return;
+        }
+        setAuditStatus(payload.message || `Load failed (${response.status})`);
         return;
       }
       loadData(await response.json());

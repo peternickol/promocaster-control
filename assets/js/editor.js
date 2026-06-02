@@ -590,6 +590,44 @@
     }
   }
 
+
+  function wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  async function pollRepoSync() {
+    for (let attempt = 0; attempt < 300; attempt += 1) {
+      const response = await fetch(`/api/clients/${encodeURIComponent(controlClient)}/sync/status`, { cache: "no-store" });
+      const status = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        saveStatus.textContent = status.message || `Sync status failed (${response.status})`;
+        return false;
+      }
+      const state = status.state || "unknown";
+      saveStatus.textContent = status.message || `Repo sync ${state}`;
+      if (state === "ready") return true;
+      if (state === "error") return false;
+      await wait(3000);
+    }
+    saveStatus.textContent = "Repo sync timed out";
+    return false;
+  }
+
+  async function startRepoSync() {
+    saveStatus.textContent = "Starting repo sync";
+    const response = await fetch(`/api/clients/${encodeURIComponent(controlClient)}/sync`, {
+      method: "POST",
+      cache: "no-store",
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      saveStatus.textContent = payload.message || `Sync failed (${response.status})`;
+      return false;
+    }
+    saveStatus.textContent = payload.message || "Repo sync started";
+    return pollRepoSync();
+  }
+
   async function loadRemoteDecks() {
     if (!controlClient) {
       saveStatus.textContent = "No client selected";
@@ -599,8 +637,13 @@
     try {
       const response = await fetch(`/api/clients/${encodeURIComponent(controlClient)}/decks`, { cache: "no-store" });
       if (!response.ok) {
-        const message = response.status === 409 ? "Repo not synced" : `Load failed (${response.status})`;
-        saveStatus.textContent = message;
+        const payload = await response.json().catch(() => ({}));
+        if (response.status === 409 && payload.error === "repo_not_synced") {
+          const synced = await startRepoSync();
+          if (synced) return loadRemoteDecks();
+          return;
+        }
+        saveStatus.textContent = payload.message || `Load failed (${response.status})`;
         return;
       }
       const payload = await response.json();

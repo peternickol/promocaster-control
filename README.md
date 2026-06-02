@@ -267,11 +267,14 @@ These can be adjusted with environment variables such as
 
 Initial repo sync must never make the UI look frozen. A first clone can take a
 while, so editor/viewer should show a progress state while Control clones
-or fetches the client repo. The intended API shape is:
+or fetches the client repo. The implemented API shape is:
 
 ```http
+POST /api/clients/phgi/sync
 GET /api/clients/phgi/sync/status
 ```
+
+`POST /api/clients/:client/sync` starts the existing `promocaster-control client-repo sync <client>` command in the background. If the repo has never been cloned, that command performs the initial clone. The editor/viewer starts sync when deck loading returns `repo_not_synced`, then polls `GET /api/clients/:client/sync/status` until the repo is ready.
 
 Example response while a first clone is running:
 
@@ -285,10 +288,9 @@ Example response while a first clone is running:
 }
 ```
 
-The FastAPI app exposes that status endpoint. The future repo sync worker should write status JSON to
-`/var/lib/dish/project/sync` as
-it clones/fetches, and the UI should poll until `state` becomes `ready` before
-loading decks.
+The FastAPI app exposes both endpoints. The sync command writes status JSON to
+`/var/lib/dish/project/sync` as it clones/fetches, and the UI polls until
+`state` becomes `ready` before loading decks.
 
 Operators can sync configured client repos from the command line:
 

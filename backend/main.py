@@ -7,7 +7,7 @@ import posixpath
 import re
 import sqlite3
 import subprocess
-from datetime import date
+from datetime import date, datetime, timezone
 from http import HTTPStatus
 from pathlib import Path
 from urllib.parse import quote, unquote
@@ -469,7 +469,7 @@ async def client_form_data(request: Request) -> dict:
     }
 
 
-def run_client_sync(client: str) -> subprocess.CompletedProcess[str]:
+def client_sync_command(client: str) -> tuple[list[str], dict[str, str], str]:
     command = [str(Path(__file__).resolve().parents[1] / "bin" / "promocaster-control"), "client-repo", "sync", client]
     env = {
         **os.environ,
@@ -479,7 +479,37 @@ def run_client_sync(client: str) -> subprocess.CompletedProcess[str]:
         "PROMOCASTER_CONTROL_CLIENT_GITHUB_KEY": str(CLIENT_GITHUB_KEY),
         "PROMOCASTER_CONTROL_GIT_CONFIG": str(CONTROL_GIT_CONFIG),
     }
-    return subprocess.run(command, check=False, capture_output=True, text=True, env=env, cwd=str(Path(__file__).resolve().parents[1]), timeout=900)
+    return command, env, str(Path(__file__).resolve().parents[1])
+
+
+def run_client_sync(client: str) -> subprocess.CompletedProcess[str]:
+    command, env, cwd = client_sync_command(client)
+    return subprocess.run(command, check=False, capture_output=True, text=True, env=env, cwd=cwd, timeout=900)
+
+
+def write_sync_status(client: str, state: str, message: str, **extra) -> dict:
+    SYNC_DIR.mkdir(parents=True, exist_ok=True)
+    status = {
+        "client": client,
+        "state": state,
+        "message": message,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        **extra,
+    }
+    (SYNC_DIR / f"{client}.json").write_text(json.dumps(status, indent=2), encoding="utf-8")
+    return status
+
+
+def start_client_sync(client: str) -> dict:
+    status = read_sync_status(client)
+    if status.get("state") in {"syncing", "fetching", "resetting", "cloning"}:
+        return status
+    if not CLIENT_GITHUB_KEY.exists():
+        raise RuntimeError(f"missing client GitHub key: {CLIENT_GITHUB_KEY}")
+    command, env, cwd = client_sync_command(client)
+    status = write_sync_status(client, "syncing", "starting repo sync", repo_path=str(repo_path(client)), branch=client_branch(client))
+    subprocess.Popen(command, cwd=cwd, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    return status
 
 
 async def user_form_data(request: Request, *, require_password: bool) -> tuple[dict, list[str], str]:
@@ -682,6 +712,19 @@ def api_me(request: Request) -> dict:
 def sync_status(request: Request, client: str) -> dict:
     ensure_client_access(request, client)
     return read_sync_status(client)
+
+
+@app.post("/api/clients/{client}/sync")
+def sync_start(request: Request, client: str):
+    ensure_client_access(request, client)
+    if client not in load_clients():
+        return api_error("unknown_client", f"Unknown client: {client}", 404)
+    try:
+        return start_client_sync(client)
+    except RuntimeError as exc:
+        return api_error("sync_unavailable", str(exc), 409)
+    except OSError as exc:
+        return api_error("sync_start_failed", str(exc), 500)
 
 
 @app.get("/api/clients/{client}/decks")

@@ -11,8 +11,19 @@ from urllib.parse import quote
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-ASSETS_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_ASSETS_DIR", BASE_DIR / "assets")).resolve()
-TEMPLATE_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_TEMPLATE_DIR", BASE_DIR / "backend" / "templates")).resolve()
+SOURCE_ROOT = Path(os.environ.get("PROMOCASTER_CONTROL_SOURCE_ROOT", BASE_DIR)).resolve()
+
+
+def app_path(env_name: str, default: Path, source_fallback: Path) -> Path:
+    configured = os.environ.get(env_name)
+    path = Path(configured).resolve() if configured else default.resolve()
+    if configured and not path.exists() and source_fallback.exists():
+        return source_fallback.resolve()
+    return path
+
+
+ASSETS_DIR = app_path("PROMOCASTER_CONTROL_ASSETS_DIR", BASE_DIR / "assets", SOURCE_ROOT / "assets")
+TEMPLATE_DIR = app_path("PROMOCASTER_CONTROL_TEMPLATE_DIR", BASE_DIR / "backend" / "templates", SOURCE_ROOT / "backend" / "templates")
 DATA_DIR = Path(os.environ.get("PROMOCASTER_CONTROL_DATA_DIR", ".")).resolve()
 CONTROL_DB_PATH = Path(
     os.environ.get("SITE_DATABASE_PATH")

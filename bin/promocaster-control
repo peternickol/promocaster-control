@@ -60,9 +60,8 @@ BUILD_WARN_BYTES = int(os.environ.get("PROMOCASTER_CONTROL_BUILD_WARN_GB", "5"))
 
 ROOT_EXAMPLES = """examples:
   promocaster-control doctor
-  promocaster-control client-repo list
-  promocaster-control client-repo sync phgi
   promocaster-control client-github-key show-public
+  promocaster-control client-github-key test
 """
 
 
@@ -527,7 +526,7 @@ def collect_checks() -> list[Check]:
             checks.append(Check("Storage", f"repo {repo_path.name}", "warn" if repo_size > REPO_SIZE_WARN_BYTES else "ok", format_bytes(repo_size), "large media repo; make sure VPS disk sizing accounts for this client" if repo_size > REPO_SIZE_WARN_BYTES else None))
             if (repo_path / ".git").exists():
                 safe = str(repo_path.resolve()) in git_safe_directories()
-                checks.append(Check("Storage", f"repo {repo_path.name} git safe", "ok" if safe else "fail", str(repo_path), None if safe else f"run promocaster-control client-repo sync {repo_path.name}"))
+                checks.append(Check("Storage", f"repo {repo_path.name} git safe", "ok" if safe else "fail", str(repo_path), None if safe else "resync the repository from the admin UI or recovery CLI"))
     uploads_size = directory_size(UPLOADS_DIR)
     checks.append(Check("Storage", "upload staging", "warn" if uploads_size > UPLOADS_WARN_BYTES else "ok", format_bytes(uploads_size), "stale staged uploads should be cleaned up" if uploads_size > UPLOADS_WARN_BYTES else None))
     build_size = directory_size(BUILD_DIR)
@@ -613,7 +612,7 @@ def command_client_repo(args: argparse.Namespace) -> int:
         print(f"checkout: {repo_path}")
         if not repo_path.exists():
             print("state: missing")
-            print(f"hint: run promocaster-control client-repo sync {args.client}")
+            print("hint: resync the repository from the admin UI")
             return 1
         if not (repo_path / ".git").exists():
             raise CommandError(f"checkout path exists but is not a git repo: {repo_path}")
@@ -650,7 +649,7 @@ def command_client_repo(args: argparse.Namespace) -> int:
             print(f"sync status: {status_path}")
         if in_sync:
             return 0
-        print(f"hint: run promocaster-control client-repo sync {args.client} after resolving any local changes")
+        print("hint: resync the repository from the admin UI after resolving any local changes")
         return 1
 
     if args.client_command == "sync":
@@ -705,7 +704,7 @@ def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
     parser = argparse.ArgumentParser(
         prog="promocaster-control",
-        description="Manage Promocaster Control runtime checks, client GitHub keys, and client repos.",
+        description="Manage Promocaster Control runtime checks and client GitHub keys.",
         epilog=ROOT_EXAMPLES,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -733,8 +732,8 @@ def main(argv: list[str] | None = None) -> int:
     runtime_sub.add_parser("prepare", help="Create and repair runtime data directories")
     client_repo = sub.add_parser(
         "client-repo",
-        help="Sync and inspect configured client repos",
-        description="List, sync, and inspect the client content repos configured in the control database.",
+        help="Recovery tools for configured client repos",
+        description="Inspect or recover client content repo checkouts. Normal sync/resync happens in the admin UI.",
         epilog="""examples:
   promocaster-control client-repo list
   promocaster-control client-repo status phgi
@@ -756,8 +755,8 @@ def main(argv: list[str] | None = None) -> int:
         "No command provided.",
         [
             "start with `promocaster-control doctor` to check the install.",
-            "use `promocaster-control client-repo list` to see configured clients.",
-            "add clients from the admin UI.",
+            "use the admin UI to add clients and sync repositories.",
+            "use `promocaster-control client-github-key show-public` for repo key setup.",
         ],
     ):
         return 2

@@ -595,7 +595,7 @@ def ensure_save_preconditions(repo_path, branch):
     if local == remote:
         return
     if local == base:
-        raise RuntimeError(f"repo checkout is behind origin/{branch}; run client-repo sync before saving")
+        raise RuntimeError(f"repo checkout is behind origin/{branch}; resync the repository before saving")
     if remote == base:
         raise RuntimeError(f"repo checkout is ahead of origin/{branch}; push or inspect it before saving")
     raise RuntimeError(f"repo checkout has diverged from origin/{branch}; inspect it before saving")

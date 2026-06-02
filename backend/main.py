@@ -733,7 +733,7 @@ def get_decks(request: Request, client: str):
     path = repo_path(client)
     media_yml = path / "_data" / "media.yml"
     if not path.exists():
-        return api_error("repo_not_synced", f"run promocaster-control client-repo sync {client}", 409)
+        return api_error("repo_not_synced", "Repository is not synced yet. Starting sync from the UI.", 409)
     if not media_yml.exists():
         return api_error("missing_media_yml", f"{media_yml} was not found", 404)
     try:
@@ -808,7 +808,7 @@ async def save_decks(
         branch = client_branch(client)
         media_yml = path / "_data" / "media.yml"
         if not path.exists():
-            return api_error("repo_not_synced", f"run promocaster-control client-repo sync {client}", 409)
+            return api_error("repo_not_synced", "Repository is not synced yet. Starting sync from the UI.", 409)
         if not media_yml.exists():
             return api_error("missing_media_yml", f"{media_yml} was not found", 404)
 

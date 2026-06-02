@@ -207,25 +207,25 @@ unreferenced media files, commit, and push.
 
 ### Operator Commands
 
-Promocaster Control's operator command is only for app-specific checks, its
-client GitHub key, and client/content repo syncs.
+Promocaster Control's operator command is for app-specific checks and
+server-side key management. Secrets and deploy keys stay on SSH/CLI; client
+registry and repository sync/resync are normal admin UI operations.
 
 ```sh
 promocaster-control doctor
-promocaster-control client-repo list
-promocaster-control client-repo sync phgi
-promocaster-control client-repo status phgi
+promocaster-control client-github-key generate
+promocaster-control client-github-key show-public
+promocaster-control client-github-key test
 ```
 
 This repo's `dish.yml` presents the project host shortname, app service
 command, operator command link, Caddy reverse-proxy route, and blank firewall
 allow list as data. Dish installs those generically; it does not carry
 Promocaster-specific server logic. Promocaster authentication and
-client/location authorization stay in the Promocaster app.
-`promocaster-control client-repo sync <client>` is intentionally separate: it
-refreshes a client/content repo under
-`/var/lib/dish/project/client`, not the Promocaster Control app under
-`/root/project`.
+client/location authorization stay in the Promocaster app. Client repositories
+are added, synced, and resynced from the admin UI. The CLI still contains a
+client-repo recovery path for cases where the UI or API is unavailable, but it
+is not the normal operating surface.
 
 Promocaster Control is currently file/repo-backed. If it later needs a database,
 the database engine and schema file should be declared in this repo's
@@ -274,7 +274,7 @@ POST /api/clients/phgi/sync
 GET /api/clients/phgi/sync/status
 ```
 
-`POST /api/clients/:client/sync` starts the existing `promocaster-control client-repo sync <client>` command in the background. If the repo has never been cloned, that command performs the initial clone. The editor/viewer starts sync when deck loading returns `repo_not_synced`, then polls `GET /api/clients/:client/sync/status` until the repo is ready.
+`POST /api/clients/:client/sync` starts repository sync in the background. If the repo has never been cloned, sync performs the initial clone. The editor/viewer starts sync when deck loading returns `repo_not_synced`, then polls `GET /api/clients/:client/sync/status` until the repo is ready.
 
 Example response while a first clone is running:
 
@@ -292,24 +292,12 @@ The FastAPI app exposes both endpoints. The sync command writes status JSON to
 `/var/lib/dish/project/sync` as it clones/fetches, and the UI polls until
 `state` becomes `ready` before loading decks.
 
-Operators can sync configured client repos from the command line:
-
-```sh
-promocaster-control client-repo list
-promocaster-control client-repo sync phgi
-promocaster-control client-repo status phgi
-```
-
-Clients are added and edited from the admin UI. The operator CLI intentionally
-does not mutate the client registry.
-`client-repo sync <client>` reads the client registry from SQLite, uses the client GitHub key,
-clones or fetches into a directory named after the Git repo, writes progress
-state to `/var/lib/dish/project/sync/<client>.json`, and leaves the
-checkout at the configured branch. It also repairs ownership of the checkout for
-the `promocaster-control` service user and adds the checkout to Control's Git
-`safe.directory` list in `/var/lib/dish/project/gitconfig`.
-`client-repo status <client>` fetches origin and reports whether the local
-checkout is clean and matches the remote branch.
+Clients are added and edited from the admin UI. The admin UI starts repository
+sync/resync and displays progress from `/var/lib/dish/project/sync/<client>.json`.
+The operator CLI intentionally does not mutate the client registry. The
+`client-repo` CLI subcommands are recovery tools for SSH-only debugging when the
+UI or API is unavailable; they use the same client registry and client GitHub
+key as the UI sync path.
 For PHGI, that means:
 
 ```text
@@ -320,14 +308,14 @@ For PHGI, that means:
 
 First sync can take a while for large media repos.
 
-If Git reports `detected dubious ownership` for a cached client repo, run:
+If Git reports `detected dubious ownership` for a cached client repo and the UI
+cannot resync it, use the recovery CLI:
 
 ```sh
 promocaster-control client-repo sync phgi
 ```
 
-`promocaster-control client-repo sync <client>` also repairs ownership and marks
-the client checkout safe.
+That recovery command also repairs ownership and marks the client checkout safe.
 
 ### Client GitHub Key
 

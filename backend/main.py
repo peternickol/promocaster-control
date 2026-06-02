@@ -66,7 +66,7 @@ from backend.control import (
 
 
 app = FastAPI(title="Promocaster Control")
-SECURE_COOKIES = os.environ.get("PROMOCASTER_CONTROL_SECURE_COOKIES", "1").strip().lower() not in {"0", "false", "no"}
+SECURE_COOKIES = os.environ.get("SITE_SECURE_COOKIES", "1").strip().lower() not in {"0", "false", "no"}
 app.mount("/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
 ADMIN_ASSETS_DIR = ASSETS_DIR / "admin"
 ADMIN_TEMPLATE_DIR = TEMPLATE_DIR / "admin"

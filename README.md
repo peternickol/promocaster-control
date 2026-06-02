@@ -177,27 +177,13 @@ Run the FastAPI app with a synced repo path when testing real data:
 uvicorn backend.main:app --host 127.0.0.1 --port 8080 --reload
 ```
 
-## Debian VPS Setup
+## Dish Compatibility
 
-Dish is the intended Debian server component. A server should install
-Dish, clone this repo to `/root/project`, and let Dish read this
-repo's `dish.yml` to build/publish/refresh the control app.
-
-```sh
-dish project clone git@github.com:peternickol/promocaster-control.git
-dish build
-```
-
-Dish-style runtime layout:
-
-```text
-/root/project                 source checkout used by Dish
-/root/project/dish.yml
-/srv/dish/project/current
-/var/lib/dish/project
-/var/lib/dish/project/client
-/var/lib/dish/status/status.json
-```
+Promocaster Control is a Dish-compatible FastAPI project. This repo's
+`dish.yml` declares the app service command, app-specific operator command
+link, Caddy route, required packages, and Promocaster-specific runtime
+environment. Dish documentation owns platform command usage, server operations,
+deployment flow, and runtime paths.
 
 Promocaster Control runs as the unprivileged `dish-project` service user.
 Dish performs host operations as root, but the app only writes under
@@ -210,121 +196,34 @@ The FastAPI app serves `backend/templates/`, exposes static files from
 processes media uploads, and can save deck edits back to the client repo. Full
 Jekyll validation is still pending.
 
-### Test Box Preflight
-
-Before standing up a Debian test box, confirm:
-
-- `control.promocaster.io` has an `A` record pointing at the VPS.
-- Public TCP ports `80` and `443` reach the VPS.
-- Dish is installed on the VPS.
-- Dish's deploy key public half has read access to this repo, unless the
-  first clone is being done with a separate operator SSH key.
-- The repo is cloned at `/root/project`.
-- The VPS has enough disk for large client repos. For testing, keep at least
-  `40-60 GB` free under `/var/lib/dish/project`.
-- After install, Promocaster Control needs its own client GitHub key with write
-  access to `promocaster.phgi`.
-
-Initial install flow:
-
-```sh
-cd /root
-git clone git@github.com:peternickol/dish.git /root/dish
-cd /root/dish
-bash install-debian.sh
-dish build
-promocaster-control client-github-key generate
-promocaster-control client-github-key show-public
-promocaster-control client-github-key test
-promocaster-control client-repo sync phgi
-site admin-token generate admin@example.com
-promocaster-control doctor
-```
-
-During `bash install-debian.sh`, Dish generates its deploy key, prints the
-public key to add to the Promocaster Control GitHub repo, then asks for the
-project repo URL. Enter:
-
-```text
-git@github.com:peternickol/promocaster-control.git
-```
-
-Run `dish build` before any `promocaster-control ...` command. The global
-`promocaster-control` command is installed by Dish from this repo's
-`components.bin` declaration and does not exist until the project has been
-published.
-
-After the service starts for the first time, create the first admin login URL
-from SSH with the Dish-bundled `site` command:
-
-```sh
-site admin-token generate admin@example.com
-```
-
-Open the printed login URL, then create the account password when prompted.
-Promocaster Control does not use a setup-token file; generic admin access,
-emergency user recovery, and server-owned secrets belong to `site`.
-
-The first test deployment should prove:
-
-- Dish can install the Debian host component
-- Dish can build and publish this repo from `dish.yml`
-- Dish's one-minute refresh timer can pull and rebuild repo updates
-- client GitHub SSH authentication
-- `doctor` diagnostics
+Promocaster Control has its own client GitHub key with write access to managed
+client/content repos. That key is app-specific and is managed by the
+`promocaster-control` operator command after the project has been deployed.
 
 Current limitation: Jekyll validation is not yet implemented. The existing save
 path covers order, duration, start date, expiration date, new media upload,
 image normalization to 1080p, removal from `_data/media.yml`, deletion of
 unreferenced media files, commit, and push.
 
-### Maintenance Commands
+### Operator Commands
 
-Dish owns app install, build, refresh, update, and Dish/project GitHub key
-management. Promocaster Control's operator command is only for app-specific
-checks, its client GitHub key, and client/content repo syncs.
-
-Dish's README is the point of truth for Dish install, manifest, refresh,
-status, and fleet behavior. Keep Promocaster Control documentation focused on
-what this hosted app owns.
+Promocaster Control's operator command is only for app-specific checks, its
+client GitHub key, and client/content repo syncs.
 
 ```sh
 promocaster-control doctor
 promocaster-control client-repo list
 promocaster-control client-repo sync phgi
 promocaster-control client-repo status phgi
-site status
-site admin-token generate admin@example.com
-site user list
 ```
 
-Use Dish for build and update work:
-
-```sh
-dish build
-dish refresh
-dish update
-```
-
-`dish refresh` pulls the app repo, rebuilds/publishes it, installs missing
-packages declared in this repo's `dish.yml`, restarts the declared services,
-and then runs any project-specific commands listed under `refresh.commands`.
-
-This repo's `dish.yml` presents the project host shortname, generated
-service, rendered environment, operator command link, simple Caddy reverse-proxy
-route, and blank firewall allow list as data. Dish installs those
-generically; it does not carry Promocaster-specific server logic.
-Promocaster authentication and client/location authorization stay in the
-Promocaster app. Temporary Caddy access gates, if needed, should be represented
-as generic `components.caddy.directives` in `dish.yml`.
-Promocaster Control does not expose extra ports; app traffic stays on
-`127.0.0.1:8080` behind Caddy, so `components.firewall.allow` remains blank.
-
-Promocaster Control declares `promocaster-control.service` under
-`components.service` and leaves `refresh.commands` blank. Its app deployment
-has no extra post-refresh step beyond Dish's build, publish, component
-install, and service restart. `promocaster-control client-repo sync <client>`
-is intentionally separate: it refreshes a client/content repo under
+This repo's `dish.yml` presents the project host shortname, app service
+command, operator command link, Caddy reverse-proxy route, and blank firewall
+allow list as data. Dish installs those generically; it does not carry
+Promocaster-specific server logic. Promocaster authentication and
+client/location authorization stay in the Promocaster app.
+`promocaster-control client-repo sync <client>` is intentionally separate: it
+refreshes a client/content repo under
 `/var/lib/dish/project/client`, not the Promocaster Control app under
 `/root/project`.
 
@@ -333,7 +232,7 @@ the database engine and schema file should be declared in this repo's
 `dish.yml` under `database` so Dish can build and refresh it from
 project-owned files.
 If that database becomes server-owned state, Dish's built-in database
-commands own backup, export, restore, and clear.
+support owns backup, export, restore, and clean behavior.
 
 `promocaster-control doctor` checks runtime paths, storage pressure, client
 GitHub key health, and client repo status.
@@ -428,48 +327,11 @@ promocaster-control client-repo sync phgi
 `promocaster-control client-repo sync <client>` also repairs ownership and marks
 the client checkout safe.
 
-### GitHub Keys
+### Client GitHub Key
 
-There are three GitHub keys in a full Promocaster Control install, with
-different owners.
-
-Dish manages its own deploy key for pulling the hosted project repo into
-`/root/project` and updating Dish itself from `/root/dish`:
-
-```text
-/var/lib/dish/ssh/deploy_key
-/var/lib/dish/ssh/deploy_key.pub
-```
-
-Manage it with:
-
-```sh
-dish github-key show-public
-dish github-key test
-dish github-key generate
-dish github-key edit
-```
-
-Dish manages the hosted project key for the Promocaster Control project
-lifecycle. That key belongs to Dish's project layer:
-
-```text
-/var/lib/dish/project/ssh/github_key
-/var/lib/dish/project/ssh/github_key.pub
-```
-
-Manage it with:
-
-```sh
-dish project github-key show-public
-dish project github-key test
-dish project github-key generate
-dish project github-key edit
-```
-
-Promocaster Control separately manages a client GitHub key. This key is
-project-specific and is used only for the downstream client repos listed in
-the control database:
+Promocaster Control manages a client GitHub key. This key is project-specific
+and is used only for the downstream client repos listed in the control
+database:
 
 ```text
 /var/lib/dish/project/ssh/client_github_key

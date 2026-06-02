@@ -22,16 +22,17 @@ build:
   - __DATA_DIR__/.venv/bin/python -m py_compile backend/main.py backend/control.py bin/promocaster-control
   - __DATA_DIR__/.venv/bin/python -c "import backend.main"
   - test -e __DATABASE_PATH__ || test ! -e __DATA_DIR__/control.sqlite3 || cp __DATA_DIR__/control.sqlite3 __DATABASE_PATH__
-  - PROMOCASTER_CONTROL_DATA_DIR=__DATA_DIR__ PROMOCASTER_CONTROL_AUTH_DB=__DATABASE_PATH__ PROMOCASTER_CONTROL_REPOS_DIR=__DATA_DIR__/client PROMOCASTER_CONTROL_UPLOADS_DIR=__CONTENT_DIR__/uploads PROMOCASTER_CONTROL_SYNC_DIR=__DATA_DIR__/sync PROMOCASTER_CONTROL_SSH_DIR=__DATA_DIR__/ssh PROMOCASTER_CONTROL_GIT_CONFIG=__DATA_DIR__/gitconfig PROMOCASTER_CONTROL_SERVICE_USER=__SERVICE_USER__ ./bin/promocaster-control runtime prepare
+  - PROMOCASTER_CONTROL_DATA_DIR=__DATA_DIR__ PROMOCASTER_CONTROL_REPOS_DIR=__DATA_DIR__/client PROMOCASTER_CONTROL_SYNC_DIR=__DATA_DIR__/sync PROMOCASTER_CONTROL_SSH_DIR=__DATA_DIR__/ssh PROMOCASTER_CONTROL_GIT_CONFIG=__DATA_DIR__/gitconfig PROMOCASTER_CONTROL_SERVICE_USER=__SERVICE_USER__ ./bin/promocaster-control runtime prepare
 components:
-  service_user: dish-project
-  service:
-    name: promocaster-control.service
-    description: Promocaster Control web service
+  project_service:
     command: __DATA_DIR__/.venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8080
-    working_directory: __APP_DIR__
-    restart: on-failure
-    restart_sec: 5
+  additional_service:
+    name:
+    description:
+    command:
+    working_directory:
+    restart:
+    restart_sec:
   env:
     PROMOCASTER_CONTROL_APP_DIR: __APP_DIR__
     PROMOCASTER_CONTROL_SOURCE_ROOT: __CHECKOUT__
@@ -39,22 +40,12 @@ components:
     PROMOCASTER_CONTROL_TEMPLATE_DIR: __APP_DIR__/backend/templates
     PROMOCASTER_CONTROL_DATA_DIR: __DATA_DIR__
     PROMOCASTER_CONTROL_REPOS_DIR: __DATA_DIR__/client
-    PROMOCASTER_CONTROL_UPLOADS_DIR: __CONTENT_DIR__/uploads
-    PROMOCASTER_CONTROL_CONTENT_DIR: __CONTENT_DIR__
-    PROMOCASTER_CONTROL_CONTENT_URL_PREFIX: __CONTENT_URL_PREFIX__
-    PROMOCASTER_CONTROL_CACHE_DIR: __CACHE_DIR__
     PROMOCASTER_CONTROL_SYNC_DIR: __DATA_DIR__/sync
     PROMOCASTER_CONTROL_SSH_DIR: __DATA_DIR__/ssh
-    PROMOCASTER_CONTROL_AUTH_DB: __DATABASE_PATH__
     PROMOCASTER_CONTROL_CLIENT_GITHUB_KEY: __DATA_DIR__/ssh/client_github_key
     PROMOCASTER_CONTROL_GIT_CONFIG: __DATA_DIR__/gitconfig
     PROMOCASTER_CONTROL_SERVICE_USER: __SERVICE_USER__
-    SITE_URL: https://control.promocaster.io
     SITE_ADMIN_LOGIN_PATH: /
-    SITE_DATABASE_PATH: __DATABASE_PATH__
-    SITE_CONTENT_DIR: __CONTENT_DIR__
-    SITE_UPLOAD_DIR: __CONTENT_DIR__/uploads
-    SITE_CACHE_DIR: __CACHE_DIR__
   bin:
     promocaster-control: __APP_DIR__/bin/promocaster-control
   caddy:

@@ -49,6 +49,7 @@ components:
     promocaster-control: __APP_DIR__/bin/promocaster-control
   caddy:
     site: control.promocaster.io
+    ssl: true
     reverse_proxy: 127.0.0.1:8080
     directives:
   firewall:

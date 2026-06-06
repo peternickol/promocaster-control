@@ -57,6 +57,12 @@ components:
     ssl: true
     acme_dns:
     acme_dns_token_env:
+    acme_dns_module:
+    acme_dns_propagation_delay:
+    acme_dns_propagation_timeout:
+    acme_dns_ttl:
+    acme_dns_resolvers:
+    acme_dns_challenge_override_domain:
     reverse_proxy: 127.0.0.1:8080
     directives:
   firewall:
